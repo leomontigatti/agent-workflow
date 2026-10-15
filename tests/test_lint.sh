@@ -3,6 +3,9 @@
 # Proves tests/lint_skills.py fails on each rule it enforces: for every case, a copy of the repo
 # gets one bad line, and the lint must exit 1 naming it.
 
+# The cases below write Markdown backticks literally, on purpose.
+# shellcheck disable=SC2016
+
 set -euo pipefail
 
 repo="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -34,5 +37,5 @@ expect_failure "broken anchor" skills/tdd/SKILL.md 'See [this](tests.md#no-such-
 expect_failure "upstream mention" skills/tdd/SKILL.md 'Taken from mattpocock/skills.' "mentions an upstream"
 expect_failure "former upstream" agents/reviewer.md 'Adapted from show-me.' "mentions an upstream: show-me"
 
-python3 -I "$repo/tests/lint_skills.py" >/dev/null && echo "ok   the repo itself passes" || { echo "FAIL the repo itself"; fail=1; }
+if python3 -I "$repo/tests/lint_skills.py" >/dev/null; then echo "ok   the repo itself passes"; else echo "FAIL the repo itself"; fail=1; fi
 exit "$fail"
