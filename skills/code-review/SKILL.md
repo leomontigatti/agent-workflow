@@ -63,7 +63,7 @@ Issue both sub-agent calls together, as [Spawning a reviewer](#spawning-a-review
 
 - The full diff command and commit list.
 - The list of standards-source files you found in step 3, **plus the smell baseline from step 3** pasted in full (the sub-agent has no other access to it).
-- The test rules: `~/.local/share/agent-workflow/skills/tdd/SKILL.md` (§ Anti-patterns, the "Name the bug first" rule, § Keeping the suite lean), on the list of standards sources.
+- The test rules: `~/.agents/workflow/skills/tdd/SKILL.md` (§ Anti-patterns, the "Name the bug first" rule, § Keeping the suite lean), on the list of standards sources.
 - The brief: "Report, per file/hunk where relevant, (a) every place the diff violates a documented standard: cite the standard (file + the rule); and (b) any baseline smell you spot: name it and quote the hunk. Check every new or changed test against the test rules: name the bug it catches, or report it as an anti-pattern (tautological, pass-through, restating text, implementation-coupled); report every new test-support file an existing fixture could have absorbed, and older tests the new ones make redundant. Distinguish hard violations from judgement calls: documented-standard breaches can be hard, but baseline smells are always judgement calls, and a documented repo standard overrides the baseline. Skip anything tooling enforces. Under 400 words."
 
 **Spec sub-agent prompt** should include:
@@ -83,14 +83,14 @@ End with a one-line summary: total findings per axis, and the worst issue _withi
 ## Spawning a reviewer
 
 Each review role runs on the model, effort and harness route that
-`~/.local/share/agent-workflow/agents/models.md` gives it; that table is the only place a model
+`~/.agents/workflow/agents/models.md` gives it; that table is the only place a model
 is named. On top of it:
 
 - **Claude Code in a T3 thread**: one `delegate_task` per Codex role, all in the message that
   spawns any `reviewer-opus` with the Agent tool. Each call takes the `target` from the table,
   `mode: "async"`, `role: "review"`, a `title` naming the axis and round, and a `clientRequestId`
   of `<issue>-<axis>-r<round>`, the same on a retry of that round. The task opens with "Before
-  anything else, read `~/.local/share/agent-workflow/agents/reviewer.md` and follow it." and
+  anything else, read `~/.agents/workflow/agents/reviewer.md` and follow it." and
   carries the brief. Each child shows in the T3 app under this thread; its report arrives as a
   notification, and `task_status` returns it as `summary`. Stop a stray one with `task_cancel`.
   A later round is a new `delegate_task` carrying the prior findings and your answers to them,

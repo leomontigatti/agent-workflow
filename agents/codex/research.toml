@@ -6,4 +6,4 @@ model = "gpt-6-luna"
 model_reasoning_effort = "medium"
 # Live web search: the default cached index can be stale.
 web_search = "live"
-developer_instructions = "Before anything else, read `~/.local/share/agent-workflow/agents/research.md` and follow it: it holds this agent's instructions."
+developer_instructions = "Before anything else, read `~/.agents/workflow/agents/research.md` and follow it: it holds this agent's instructions."

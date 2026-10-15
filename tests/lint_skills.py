@@ -23,7 +23,7 @@ import sys
 
 ROOT = os.path.normpath(os.path.join(os.path.dirname(os.path.realpath(__file__)), ".."))
 SHARED_DIRS = ["skills", "agents"]
-INSTALL_ROOT = "~/.local/share/agent-workflow/"
+INSTALL_ROOT = "~/.agents/workflow/"
 
 # Commands that only exist in some projects. In code they are matched at a command position; in
 # prose only the ones that are never an English word.

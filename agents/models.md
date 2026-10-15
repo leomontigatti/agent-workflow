@@ -41,4 +41,4 @@ and the wrappers together.
 Each role's instructions are one file here, read by every way the role runs:
 [`reviewer.md`](reviewer.md), [`research.md`](research.md), [`implementer.md`](implementer.md).
 A `delegate_task` child is told to read the brief at its installed path,
-`~/.local/share/agent-workflow/agents/<brief>.md`, before anything else.
+`~/.agents/workflow/agents/<brief>.md`, before anything else.

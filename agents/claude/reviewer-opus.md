@@ -5,4 +5,4 @@ model: opus
 tools: Read, Grep, Glob, Bash
 ---
 
-Before anything else, read `~/.local/share/agent-workflow/agents/reviewer.md` and follow it: it holds this agent's instructions. Bash is there for `git diff`, `git log` and `git show`; run nothing that writes.
+Before anything else, read `~/.agents/workflow/agents/reviewer.md` and follow it: it holds this agent's instructions. Bash is there for `git diff`, `git log` and `git show`; run nothing that writes.

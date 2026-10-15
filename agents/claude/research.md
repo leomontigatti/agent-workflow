@@ -5,4 +5,4 @@ model: sonnet
 tools: Read, Grep, Glob, Bash, Write, WebFetch, WebSearch
 ---
 
-Before anything else, read `~/.local/share/agent-workflow/agents/research.md` and follow it: it holds this agent's instructions.
+Before anything else, read `~/.agents/workflow/agents/research.md` and follow it: it holds this agent's instructions.

@@ -9,7 +9,6 @@ set -euo pipefail
 repo="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 HOME="$(mktemp -d)"
 export HOME
-unset CLAUDE_SKILLS_DIR CODEX_SKILLS_DIR
 trap 'rm -rf "$HOME"' EXIT
 fail=0
 ok() { echo "ok   $*"; }
@@ -23,7 +22,7 @@ if [ -d "$HOME/.claude/skills/handoff" ] && [ ! -L "$HOME/.claude/skills/handoff
 rm -rf "$HOME/.claude/skills/handoff"
 
 "$repo/install.sh" >/dev/null || bad "install exited non-zero"
-if [ "$(readlink "$HOME/.local/share/agent-workflow")" = "$repo" ]; then ok "install root linked"; else bad "install root linked"; fi
+if [ "$(readlink "$HOME/.agents/workflow")" = "$repo" ] && [ "$(readlink "$HOME/.claude/skills/tdd")" = "$HOME/.agents/skills/tdd" ]; then ok "install root linked"; else bad "install root linked"; fi
 for d in "$repo"/skills/*/; do
   n="$(basename "$d")"
   if [ ! -f "$HOME/.claude/skills/$n/SKILL.md" ] || [ ! -f "$HOME/.agents/skills/$n/SKILL.md" ]; then
@@ -42,7 +41,7 @@ if [ "$second" = "done" ]; then ok "second run changes nothing"; else bad "secon
 if "$repo/install.sh" --check >/dev/null; then ok "--check is clean after install"; else bad "--check is clean after install"; fi
 
 rm "$HOME/.agents/skills/tdd"
-ln -s "$HOME/.local/share/agent-workflow/skills/gone" "$HOME/.claude/skills/gone"
+ln -s "$HOME/.agents/skills/gone" "$HOME/.claude/skills/gone"
 out="$("$repo/install.sh" --check || true)"
 if grep -q "MISSING  $HOME/.agents/skills/tdd" <<<"$out"; then ok "--check reports a missing link"; else bad "--check reports a missing link"; fi
 if grep -q "STALE    $HOME/.claude/skills/gone" <<<"$out"; then ok "--check reports a stale link"; else bad "--check reports a stale link"; fi

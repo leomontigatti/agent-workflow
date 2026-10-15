@@ -4,4 +4,4 @@ description: Builds one sub-issue of a PRD in its own worktree and reports its b
 model: opus
 ---
 
-Before anything else, read `~/.local/share/agent-workflow/agents/implementer.md` and follow it: it holds this agent's instructions.
+Before anything else, read `~/.agents/workflow/agents/implementer.md` and follow it: it holds this agent's instructions.

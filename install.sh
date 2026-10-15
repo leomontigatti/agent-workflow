@@ -9,12 +9,13 @@
 #
 # What goes where:
 #
-#   ~/.local/share/agent-workflow   -> this repo: the stable path skills, briefs and wrappers
+#   ~/.agents/workflow              -> this repo: the stable path skills, briefs and wrappers
 #                                      name, whichever harness reads them
-#   ~/.claude/skills/<name>         -> skills/<name>    Claude Code's personal skills
-#   ~/.agents/skills/<name>         -> skills/<name>    Codex's user skills (its docs name
-#                                      $HOME/.agents/skills; ~/.codex/skills is the deprecated
-#                                      location, set CODEX_SKILLS_DIR to use it)
+#   ~/.agents/skills/<name>         -> ~/.agents/workflow/skills/<name>
+#                                      the one skills folder: Codex reads it directly
+#   ~/.claude/skills/<name>         -> ~/.agents/skills/<name>
+#                                      Claude Code reads only ~/.claude/skills, so each entry
+#                                      there is a link into ~/.agents/skills
 #   ~/.claude/agents/<name>.md      -> agents/claude/   Claude Code's user subagents
 #   ~/.codex/agents/<name>.toml     -> agents/codex/    Codex's personal agents
 #   ~/.claude/settings.json hooks   the hooks/ scripts, merged into its "hooks" block
@@ -26,9 +27,9 @@
 set -euo pipefail
 
 repo="$(cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")" && pwd)"
-root_link="$HOME/.local/share/agent-workflow"
-claude_skills="${CLAUDE_SKILLS_DIR:-$HOME/.claude/skills}"
-codex_skills="${CODEX_SKILLS_DIR:-$HOME/.agents/skills}"
+root_link="$HOME/.agents/workflow"
+agents_skills="$HOME/.agents/skills"
+claude_skills="$HOME/.claude/skills"
 claude_agents="$HOME/.claude/agents"
 codex_agents="$HOME/.codex/agents"
 claude_settings="$HOME/.claude/settings.json"
@@ -47,6 +48,11 @@ drifted() { drift=1; note "$*"; }
 
 command -v jq >/dev/null 2>&1 || { echo "install.sh needs jq" >&2; exit 1; }
 
+# ours <path>: whether a link target is one this script makes.
+ours() {
+  [[ "$1" == "$repo"/* || "$1" == "$root_link"/* || "$1" == "$agents_skills"/* ]]
+}
+
 # link <source> <target>: make <target> a symlink to <source>.
 link() {
   local src="$1" dst="$2"
@@ -54,7 +60,7 @@ link() {
     return
   fi
   if [ -e "$dst" ] || [ -L "$dst" ]; then
-    if [ -L "$dst" ] && [[ "$(readlink "$dst")" == "$repo"/* || "$(readlink "$dst")" == "$root_link"/* ]]; then
+    if [ -L "$dst" ] && ours "$(readlink "$dst")"; then
       if $check; then drifted "WRONG    $dst -> $(readlink "$dst") (want $src)"; return; fi
       ln -sfn "$src" "$dst"; note "relinked $dst"; return
     fi
@@ -74,7 +80,7 @@ prune() {
   for entry in "$dir"/* "$dir"/.[!.]*; do
     [ -L "$entry" ] || continue
     target="$(readlink "$entry")"
-    [[ "$target" == "$repo"/* || "$target" == "$root_link"/* ]] || continue
+    ours "$target" || continue
     [ -e "$entry" ] && continue
     if $check; then drifted "STALE    $entry -> $target"; continue; fi
     rm "$entry"; note "removed  $entry (stale)"
@@ -121,11 +127,11 @@ link "$repo" "$root_link"
 
 for dir in "$repo"/skills/*/; do
   name="$(basename "$dir")"
-  link "$root_link/skills/$name" "$claude_skills/$name"
-  link "$root_link/skills/$name" "$codex_skills/$name"
+  link "$root_link/skills/$name" "$agents_skills/$name"
+  link "$agents_skills/$name" "$claude_skills/$name"
 done
+prune "$agents_skills"
 prune "$claude_skills"
-prune "$codex_skills"
 
 for file in "$repo"/agents/claude/*.md; do
   link "$root_link/agents/claude/$(basename "$file")" "$claude_agents/$(basename "$file")"

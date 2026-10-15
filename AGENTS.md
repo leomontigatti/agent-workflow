@@ -19,7 +19,7 @@ moment it merges, so each change goes through a PR and nothing is committed to `
   them ([`decisions.md`](upstreams/decisions.md)). Upstream URLs live there and in `NOTICE`
   only.
 - [`install.sh`](install.sh): links all of it where Claude Code and Codex read it, through the
-  stable path `~/.local/share/agent-workflow`, which is how a skill or wrapper names a file here.
+  stable path `~/.agents/workflow`, which is how a skill or wrapper names a file here.
 
 ## Every change
 

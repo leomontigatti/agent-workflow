@@ -121,6 +121,15 @@ T3 source paths below are in pingdotgg/t3code.
 - **Breaks if:** T3 starts sessions with a settings or config home of its own, so the user-level
   hooks no longer load.
 
+### scheduled-upstream-review
+
+- **Relies on:** a T3 scheduled task (`schedule_task`, `fixed_time` on Mondays at 09:00,
+  `bindToCurrentThread: false`) starts a fresh thread on this repo's project each week, in its own
+  worktree from `main`, and runs the prompt that points at `skills/upstream-review/SKILL.md`.
+- **Used by:** `skills/upstream-review/SKILL.md` § Cadence
+- **Breaks if:** scheduled runs stop starting when no thread is open, stop getting a worktree of
+  their own, or the scheduler drops `fixed_time` tasks.
+
 ## Watching
 
 ### storage-cleanup-renamed-branches

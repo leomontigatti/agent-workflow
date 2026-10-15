@@ -9,13 +9,16 @@ TDD is the red → green loop. This skill is the reference that makes that loop 
 
 When exploring the codebase, read `GLOSSARY.md` so test names and interface vocabulary match the project's domain language, and respect ADRs in the area you're touching.
 
-For each `docs/agents/tdd-*.md` whose kind of code the change touches (`tdd-db.md` for code that reaches the database, `tdd-frontend.md` for state machines and multi-step UI flows, and so on), follow it too: it says how this stack runs a test at a seam, what the framework already proves, and where its fixtures live. The commands that run the tests are in `docs/agents/validation.md`.
+For each `docs/agents/tdd-*.md` whose kind of code the change touches (`tdd-db.md` for code that reaches the database, `tdd-frontend.md` for state machines and multi-step UI flows, and so on), follow it too: it holds this stack's facts only: how a test reaches a seam, what the framework already proves, and where fixtures live. The commands that run the tests are in `docs/agents/validation.md`.
 
 ## What a good test is
 
 Tests verify behavior through public interfaces, not implementation details. Code can change entirely; tests shouldn't. A good test reads like a specification: "user can checkout with valid cart" tells you exactly what capability exists, and it survives refactors because it doesn't care about internal structure.
 
 See [tests.md](tests.md) for examples and [mocking.md](mocking.md) for mocking guidelines.
+
+- **Leave proofs to the compiler and the framework.** A return shape the type checker enforces, a required field the schema rejects, an access rule the framework applies: none of these needs a test. Spend tests on what only runs can show: ordering, sums and rounding, the state after a change, conflicts, the edge cases of the domain rule.
+- **Pull logic out before testing it.** Complex state (a reducer, a state machine, a multi-step flow) moves into a plain module with no UI or I/O, tested there through its inputs and outputs; the component or handler that uses it stays thin and is wired last.
 
 ## Seams: where tests go
 

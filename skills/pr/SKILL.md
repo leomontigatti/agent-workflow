@@ -5,9 +5,11 @@ description: "Write a PR body. Use when opening a PR or rewriting its descriptio
 
 # PR body
 
-PRs are squash-merged: the title becomes the commit subject (its rule and the command that checks
-it are in `docs/agents/pull-requests.md`), and the issue is the record of why. The body is for the
-reviewer, who has the diff open. Write it in this template and stop:
+PRs are squash-merged: the title becomes the commit subject, and the issue is the record of why.
+The title is a Conventional Commit subject (`feat:`, `fix:`, `docs:`, `chore:`, `refactor:`,
+`test:`, with a scope when one module owns the change) in English; when
+`docs/agents/pull-requests.md` names a command that checks it, run it before `gh pr create`. The
+body is for the reviewer, who has the diff open. Write it in this template and stop:
 
 ```markdown
 <anything the reviewer must do or decide, first; omit when there is nothing>
@@ -99,8 +101,9 @@ Concrete evidence that the change works, as a before and after, captured as
 (**one-way**). It tells the reviewer how slowly to read. These are always one-way doors, however
 small the diff:
 
-- A migration that drops or rewrites data, a backfill that overwrites, or anything the previous
-  release cannot run against during a deploy.
+- A migration that drops or rewrites data: the contract step of an expand–contract change (the
+  old column, table or form removed once nothing uses it), a backfill that overwrites, or
+  anything the previous release cannot run against during a deploy. The expand step is two-way.
 - Anything that reaches outside the system: a message or an email sent, a document submitted to
   another party, a file someone downloads. A revert does not unsend it.
 - Production infrastructure: the hosting, DNS, secrets, a storage volume.
@@ -133,6 +136,22 @@ numbers that follow a closing keyword, and closing a parent does not close its s
 The session ticks each box when its slice lands on the branch, so the body is the progress record:
 a session that resumes the PR reads it there, not in the scrollback, and nothing is committed to
 the repository to track it.
+
+## Stacked PRs
+
+A change too big for one review ships as a stack: each layer a PR whose base is the layer below,
+the bottom one on the default branch. Link the chain, bottom to top, with the `gh stack`
+extension (`gh stack link <pr> <pr> ...`), so CI evaluates every layer as if it targeted the
+default branch and its checks count. Each layer's body is written as above, for that layer
+alone, with one line on top naming its place (`Layer 2 of 3, on #<n>`).
+
+- **Merge** a stack with `gh stack merge <stack> --squash`, bottom up, in one operation. It
+  refuses unless every layer is green and the stack is linear.
+- **Linearity** breaks when the base moves or a lower layer gets a commit after the layer above
+  branched. `gh stack rebase` and `gh stack push` restore it; the push force-pushes every rebased
+  branch, so it waits for the user's sign-off. Never merge a branch into a layer by hand: a merge
+  commit breaks linearity too.
+- **Deleting a branch** that another open PR uses as its base closes that PR: delete only a leaf.
 
 ## Example
 

@@ -146,10 +146,9 @@ moves while CI runs brings it back, so it can take more than one update.
   "resolving-merge-conflicts". Run the validation list, commit the merge, and push. A conflict
   inside an always-ask area of [triage.md](triage.md#the-three-verbs) is an **ask**: abort the
   merge with `git merge --abort` and go to step 5 as NEEDS YOU.
-- **`DIRTY`**, for a layer of a stack (`gh stack` manages it, or
-  `docs/agents/pull-requests.md` says how the project stacks): never merge the base into the
-  layer by hand. The fix is a stack rebase and push, which is a force-push the user signs off on
-  first, so go straight to step 5 as NEEDS YOU, naming the stack and the rebase to run.
+- **`DIRTY`**, for a layer of a stack: never merge the base into the layer by hand. The fix is
+  the stack rebase and push of the `pr` skill's § Stacked PRs, a force-push the user signs off
+  on first, so go straight to step 5 as NEEDS YOU, naming the stack and the rebase to run.
 
 A clean `update-branch` is not a round of fixes: it never counts toward the three. A conflict
 merge does, since resolving it is a change you made: if it was the third round, step 5 as NEEDS
