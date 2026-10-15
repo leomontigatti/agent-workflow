@@ -43,15 +43,18 @@ T3 source paths below are in pingdotgg/t3code.
 
 ### storage-cleanup-removes-thread-worktrees
 
-- **Relies on:** T3's storage cleanup is on (`storageCleanup` in T3's `settings.json`:
-  `worktreeOnMerge: true`, `worktreeOnDelete: true`, `worktreeKeepWhen: "uncommitted-changes"`).
-  It removes a worktree in its managed folder (`~/.t3/worktrees/<project>/`) once the thread's PR
-  merges or its last thread is deleted, keeps one with uncommitted changes, an open terminal or a
-  running thread, and reports why it kept each one under Settings → Storage → Last run. It keeps
-  the branch (`apps/server/src/storageCleanup.ts`; `docs/user/project-settings.md` § Storage
-  cleanup).
-- **Used by:** `skills/housekeeping/SKILL.md`; `skills/implement/THREADS.md` ("Leaving a
-  worktree behind is fine")
+- **Relies on:** T3's storage cleanup is on (`storageCleanup` in `~/.t3/userdata/settings.json`:
+  `worktreeOnMerge: true`, `worktreeOnDelete: true`; `worktreeKeepWhen` left at its default,
+  `uncommitted-changes`). Hourly, at startup and on a settings change, it removes a worktree in
+  its managed folder (`~/.t3/worktrees/<project>/`) once the thread's PR merges into the default
+  branch or its last thread is deleted (archived ones included), keeps one with uncommitted
+  changes, an open terminal, a running or queued thread or an open provider session, and reports
+  why it kept each one under Settings → Storage → Last run. It keeps the branch on purpose, runs
+  no script on removal, and has no MCP tool to trigger or read it
+  (`apps/server/src/storageCleanup.ts`; `packages/contracts/src/settings.ts`;
+  `docs/user/project-settings.md` § Storage cleanup).
+- **Used by:** `skills/housekeeping/SKILL.md` (its table, and step 1 reads the settings);
+  `skills/implement/THREADS.md` ("Leaving a worktree behind is fine")
 - **Breaks if:** the settings are reset or the rules turned off; `worktreeAfterDays` or
   `worktreeUnchanged` is turned on, since T3 then removes a live thread's worktree and recreates
   it on resume; T3 moves its managed folder, so `housekeeping` would take T3's worktrees for its
@@ -134,8 +137,8 @@ T3 source paths below are in pingdotgg/t3code.
 
 ### storage-cleanup-renamed-branches
 
-- **Workaround:** `housekeeping` names a T3 worktree whose branch was renamed under "Left to T3";
-  the user removes it, by hand or in T3. T3 keeps it even when its thread is deleted.
+- **Workaround:** `housekeeping` sweeps a T3 worktree whose branch was renamed, once its PR is
+  merged or closed and its tree is clean. T3 keeps it even when its thread is deleted.
 - **Used by:** `skills/housekeeping/SKILL.md` § 1
 - **Would improve if:** T3's merged-worktree cleanup removes a worktree whose branch was renamed
   after the thread started. Today it keeps one with "repository or branch changed"
@@ -145,12 +148,31 @@ T3 source paths below are in pingdotgg/t3code.
 
 ### storage-cleanup-archived-threads
 
-- **Workaround:** `housekeeping` names a T3 worktree of an archived thread under "Left to T3";
-  the user removes it, by hand or in T3.
+- **Workaround:** `housekeeping` sweeps an archived thread's worktree once its PR is merged or
+  closed and its tree is clean; deleting the thread also hands it to T3 (`worktreeOnDelete`).
 - **Used by:** `skills/housekeeping/SKILL.md` § 1
 - **Would improve if:** T3's storage cleanup sees archived threads' worktrees, so they are removed
   by the rules the user has set.
 - **Watch:** pingdotgg/t3code#17811 (open); fix PR pingdotgg/t3code#16473 (open)
+
+### storage-cleanup-stack-layers
+
+- **Workaround:** `housekeeping` sweeps a worktree whose PR merged into another PR's branch, since
+  T3 counts only merges into the default branch (`storageCleanupPullRequestMerged`).
+- **Used by:** `skills/housekeeping/SKILL.md` (the stack-layer row)
+- **Would improve if:** T3's merged-worktree cleanup accepts a PR merged into a stack parent.
+- **Watch:** pingdotgg/t3code#14758 (open)
+
+### worktree-remove-hook
+
+- **Workaround:** a project's per-worktree resources (a database) are swept by `housekeeping`
+  through `docs/agents/housekeeping.md`, because T3 runs no script when it removes a worktree:
+  `t3.json` has `runOnWorktreeCreate` and `runOnSettle`, and nothing on removal.
+- **Used by:** `skills/housekeeping/SKILL.md` (the resources row); `contract.md` (the
+  `housekeeping.md` row)
+- **Would improve if:** `t3.json` gains a script T3 runs in or for a worktree it is about to
+  remove; then each project moves its teardown there and the resources row moves to T3.
+- **Watch:** `packages/contracts/src/t3ProjectFile.ts`; no upstream issue found yet
 
 ### implementer-worktrees
 
