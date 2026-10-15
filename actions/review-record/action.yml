@@ -1,0 +1,16 @@
+name: review-record
+description: >-
+  Fails a pull request whose body does not record the review its tier needs (the `pr` skill's
+  `## Review`), or that gained a code commit after the reviewed one. The tier comes from the
+  changed paths and the project's docs/agents/review.md.
+runs:
+  using: composite
+  steps:
+    - name: Check the review record
+      shell: bash
+      env:
+        PR_BODY: ${{ github.event.pull_request.body }}
+        BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        PR_AUTHOR: ${{ github.event.pull_request.user.login }}
+      run: python3 -I "$GITHUB_ACTION_PATH/../../skills/implement/scripts/review.py" check

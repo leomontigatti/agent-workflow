@@ -195,6 +195,22 @@ T3 source paths below are in pingdotgg/t3code.
   resolution rules hold open.
 - **Watch:** pingdotgg/t3code#17703 (open)
 
+### preview-tools-verification
+
+- **Workaround:** projects drove UI verification with a browser CLI (`playwright-cli`) because
+  T3's preview screenshots blurred mid-animation and clicks failed when a menu closed in between.
+  On trial since 2026-10-15: in a T3 thread, `implement` step 4 drives with the preview tools
+  (`skills/implement/PREVIEW.md`), each `preview_snapshot` capture after a `preview_wait_for`,
+  and the final report notes where they fell short. rubens runs the trial first.
+- **Used by:** `skills/implement/PREVIEW.md`; `skills/implement/SKILL.md` § 4; `contract.md`
+  (the `verification.md` row)
+- **Would improve if:** after ten verified PRs on rubens, no capture is blurred, no click is
+  lost, console errors are read from the snapshot diagnostics, and recordings cover motion. Then
+  each project's `verification.md` drops the browser CLI and its install, and this entry is
+  resolved.
+- **Watch:** `apps/server/src/mcp/toolkits/preview/tools.ts`; the trial's notes in the final
+  reports of rubens' PRs
+
 ### pr-auto-link
 
 - **Workaround:** the session calls `link_pull_request` right after `gh pr create`.

@@ -26,13 +26,17 @@ You propose; you change nothing. The user picks what to act on, and that work go
 
 5. **Spot-check** the miners before using them: for every block, open the transcript at one cited line and confirm the quote is there and says what the block claims. A block that fails is re-mined or dropped, and the report says which.
 
-6. **Cluster** the returned friction into **findings**: one finding per root cause, however many sessions show it. Rank by recurrence first (sessions affected), then cost (a lost session or a shipped bug outranks a slow search). Done when every friction event sits in a finding or is set aside as a one-off with no environment cause.
+6. **Cluster** the returned friction into **findings**: one finding per root cause, however many sessions show it. Rank by recurrence first (sessions affected), then cost (a lost session or a shipped bug outranks a slow search). A root cause becomes a finding once it has happened **twice**, in two sessions or two PRs: one weird session is an anecdote, and goes to one-offs. The exception is a single event that lost data, shipped a bug or reached outside the repo, which is a finding at once. Done when every friction event sits in a finding or is set aside as a one-off with no environment cause.
 
 7. **Verify** each finding against the environment before proposing anything. Read the repo's always-loaded files (`AGENTS.md`/`CLAUDE.md`, skill descriptions), its check commands (package scripts, lint config, hooks, CI), and the user's global ones. Classify the finding as **missing**, **unwired** (exists, nothing runs it), **weak** (exists, worded so it does not fire), or **ignored** (exists, fires, broken anyway). Check `git log` on the files involved: a fix landed inside the window is **holding** if later sessions are clean, **recurring** if they are not.
 
 8. **Sweep** the always-loaded files for **no-ops** (instructions the current model already follows without being told), stale lines, and meaning duplicated across files. Everything there costs context on every turn. A line is a no-op when a session that broke it is nowhere in the window: propose cutting it, and say which sessions you checked.
 
 9. **Report** to the contract below and stop.
+
+10. **On approval**, route each finding the user accepts by where its fix lives and how big it is:
+    - A change to a shared skill, brief, hook or the contract goes to the shared-workflow repo (the checkout `~/.agents/workflow` links to), since it reaches every project; a project fact, check or doc goes to that project.
+    - A trivial edit (a sharper line, a deletion) is made in this session, on a branch of the repo it belongs to, one PR per repo. A substantive one (a new check, a new skill section, a script) becomes one issue there, with the finding's evidence pasted in as its spec, for `implement` to build.
 
 ## Categories
 
@@ -60,6 +64,8 @@ Propose each fix at the highest level that makes it durable, highest first:
 
 Every rule a finding touches gets its **enforcer**: the check, hook or test that catches a break, or "none". A rule with no enforcer whose break recurs counts as a recurring finding even when the wording was sharpened in between; the report's proposal is the enforcer.
 
+A proposed check names the past mistake it would have caught (the session or PR, and the line), and the change that builds it proves it: the check fails on that mistake, replayed, before it passes on the fix. A check that never failed on a real mistake is a guess at one.
+
 ## Report contract
 
 ```
@@ -71,6 +77,11 @@ Sessions: <N read> of <N found> (<M noise skipped>, <K unread>) · sources: tran
 <category> · <missing|unwired|weak|ignored> · <n sessions>, <cost>
 Evidence: <session ids with dates>; "<one short quote>"
 Proposal: <file, and the change drafted at its ladder level>
+Proof: <for a check: the past mistake it must fail on>
+
+## Enforcers
+| Rule (file) | Enforcer | Broken in window |
+| <rule> | <check, hook, test or none> | <n sessions> |
 
 ## Earlier fixes
 - <fix, commit or PR> · holding | recurring (<sessions>)
@@ -84,4 +95,4 @@ Proposal: <file, and the change drafted at its ladder level>
 retro-window: <from>..<to>
 ```
 
-Up to 10 findings; the rest go to one-offs as single lines. Leave a section out when it is empty. Use the exact ISO timestamps from step 2 in the final line: the next retro starts its window from it.
+The Enforcers table lists every rule a finding touched; a "none" row whose rule broke in the window is the strongest proposal there is. Up to 10 findings; the rest go to one-offs as single lines. Leave a section out when it is empty. Use the exact ISO timestamps from step 2 in the final line: the next retro starts its window from it.

@@ -91,7 +91,7 @@ When every ticket has merged:
    fix round over the fixes: no second broad review.
 4. Run `implement` step 4 now that the code is final: the **after** evidence, attached as
    `docs/agents/verification.md` § Evidence says.
-5. Add the review record to the PR body when the project keeps one (the `pr` skill), then
+5. Add the `## Review` record to the PR body (the `pr` skill), then
    `gh pr ready <n>`, then call the Skill tool with "babysit-pr".
 6. Remove any implementer worktree still listed in `git worktree list`, and
    `/tmp/implement-spec-<PRD>/`.

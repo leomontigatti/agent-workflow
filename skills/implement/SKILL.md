@@ -46,7 +46,8 @@ clean before moving to the next. Read a failure where the command prints it: out
 ## 4. Verify what a user sees
 
 When the change alters anything a user sees or drives, prove it by `docs/agents/verification.md`:
-launch, drive the flows its § Feature map names for the area, and capture the **after** on the
+launch, drive the flows its § Feature map names for the area (in a T3 thread, with T3's preview
+tools as [PREVIEW.md](PREVIEW.md) says), and capture the **after** on the
 same screen, data and account as the before. Clean up what you launched. A check you can run is
 never handed to the user: run it and show the result. Skip this step for changes with no surface a
 user reaches, and say so.
@@ -55,8 +56,10 @@ user reaches, and say so.
 
 Spawn every reviewer the way "Spawning a reviewer" in the `code-review` skill says.
 
-Tier the review by risk. When `docs/agents/review.md` names a command that prints the tier, run
-it; you may raise the tier it prints, never lower it.
+Tier the review by risk: run `python3 -I <this-skill-dir>/scripts/review.py tier` (pass the base
+when the branch is stacked). It reads the changed paths against the `review-paths` block of
+`docs/agents/review.md` and prints the tier and the reviewers it needs. You may raise the tier it
+prints (a `GLOSSARY.md` term no path shows, anything else you judge risky), never lower it.
 
 - **`full`** when the diff touches an area in `docs/agents/review.md` § Full review, a migration,
   a term defined in `GLOSSARY.md`, or an operational script that deletes or overwrites (a database
@@ -116,8 +119,8 @@ round's fixes go to the user as an **ask**.
 
 Done when every finding carries a verb, every **fix** is made and reviewed, and the breadth list is
 walked. Repeat step 3 for anything you touched. Refactoring belongs here, under green tests. The
-commit the last round covered is the **reviewed commit**; when `docs/agents/review.md` defines a
-review record, the PR body carries it.
+commit the last round covered is the **reviewed commit**, which the PR body's `## Review` record
+names (the `pr` skill).
 
 ## 6. Commit
 

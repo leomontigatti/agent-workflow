@@ -114,8 +114,8 @@ handled as in step 2.
 1. Make every **fix**, test-first where the finding is about behaviour (the `tdd` skill). Run
    `docs/agents/validation.md` § Before committing for what you touched, and commit once. When a
    fix changes more than docs or agent configuration, run `implement` step 5's fix round over it
-   before pushing, and update the PR body's review record when the project keeps one. Then push
-   once.
+   before pushing, and update the PR body's `## Review` record: the new reviewed commit, and the
+   round's findings on the correctness lines. Then push once.
 2. On each fixed thread, reply with the commit SHA and resolve it. On each declined thread, reply
    with the concrete reason from the code and resolve it.
 3. Answer the review-body findings in one top-level PR comment: each finding with its SHA or its
@@ -155,6 +155,9 @@ merge does, since resolving it is a change you made: if it was the third round, 
 YOU, listing what is still open. Otherwise go back to step 2.
 
 ## 5. Report
+
+Before reporting READY, run `python3 -I ~/.agents/workflow/skills/implement/scripts/review.py check --pr <n>`:
+a failure is step 4's to fix, even when the project's CI does not run the check yet.
 
 In T3, call `unwatch_pull_request` on the PR first, so the thread returns to the user's inbox. If
 a push-notification tool is available, send the verdict line through it. Before reporting READY,

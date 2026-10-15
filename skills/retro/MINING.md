@@ -23,6 +23,7 @@ It prints one line per event, numbered by transcript line: `USER` (full), `SAY`,
 - **Blocked**: a permission prompt, hook denial, or sandbox refusal that stalled legitimate work; or a hook that should have fired and did not.
 - **Expensive call**: a `BIG` output, a whole-file read where a range would do, a tool whose output is mostly noise.
 - **Missing information**: something the agent needed and could not reach (logs, a service, prod state), so it guessed or asked.
+- **Wrong approach**: the work got done, but by a longer road than a path visible at the time (a tool, a script, a skill, a different seam) would have taken. Name the shorter path and what in the environment hid it.
 - **Compaction**: a session long enough to compact; note what the work was and whether it lost the thread afterwards.
 
 ## Return

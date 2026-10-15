@@ -44,7 +44,8 @@ Why each effort:
 
 The two-family trial a project's `docs/agents/review.md` may turn on (correctness on both
 families in the full tier) is temporary: it gathers the numbers that will settle whether one
-family is enough, and then this table changes.
+family is enough, and then this table changes. The same numbers settle whether a review bot
+(CodeRabbit) stays: if cross-family correctness finds what the bot found, the bot goes.
 
 ## Reaching each model
 

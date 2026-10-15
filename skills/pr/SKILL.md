@@ -34,7 +34,11 @@ picture when the point is structure or order>
 
 <optional: what breaks, and for whom, if the change is wrong>
 
-<## Review, when the project keeps a review record>
+## Review
+
+Tier: <tier>, reviewed <short sha>
+
+- <axis> (<model>): <findings, fixed, declined>
 
 Closes #N
 ```
@@ -119,17 +123,34 @@ of a changed module, consumers of a changed doc.
 
 ## Review
 
-When `docs/agents/review.md` defines a review record, add `## Review` in the shape it gives: the
-tier, the **reviewed commit** (the commit the last review round covered, `implement` step 5), and
-one line per reviewer with its axis, its model and its findings, fixed and declined. An axis that
-could not run says `skipped, <why>`.
+The record of `implement` step 5, which the `review-record` check reads. The first line is the
+tier, as `review.py tier` printed it or raised, and the **reviewed commit**: the commit the last
+review round covered. Then one line per reviewer: its axis (`readback`, `standards`, `spec`,
+`correctness`) and model (`Sol`, `Opus`, `Luna`, `Sonnet`):
+
+```markdown
+## Review
+
+Tier: full, reviewed 1a2b3c4
+
+- standards (Sol): 1 finding, fixed
+- spec (Sol): no findings
+- correctness (Opus): 2 findings, 1 fixed, 1 declined
+```
+
+- Count every finding, the fix rounds' included. With two correctness reviewers, name how many
+  each also found of the other's: that overlap is what the two-family trial measures.
+- An axis that could not run says `skipped, <why>`; a role on its same-family fallback says so.
+- A commit pushed later that changes more than docs or agent configuration fails the check until
+  its own review round runs and the record names the new commit. A merge from the base does not
+  count.
 
 ## PRD PRs
 
 One PR carries every sub-issue of a PRD. Its body is one paragraph saying what the PRD delivers,
 then `## Sub-issues` listing every sub-issue as a checkbox that carries its own keyword
 (`- [ ] Closes #N <title>`), then `## Merge Danger` for the whole chain, then `## Review` once the
-chain has been reviewed (when the project keeps one), then `Closes #<PRD>`. GitHub closes only the
+chain has been reviewed, then `Closes #<PRD>`. GitHub closes only the
 numbers that follow a closing keyword, and closing a parent does not close its sub-issues: a bare
 `- [x] #N` stays open after the merge. The PRD holds the rest.
 
