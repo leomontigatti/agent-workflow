@@ -1,0 +1,5 @@
+interface:
+  display_name: "Upstream Review"
+  short_description: "Review watched upstreams for ideas worth taking"
+policy:
+  allow_implicit_invocation: false

@@ -1,0 +1,22 @@
+{
+  "sources": [
+    {
+      "id": "pstack",
+      "repo": "cursor/plugins",
+      "branch": "main",
+      "paths": ["pstack/**"],
+      "license": "MIT, Copyright (c) 2026 Lauren Tan (pstack/LICENSE)",
+      "reviewed": "e5136d82418d2db3165ea1050d17577cd618cc05",
+      "reviewedAt": "2026-10-15"
+    },
+    {
+      "id": "mattpocock-skills",
+      "repo": "mattpocock/skills",
+      "branch": "main",
+      "paths": ["skills/**"],
+      "license": "MIT, Copyright (c) 2026 Matt Pocock (LICENSE)",
+      "reviewed": "49dd158d1076134a641b33efb035946536778336",
+      "reviewedAt": "2026-10-15"
+    }
+  ]
+}

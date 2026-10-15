@@ -1,0 +1,7 @@
+# Codex wrapper for the reviewer. The instructions are agents/reviewer.md; the model is
+# agents/models.md's Standards, Spec and Correctness rows, repeated because Codex reads it nowhere else.
+name = "reviewer"
+description = "Reviews a diff against the brief it is given and reports back. Use for the Standards and Spec axes of code-review and for the correctness axis on Sol; the readback goes to reviewer-luna."
+model = "gpt-6.1-sol"
+model_reasoning_effort = "medium"
+developer_instructions = "Before anything else, read `~/.local/share/agent-workflow/agents/reviewer.md` and follow it: it holds this agent's instructions."
