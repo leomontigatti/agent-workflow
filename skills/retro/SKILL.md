@@ -20,17 +20,19 @@ You propose; you change nothing. The user picks what to act on, and that work go
 
    It prints the repo, the window (since the last retro's `retro-window:` line, else 14 days) and one row per session with friction counters (errors, interrupts, oversized outputs, compactions). The user's own scope wins: pass `--since DATE` or `--days N`, or, when they name a single session ("this session"), read that one directly and skip step 3. State the scope back in one line (repo, window and where it came from, sessions found, noise skipped) and continue.
 
-3. **Fan out.** Hand the sessions to parallel subagents on a fast model, each with [`MINING.md`](MINING.md) as its brief, the path to `scripts/sessions.py`, and its slice: about 4 sessions or 10 MB of transcript each, one subagent per session over 10 MB, at most 8 subagents. When the window holds more than that, take the sessions with the most user turns and errors and say how many went unread. The transcripts stay with the subagents; you work from their returns. Done when every session in scope has a returned block.
+3. **Fan out.** Hand the sessions to parallel subagents in the **Miners** role of `~/.agents/workflow/agents/models.md`, each with [`MINING.md`](MINING.md) as its brief, the path to `scripts/sessions.py`, and its slice: about 4 sessions or 10 MB of transcript each, one subagent per session over 10 MB, at most 8 subagents. When the window holds more than that, take the sessions with the most user turns and errors and say how many went unread. The transcripts stay with the subagents; you work from their returns. Done when every session in scope has a returned block.
 
 4. **PR record**, only when the user asks for it: for PRs merged in the window, `gh` their bot review comments and failed checks. A review finding or CI failure that recurs is a check that could have run before the push.
 
-5. **Cluster** the returned friction into **findings**: one finding per root cause, however many sessions show it. Rank by recurrence first (sessions affected), then cost (a lost session or a shipped bug outranks a slow search). Done when every friction event sits in a finding or is set aside as a one-off with no environment cause.
+5. **Spot-check** the miners before using them: for every block, open the transcript at one cited line and confirm the quote is there and says what the block claims. A block that fails is re-mined or dropped, and the report says which.
 
-6. **Verify** each finding against the environment before proposing anything. Read the repo's always-loaded files (`AGENTS.md`/`CLAUDE.md`, skill descriptions), its check commands (package scripts, lint config, hooks, CI), and the user's global ones. Classify the finding as **missing**, **unwired** (exists, nothing runs it), **weak** (exists, worded so it does not fire), or **ignored** (exists, fires, broken anyway). Check `git log` on the files involved: a fix landed inside the window is **holding** if later sessions are clean, **recurring** if they are not.
+6. **Cluster** the returned friction into **findings**: one finding per root cause, however many sessions show it. Rank by recurrence first (sessions affected), then cost (a lost session or a shipped bug outranks a slow search). Done when every friction event sits in a finding or is set aside as a one-off with no environment cause.
 
-7. **Sweep** the always-loaded files for **no-ops** (instructions the current model already follows without being told), stale lines, and meaning duplicated across files. Everything there costs context on every turn. A line is a no-op when a session that broke it is nowhere in the window: propose cutting it, and say which sessions you checked.
+7. **Verify** each finding against the environment before proposing anything. Read the repo's always-loaded files (`AGENTS.md`/`CLAUDE.md`, skill descriptions), its check commands (package scripts, lint config, hooks, CI), and the user's global ones. Classify the finding as **missing**, **unwired** (exists, nothing runs it), **weak** (exists, worded so it does not fire), or **ignored** (exists, fires, broken anyway). Check `git log` on the files involved: a fix landed inside the window is **holding** if later sessions are clean, **recurring** if they are not.
 
-8. **Report** to the contract below and stop.
+8. **Sweep** the always-loaded files for **no-ops** (instructions the current model already follows without being told), stale lines, and meaning duplicated across files. Everything there costs context on every turn. A line is a no-op when a session that broke it is nowhere in the window: propose cutting it, and say which sessions you checked.
+
+9. **Report** to the contract below and stop.
 
 ## Categories
 
