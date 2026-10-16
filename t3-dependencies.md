@@ -67,9 +67,12 @@ T3 source paths below are in pingdotgg/t3code.
   `docs/user/project-settings.md` § Storage cleanup).
 - **Used by:** `skills/housekeeping/SKILL.md` (its table, and step 1 reads the settings);
   `skills/implement/THREADS.md` ("Leaving a worktree behind is fine")
-- **Breaks if:** the settings are reset or the rules turned off; `worktreeAfterDays` or
-  `worktreeUnchanged` is turned on, since T3 then removes a live thread's worktree and recreates
-  it on resume; T3 moves its managed folder, so `housekeeping` would take T3's worktrees for its
+  Since 2026-10-16 the user also runs `worktreeAfterDays: 5`, `worktreeSettledAfterDays: 5`,
+  `worktreeUnchanged: true` and `browserArtifactsAfterDays: 5`. The first and third remove a
+  paused thread's worktree, and T3 recreates it from the kept branch on resume, so `housekeeping`
+  judges branches and resources by the thread (`t3_thread_list`), not by the worktree.
+- **Breaks if:** the settings are reset or the merge and delete rules turned off; T3 stops
+  recreating a removed worktree from its branch on resume, or deletes the branch; T3 moves its managed folder, so `housekeeping` would take T3's worktrees for its
   own; T3 again keeps every worktree a subagent shares, so each reviewed thread's worktree stays;
   or the Last run report moves or stops giving a reason.
 
@@ -325,20 +328,16 @@ T3 source paths below are in pingdotgg/t3code.
 
 ## Ready
 
-### storage-cleanup-settled-threads
-
-- **Workaround:** a settled thread whose PR never merged (closed, abandoned, read-only work) keeps
-  its worktree until `housekeeping` lists it as never-committed or closed.
-- **Used by:** `skills/housekeeping/SKILL.md` § 1
-- **Met in:** 0.0.46-nightly.20261015.3145: `worktreeSettledAfterDays` removes a worktree a set
-  number of days after its thread settles (pingdotgg/t3code#15208; off by default). Since
-  pingdotgg/t3code#19748 it also covers a thread whose reviewers shared its checkout.
-- **Adopting means:** the user sets it (around 3 days) in Settings → Storage; then
-  `housekeeping` § 1 checks it as it checks the merge and delete rules. A settled thread is
-  finished, so its resources going with it is what we want; resuming it recreates the worktree
-  and reruns setup, on the kept branch.
+None.
 
 ## Resolved
+
+### storage-cleanup-settled-threads
+
+- **Workaround:** a settled thread whose PR never merged kept its worktree until `housekeeping`
+  listed it.
+- **Met in:** 0.0.46-nightly.20261015.3145 (`worktreeSettledAfterDays`, pingdotgg/t3code#15208)
+- **Adopted:** 2026-10-16, at 5 days; part of `storage-cleanup-removes-thread-worktrees` since.
 
 ### housekeeping-worktree-removal
 
