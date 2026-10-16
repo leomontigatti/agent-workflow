@@ -70,7 +70,8 @@ T3 source paths below are in pingdotgg/t3code.
   Since 2026-10-16 the user also runs `worktreeAfterDays: 5`, `worktreeSettledAfterDays: 5`,
   `worktreeUnchanged: true` and `browserArtifactsAfterDays: 5`. The first and third remove a
   paused thread's worktree, and T3 recreates it from the kept branch on resume, so `housekeeping`
-  judges branches and resources by the thread (`t3_thread_list`), not by the worktree.
+  judges branches and resources by the live thread (`t3_thread_list`, then `t3_thread_read` for its
+  branch), not by the worktree.
 - **Breaks if:** the settings are reset or the merge and delete rules turned off; T3 stops
   recreating a removed worktree from its branch on resume, or deletes the branch; T3 moves its managed folder, so `housekeeping` would take T3's worktrees for its
   own; T3 again keeps every worktree a subagent shares, so each reviewed thread's worktree stays;
@@ -277,8 +278,10 @@ T3 source paths below are in pingdotgg/t3code.
   a fresh push with the background `gh pr checks --watch` loop.
 - **Used by:** `skills/babysit-pr/SKILL.md` § 2 (the background wait and the state table)
 - **Would improve if:** `watch_pull_request` wakes the thread when a required check has not
-  reported.
-- **Watch:** pingdotgg/t3code#18047 (open); #17831 (closed without merging on 2026-10-14)
+  reported, and once every check has finished rather than only on a failure or on all required
+  checks passing; then the background `gh pr checks --watch` wait goes.
+- **Watch:** pingdotgg/t3code#18047 (open); #16924 (open); #17831 (closed without merging on
+  2026-10-14)
 
 ### pr-watch-behind-base
 

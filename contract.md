@@ -5,7 +5,7 @@ a project file only from this table; everything else it needs comes from a file 
 project's own skill. `tests/lint_skills.py` holds every skill to the table.
 
 A project meets the contract when every **required** file exists and has the sections its row
-names. An **optional** file is followed when it exists and skipped when it does not.
+names. An **optional** file is followed when it exists and skipped when it does not. A section named § X is a `##` heading reading X.
 
 | File                                | Need     | Answers                                                                                                                                                                                                                                                    |
 | ----------------------------------- | -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -22,7 +22,7 @@ names. An **optional** file is followed when it exists and skipped when it does 
 | `docs/agents/tdd-*.md`              | optional | Test-first notes for one kind of code (`tdd-db.md`, `tdd-frontend.md`, `tdd-odoo.md`). The `tdd` skill follows every one whose kind the change touches.                                                                                                |
 | `docs/agents/housekeeping.md`       | optional | The project's per-worktree resources (a database, a cache) and how to list and remove them, or a sweep command that replaces the `housekeeping` steps.                                                                                                  |
 | `docs/agents/research.md`           | optional | The primary sources the `research` agent prefers for this stack, and where the pinned versions are.                                                                                                                                                      |
-| `.agents/required-tools`            | optional | One command per line that a session's shell must find on PATH. Read by the `check-tool-path` hook.                                                                                                                                                       |
+| `.agents/required-tools`            | optional | One command per line that a session's shell must find on PATH; `#` starts a comment. Read by the `check-tool-path` hook.                                                                                                                                 |
 
 ## Sections
 
