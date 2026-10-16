@@ -42,8 +42,11 @@ still be a paused thread.
    the branches with no worktree. For each, `git status --porcelain` in its worktree and
    `git rev-list --count origin/<default branch>..<branch>` show uncommitted work and unmerged
    commits, and `gh pr list --head <branch> --state all --json number,state,baseRefName` shows
-   its PR. `t3_thread_list` gives each thread's branch and whether it is settled or archived; a
-   **live thread** is one that exists and is neither. `t3_worktree_list` tells which worktrees T3
+   its PR. A **live thread** is one that exists and is neither settled nor archived:
+   `t3_thread_list` with `settled: false` lists them, and `t3_thread_read` (with `limit: 1`) gives
+   each one's `branch` and `worktreePath`, which the list does not. Read only the live threads;
+   with more than about 50, split them across subagents in the **Miners** role of
+   `~/.agents/workflow/agents/models.md`, each returning `threadId branch worktreePath` lines. `t3_worktree_list` tells which worktrees T3
    tracks and their threads; a folder in
    T3's folder it does not list is an orphan, judged by the same checks. When
    `docs/agents/housekeeping.md` exists, it says how to list the project's per-worktree resources,
@@ -62,7 +65,10 @@ still be a paused thread.
 
    Then stop. A request only to see what could be removed ends here.
 
-3. **On acceptance**, remove only what the report listed, skipping any entry the user spared:
+3. **On acceptance**, remove only what the report listed, skipping any entry the user spared.
+   The survey is as old as the report: right before removing each entry, check again that its
+   tree is clean, its PR state is the one reported, and no live thread holds its branch, and keep
+   any entry that changed. Then:
    `git worktree remove <path>` (never `--force`: it refuses a dirty tree, which is the point),
    then `git branch -d <branch>` (never `-D` unless the user said the commits are not needed; a
    branch git refuses to delete was not merged, so it is kept and reported). Remove each listed
