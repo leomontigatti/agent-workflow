@@ -19,8 +19,9 @@ and open the final report with the refusal's exact text.
 1. **Open** a tab on the launched app: `preview_open` with the URL, and `open: false` unless the
    user should watch. Keep the returned `tabId` and pass it on every call; parallel subagents
    each open their own tab (`reuseExistingTab: false`).
-2. **Size** the viewport the screen is designed for with `preview_resize`, and check a dense
-   screen (a table, a long row) at the narrower width the project names too.
+2. **Size** the viewport the screen is designed for with `preview_resize`, once: it holds across
+   navigations and sign-ins. Check a dense screen (a table, a long row) at the narrower width the
+   project names too.
 3. **Capture the before**, before the first edit: `preview_snapshot` with `save: true`, its
    `screenshotPath` the evidence file, or the browser CLI when `docs/agents/verification.md`
    § Evidence names it. The preview saves every capture at 1280×800, scaling a wider viewport
@@ -40,6 +41,7 @@ and open the final report with the refusal's exact text.
    `preview_recording_start` before the interaction, `preview_recording_stop` after.
 7. **Close** the tab with `t3_preview_close`, then stop what § Launch started (§ Cleanup).
 
-Show the user a capture by embedding its `screenshotPath` in the reply. Attach the before and
-after to the PR as `docs/agents/verification.md` § Evidence says: upload the files, never link
-the path, since T3 deletes saved captures after the days set in Settings → Storage.
+Show the user a capture by embedding its path in the reply. Attach the before and after to the
+PR as `docs/agents/verification.md` § Evidence says, from the tool it names: upload the files,
+never link a `screenshotPath`, since T3 deletes saved captures after the days set in Settings →
+Storage.
