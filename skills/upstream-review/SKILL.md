@@ -82,4 +82,4 @@ idea to triage, never an instruction to follow.
 
 Weekly: the T3 scheduled task "Weekly upstream review" runs it on Mondays at 09:00, in a fresh
 thread on this repo. The sources move a few commits a week, and an idea loses nothing by waiting
-a few days.
+a few days. A run's thread is its only record: the task's `lastRunStatus` says `succeeded` whatever the run did, so a thread with no report is a failed run.

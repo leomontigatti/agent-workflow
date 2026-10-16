@@ -30,6 +30,14 @@ T3 source paths below are in pingdotgg/t3code.
 - **Breaks if:** T3 stops applying `defaultThreadEnvMode` or running create-time scripts, starts
   the agent before an `async: false` script exits, or stops passing `T3CODE_PROJECT_ROOT`.
 
+### auto-pull-default
+
+- **Relies on:** T3's Automatically pull (Settings → Source Control) fast-forwards a project's
+  main checkout only when it is on the default branch with no changed or untracked files and no
+  local commits (`docs/user/project-settings.md` § Keep the default branch current).
+- **Used by:** `skills/implement/THREADS.md` (the main checkout stays on the default branch)
+- **Breaks if:** it pulls a checkout with local changes or commits, or pulls another branch.
+
 ### own-worktrees-only
 
 - **Relies on:** T3 tracks the branch and PR of the worktree it created for a thread, and leaves
@@ -137,16 +145,57 @@ T3 source paths below are in pingdotgg/t3code.
 ### scheduled-reviews
 
 - **Relies on:** T3 scheduled tasks (`schedule_task`, `fixed_time`, `bindToCurrentThread: false`)
-  start a fresh thread on this repo's project, in its own worktree from `main`, and run a prompt
+  start a fresh thread on this repo's project, in its own T3 worktree from `origin/main` (a task
+  made over MCP gets `{baseRef: "main", startFromOrigin: true}`, which is this repo's default
+  branch; `scheduledTaskWorkspaceStrategy` in `apps/server/src/mcp/OrchestratorMcpService.ts`;
+  `apps/server/src/scheduledTasks/ScheduledTaskService.ts`), and run a prompt
   that points at a skill here: "Weekly upstream review" on Mondays at 09:00
   (`skills/upstream-review/SKILL.md`), and "T3 update review" daily at 09:00
   (`skills/t3-update-review/SKILL.md`). Each opens its bookkeeping PR from that thread.
 - **Used by:** `skills/upstream-review/SKILL.md` § Cadence; `skills/t3-update-review/SKILL.md`
   § Cadence
 - **Breaks if:** scheduled runs stop starting when no thread is open, stop getting a worktree of
-  their own, or the scheduler drops `fixed_time` tasks.
+  their own, the MCP default base stops being `main`, or the scheduler drops `fixed_time` tasks.
+  A project whose default branch is not `main` sets the task's Base branch in Settings →
+  Scheduled tasks (pingdotgg/t3code#16183).
 
 ## Watching
+
+### scheduled-run-status
+
+- **Workaround:** a scheduled run is read from its thread, never from the task's
+  `lastRunStatus`: the scheduler records `succeeded` once the launch returns, whatever the run
+  does next (`apps/server/src/scheduledTasks/ScheduledTaskService.ts`). A run's thread without a
+  report, or a bookkeeping PR that never appeared, is a failed run.
+- **Used by:** `skills/upstream-review/SKILL.md` § Cadence; `skills/t3-update-review/SKILL.md`
+  § Cadence
+- **Would improve if:** a run that fails or ends without its result is recorded as failed.
+- **Watch:** pingdotgg/t3code#17889 (open)
+
+### setup-runs-in-main-checkout
+
+- **Workaround:** a "local" thread, with no worktree, runs the `runOnWorktreeCreate` script in the
+  main checkout, untracked, with `T3CODE_WORKTREE_PATH` set to the project root. `contract.md`
+  asks every project's script to be safe there, and `skills/implement/THREADS.md` says a failed
+  setup terminal there is expected.
+- **Used by:** `contract.md` (the `t3.json` row); `skills/implement/THREADS.md` (Read-only
+  threads)
+- **Would improve if:** a thread with no worktree skips `runOnWorktreeCreate`
+  (`apps/server/src/orchestration-v2/ThreadLaunchService.ts` passes
+  `worktreePath ?? project.workspaceRoot`; `apps/server/src/project/ProjectSetupScriptRunner.ts`).
+- **Watch:** pingdotgg/t3code#18882 (open)
+
+### t3json-manual-import
+
+- **Workaround:** each project's `t3.json` is imported once per T3 install (project settings →
+  Actions → Import from t3.json); until then T3 runs no setup, and `agents/implementer.md` step 2
+  is the same script by hand.
+- **Used by:** `skills/implement/THREADS.md`; `agents/implementer.md` step 2
+- **Would improve if:** T3 reads `runOnWorktreeCreate` from the checked-in `t3.json` without an
+  import (`setupProjectScript` in `packages/shared/src/projectScripts.ts` sees only imported
+  scripts).
+- **Watch:** pingdotgg/t3code#5063 (closed 2026-08-15, yet the runner still reads only imported
+  scripts)
 
 ### storage-cleanup-renamed-branches
 
@@ -154,8 +203,11 @@ T3 source paths below are in pingdotgg/t3code.
   merged or closed and its tree is clean. T3 keeps it even when its thread is deleted.
 - **Used by:** `skills/housekeeping/SKILL.md` § 1
 - **Would improve if:** T3's merged-worktree cleanup removes a worktree whose branch was renamed
-  after the thread started. Today it keeps one with "repository or branch changed"
-  (`apps/server/src/storageCleanup.ts`).
+  after the thread started. Today it keeps one with "Repository or branch changed", or with "A
+  subagent thread's branch differs from this worktree's branch" when the rename happened before
+  pingdotgg/t3code#20079 (0.1.1-nightly.20261016.3203), which now renames the subagents' branch
+  too (`apps/server/src/storageCleanup.ts`). On 2026-10-16, 28 worktrees were kept, most for one
+  of these two reasons.
 - **Watch:** pingdotgg/t3code#16559 and #17813 (open); #11078 (open; the sidebar keeps the
   creation-time branch name after a rename)
 

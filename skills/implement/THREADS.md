@@ -4,7 +4,7 @@ The rules every shared skill assumes about where a session works. Local sessions
 Code, and every thread gets its own git worktree and branch: `t3.json` sets
 `defaultThreadEnvMode` to `worktree`, and its `runOnWorktreeCreate` script prepares the worktree
 before the agent starts. The main checkout stays on the default branch and is nobody's working
-directory.
+directory: T3's Automatically pull keeps it current only while it is clean and on that branch.
 
 - **Work where you started.** The thread's worktree is the working directory. Never `git checkout`
   or `git switch` in the main checkout, and never create a worktree of your own (`git worktree
@@ -31,7 +31,9 @@ directory.
   the only source for a child PR's state. A launcher turn that ends before a child has opened its
   PR names that child in its report, since nothing will wake the launcher for it.
 - **Read-only threads** (writing issues, triage, reviewing a PR without editing code) change no
-  branch.
+  branch. One started in "local" mode, with no worktree, still runs the `runOnWorktreeCreate`
+  script, in the main checkout; a setup terminal that fails there is expected, and is no reason
+  to change the main checkout.
 - **Leaving a worktree behind is fine; abandoning a branch is not.** Push the branch or delete it.
   T3's storage cleanup removes a worktree T3 created once its PR merges or its last thread is
   deleted, and keeps the branch; the branches, and the worktrees it skips, go with the
