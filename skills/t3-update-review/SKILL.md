@@ -5,7 +5,7 @@ description: "After a T3 Code update, check what changed against the T3 dependen
 
 T3 Code ships nightly builds, several a day. What our workflows assume about T3 is written in two kinds of file (statuses: **active**, **watching**, **ready**, **resolved**; each file explains them): the root `t3-dependencies.md` of the shared-workflow repo, for what the shared skills, agents and hooks assume, and each project's `docs/agents/t3-dependencies.md`, for what only that project assumes. This review checks every build since the last reviewed one against all of them and reports what to do.
 
-You propose; you change nothing in the repos. The user picks what to adopt, and that goes through each repo's normal workflow (worktree thread, branch, PR). A change to a shared skill reaches every project at once, so a finding about one is proposed once, against the shared-workflow repo.
+The review writes down what it learns and proposes what to change. What it learns is evidence: a status that moved, a new **watching** or **ready** entry, a T3 PR quoted under an entry. That goes straight into the shared `t3-dependencies.md`, in one bookkeeping PR the review opens (step 10), so a finding outlives the report and the next run starts from it. A change to a skill, a brief, a hook or a project file is only proposed: the user picks what to adopt, and that goes through the repo's normal workflow (worktree thread, branch, PR). A change to a shared skill reaches every project at once, so a finding about one is proposed once, against the shared-workflow repo. A finding about a project's own file is proposed for that project; the review edits no project.
 
 ## Steps
 
@@ -37,17 +37,26 @@ You propose; you change nothing in the repos. The user picks what to adopt, and 
    ```
    # T3 update review: <since> → <installed> (<n> releases)
 
+   ## Needs you             (what only the user can do: a T3 setting, a button in the app,
+                            a decision on a ready entry; first, so it is read)
    ## Breaks / changes      (an active entry no longer holds; act first)
    ## Fixes / ready         (a watching entry's condition is now met)
    ## Improves              (new capability we could adopt; proposed entries)
    ## Drift                 (entries out of sync with the repo; uncovered rules)
    ## Not covered           (projects without a dependency file)
+   ## Still ready           (every ready entry not adopted yet, one line each)
    ```
 
-   Each finding: the file it is about (`shared`, or the project), the entry id, the T3 PR(s) with links, the evidence (a quote from the diff or release item), and the proposed edit: to the dependency file (status change, new entry) and to the workflow or skill itself. Leave a section out when it is empty; when every section is empty, the report is one line saying nothing affects us.
+   Each finding: the file it is about (`shared`, or the project), the entry id, the T3 PR(s) with links, the evidence (a quote from the diff or release item), and the proposed edit: to the dependency file (status change, new entry) and to the workflow or skill itself. Leave a section out when it is empty; when every section is empty, the report is one line saying nothing affects us. **Still ready** comes from the dependency files' Ready sections, not from earlier reports: an entry stays there until it is adopted or the user declines it, so nothing proposed is lost between runs.
 
 9. **Mark reviewed**, only after the report is written:
 
    ```
    python3 -I <this-skill-dir>/scripts/changes.py <serverVersion> --mark
    ```
+
+10. **Bookkeeping PR**, when the report changes anything in the shared `t3-dependencies.md`. In a thread on the shared-workflow repo, on a `docs/t3-<serverVersion>` branch from the default branch, write the evidence, status moves and new entries the report gives for the shared file, run the lint (`python3 -I tests/lint_skills.py`), and open a PR whose body is the report. Link it to the thread with `link_pull_request`. Proposed edits to skills and projects stay in the body as proposals, never in the diff. The user's merge accepts the bookkeeping; their edits to it are final.
+
+## Cadence
+
+Daily: the T3 scheduled task "T3 update review" runs it at 09:00 in a fresh thread on the shared-workflow repo. Nightlies land several times a day, and a run with nothing new costs one version check.

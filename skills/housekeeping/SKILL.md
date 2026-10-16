@@ -18,6 +18,7 @@ only what T3 leaves by design:
 | a worktree whose branch was renamed           | T3 keeps it as "repository or branch changed"                       | this sweep, until T3 fixes it    |
 | an archived thread's worktree                 | T3's sweep skips archived threads                                   | this sweep, until T3 fixes it    |
 | a stack layer merged into another PR's branch | T3 counts only merges into the default branch                       | this sweep, until T3 fixes it    |
+| a folder in T3's folder that no thread uses   | T3 lists it under Last run but never removes it                     | this sweep, until T3 fixes it    |
 | per-worktree resources (a database, a cache)  | T3 runs no script when it removes a worktree                        | this sweep, by `docs/agents/housekeeping.md` |
 
 The "until T3 fixes it" rows are watched in the shared `t3-dependencies.md`; when one is fixed,
@@ -29,16 +30,18 @@ still be a paused thread.
 1. **Check T3's rules, changing nothing.** Read the `storageCleanup` block of T3's settings
    (`~/.t3/userdata/settings.json`). `worktreeOnMerge` and `worktreeOnDelete` must be on; report
    either one off as the first thing the user can fix, since T3 then leaves work this sweep is not
-   built for. Report `worktreeAfterDays` or `worktreeUnchanged` on as a risk: T3 then removes a
-   live thread's worktree and recreates it on resume, and this sweep would take the recreated
-   one's resources for orphans.
+   built for. `worktreeSettledAfterDays` on is welcome: it hands T3 the settled threads whose PR
+   never merged; when it is off, say so once, as an option. Report `worktreeAfterDays` or
+   `worktreeUnchanged` on as a risk: T3 then removes a live thread's worktree and recreates it on
+   resume, and this sweep would take the recreated one's resources for orphans.
 
 2. **Survey, changing nothing.** `git worktree prune`, then `git worktree list --porcelain` gives
    each worktree's path and branch, and `git branch --format='%(refname:short) %(worktreepath)'`
    the branches with no worktree. For each, `git status --porcelain` in its worktree and
    `git rev-list --count origin/<default branch>..<branch>` show uncommitted work and unmerged
    commits, and `gh pr list --head <branch> --state all --json number,state,baseRefName` shows
-   its PR. `t3_worktree_list` tells which worktrees T3 tracks and their threads. When
+   its PR. `t3_worktree_list` tells which worktrees T3 tracks and their threads; a folder in
+   T3's folder it does not list is an orphan, judged by the same checks. When
    `docs/agents/housekeeping.md` exists, it says how to list the project's per-worktree resources,
    or names a sweep command that replaces this step and the next. Report, with the reason for
    each:

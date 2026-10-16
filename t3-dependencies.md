@@ -49,8 +49,12 @@ T3 source paths below are in pingdotgg/t3code.
   its managed folder (`~/.t3/worktrees/<project>/`) once the thread's PR merges into the default
   branch or its last thread is deleted (archived ones included), keeps one with uncommitted
   changes, an open terminal, a running or queued thread or an open provider session, and reports
-  why it kept each one under Settings → Storage → Last run. It keeps the branch on purpose, runs
-  no script on removal, and has no MCP tool to trigger or read it
+  why it kept each one under Settings → Storage → Last run. A worktree other threads share is
+  kept, unless every one of them is a subagent of the same parent, whose rules then decide
+  (pingdotgg/t3code#19748, since 0.1.1-nightly.20261016.3203): that is what lets a thread whose
+  reviewers ran through `delegate_task` in its checkout be removed. Last run also lists folders
+  in the managed folder no thread uses (pingdotgg/t3code#19749), which T3 never removes. It keeps
+  the branch on purpose, runs no script on removal, and has no MCP tool to trigger or read it
   (`apps/server/src/storageCleanup.ts`; `packages/contracts/src/settings.ts`;
   `docs/user/project-settings.md` § Storage cleanup).
 - **Used by:** `skills/housekeeping/SKILL.md` (its table, and step 1 reads the settings);
@@ -58,7 +62,8 @@ T3 source paths below are in pingdotgg/t3code.
 - **Breaks if:** the settings are reset or the rules turned off; `worktreeAfterDays` or
   `worktreeUnchanged` is turned on, since T3 then removes a live thread's worktree and recreates
   it on resume; T3 moves its managed folder, so `housekeeping` would take T3's worktrees for its
-  own; or the Last run report moves or stops giving a reason.
+  own; T3 again keeps every worktree a subagent shares, so each reviewed thread's worktree stays;
+  or the Last run report moves or stops giving a reason.
 
 ### renamed-branch-in-thread
 
@@ -90,20 +95,25 @@ T3 source paths below are in pingdotgg/t3code.
 - **Used by:** `skills/babysit-pr/SKILL.md` § 2 and § 5; `skills/implement/SKILL.md` § 7;
   `skills/implement/THREADS.md` ("A launched thread reports to its own inbox")
 - **Breaks if:** a wake event is dropped, or a wake no longer ends the turn, so the session has to
-  poll or sleep to wait; `unwatch_pull_request` stops returning the thread to the inbox; or
-  `list_thread_pull_requests` stops taking another thread's id.
+  poll or sleep to wait; `unwatch_pull_request` stops returning the thread to the inbox;
+  `list_thread_pull_requests` stops taking another thread's id; or inactivity auto-settle is
+  turned on without "Keep threads with a PR" (pingdotgg/t3code#14642), which settles a thread
+  while it babysits and ends its watch.
 
 ### delegate-task-reviews
 
 - **Relies on:** `delegate_task` takes `task`, `target` (`providerInstanceId`, `model`,
   `options.reasoningEffort`), `role`, `mode`, `title` and `clientRequestId`. It runs the child in
   the parent's checkout by default (`isolation: shared`) and inherits the parent's `runtimeMode`.
-  The child's report comes back as `summary`, on the call result and on `task_status`. A Claude
-  subagent can call it too. Source: `packages/contracts/src/orchestratorMcp.ts`. Read-only review
+  The child's report comes back as `summary`, on the call result and on `task_status`. A child
+  that asks a question wakes the parent, and the result carries `hasPendingQuestion`
+  (pingdotgg/t3code#19521, #19538); `t3_pending_request_read` and `t3_pending_request_respond`
+  answer it. A Claude subagent can call it too. Source: `packages/contracts/src/orchestratorMcp.ts`. Read-only review
   is a prompt rule (`agents/reviewer.md`), not something T3 enforces.
 - **Used by:** `agents/models.md` § Reaching each model; `skills/code-review/SKILL.md` § Spawning
   a reviewer; `agents/reviewer.md`; `agents/research.md`
-- **Breaks if:** `summary` stops carrying the child's report, `clientRequestId` stops
+- **Breaks if:** `summary` stops carrying the child's report, a child's question stops waking
+  the parent (it would wait forever), `clientRequestId` stops
   deduplicating a retry, the `target` shape or live model ids change, or children stop sharing
   the parent's checkout by default.
 
@@ -124,12 +134,15 @@ T3 source paths below are in pingdotgg/t3code.
 - **Breaks if:** T3 starts sessions with a settings or config home of its own, so the user-level
   hooks no longer load.
 
-### scheduled-upstream-review
+### scheduled-reviews
 
-- **Relies on:** a T3 scheduled task (`schedule_task`, `fixed_time` on Mondays at 09:00,
-  `bindToCurrentThread: false`) starts a fresh thread on this repo's project each week, in its own
-  worktree from `main`, and runs the prompt that points at `skills/upstream-review/SKILL.md`.
-- **Used by:** `skills/upstream-review/SKILL.md` § Cadence
+- **Relies on:** T3 scheduled tasks (`schedule_task`, `fixed_time`, `bindToCurrentThread: false`)
+  start a fresh thread on this repo's project, in its own worktree from `main`, and run a prompt
+  that points at a skill here: "Weekly upstream review" on Mondays at 09:00
+  (`skills/upstream-review/SKILL.md`), and "T3 update review" daily at 09:00
+  (`skills/t3-update-review/SKILL.md`). Each opens its bookkeeping PR from that thread.
+- **Used by:** `skills/upstream-review/SKILL.md` § Cadence; `skills/t3-update-review/SKILL.md`
+  § Cadence
 - **Breaks if:** scheduled runs stop starting when no thread is open, stop getting a worktree of
   their own, or the scheduler drops `fixed_time` tasks.
 
@@ -153,7 +166,10 @@ T3 source paths below are in pingdotgg/t3code.
 - **Used by:** `skills/housekeeping/SKILL.md` § 1
 - **Would improve if:** T3's storage cleanup sees archived threads' worktrees, so they are removed
   by the rules the user has set.
-- **Watch:** pingdotgg/t3code#17811 (open); fix PR pingdotgg/t3code#16473 (open)
+- **Watch:** pingdotgg/t3code#17811 (open); fix PR pingdotgg/t3code#16473 (open). Since
+  pingdotgg/t3code#15208 the cleanup code says "Active threads only: archived threads are not
+  candidates", so the fix runs against a maintainer's stated choice and may never land. Deleting
+  a finished thread instead of archiving it hands its worktree to T3.
 
 ### storage-cleanup-stack-layers
 
@@ -162,6 +178,17 @@ T3 source paths below are in pingdotgg/t3code.
 - **Used by:** `skills/housekeeping/SKILL.md` (the stack-layer row)
 - **Would improve if:** T3's merged-worktree cleanup accepts a PR merged into a stack parent.
 - **Watch:** pingdotgg/t3code#14758 (open)
+
+### storage-cleanup-orphan-folders
+
+- **Workaround:** `housekeeping` removes a folder in T3's managed folder that no thread uses, once
+  it holds no uncommitted work and its branch's PR is merged or closed. T3 lists such folders, with
+  their sizes, under Settings → Storage → Last run (pingdotgg/t3code#19749), but never removes
+  them, and the report has no MCP tool.
+- **Used by:** `skills/housekeeping/SKILL.md` (the orphan-folder row)
+- **Would improve if:** T3's cleanup removes an orphan folder by the same rules as a thread's
+  worktree, or offers it to the user to remove.
+- **Watch:** `apps/server/src/storageCleanup.ts`; no upstream issue found yet
 
 ### worktree-remove-hook
 
@@ -246,7 +273,18 @@ T3 source paths below are in pingdotgg/t3code.
 
 ## Ready
 
-None.
+### storage-cleanup-settled-threads
+
+- **Workaround:** a settled thread whose PR never merged (closed, abandoned, read-only work) keeps
+  its worktree until `housekeeping` lists it as never-committed or closed.
+- **Used by:** `skills/housekeeping/SKILL.md` § 1
+- **Met in:** 0.0.46-nightly.20261015.3145: `worktreeSettledAfterDays` removes a worktree a set
+  number of days after its thread settles (pingdotgg/t3code#15208; off by default). Since
+  pingdotgg/t3code#19748 it also covers a thread whose reviewers shared its checkout.
+- **Adopting means:** the user sets it (around 3 days) in Settings → Storage; then
+  `housekeeping` § 1 checks it as it checks the merge and delete rules. A settled thread is
+  finished, so its resources going with it is what we want; resuming it recreates the worktree
+  and reruns setup, on the kept branch.
 
 ## Resolved
 
