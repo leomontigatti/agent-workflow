@@ -28,6 +28,10 @@ moment it merges, so each change goes through a PR and nothing is committed to `
   what each must add or rename to keep meeting the contract.
 - **Write for agents.** Every skill, brief and doc here is read by an agent: call the Skill tool
   with "writing-for-agents" before editing one.
+- **Tag a release** after merging a change to `actions/` or to what an action runs
+  (`skills/implement/scripts/review.py`): `vX.Y.Z` on the merge commit, minor for a new rule, major
+  when a project must change its workflow. Projects pin the action to a tag
+  ([its README](actions/review-record/README.md)).
 - **Run the lint**: `python3 -I tests/lint_skills.py`. CI runs it with `tests/test_lint.sh` and
   `tests/test_install.sh`. Run `install.sh` only when the user asks; the install test uses a
   throwaway `HOME`.

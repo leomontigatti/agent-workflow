@@ -15,12 +15,14 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - uses: leomontigatti/agent-workflow/actions/review-record@<commit sha> # main
+      - uses: leomontigatti/agent-workflow/actions/review-record@<commit sha> # v1.0.0
 ```
 
-Pin the action to a commit, as a workflow linter such as zizmor asks; a change to the review
-rules then reaches the project when it bumps the pin (Dependabot's `github-actions` ecosystem
-does it). The repo is public so that public projects can call it.
+Pin the action to the commit of a release tag, with the tag as the comment: zizmor checks that
+the comment's ref still points at the pinned commit, and a branch such as `main` stops doing so
+on the next merge, failing every PR of the project. A change to the review rules reaches the
+project when it bumps the pin (Dependabot's `github-actions` ecosystem proposes each new tag).
+The repo is public so that public projects can call it.
 
 Make `review-record` a required context of the default branch's protection once the project's
 `docs/agents/review.md` has its `review-paths` block. The rules are in
