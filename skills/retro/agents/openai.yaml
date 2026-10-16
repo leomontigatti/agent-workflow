@@ -1,0 +1,5 @@
+interface:
+  display_name: "Retro"
+  short_description: "Retrospective over a repo's recent agent sessions: find recurring friction and propose environment fixes."
+policy:
+  allow_implicit_invocation: false

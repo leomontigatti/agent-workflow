@@ -1,0 +1,32 @@
+name: lint
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  skills:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Lint the shared skills
+        run: python3 -I tests/lint_skills.py
+      - name: Prove the lint catches each rule
+        run: tests/test_lint.sh
+
+  scripts:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Shellcheck
+        run: shellcheck install.sh hooks/*.sh tests/*.sh skills/*/scripts/*.sh
+      - name: Python syntax
+        run: python3 -m py_compile skills/*/scripts/*.py tests/*.py
+      - name: review.py tiers and record check
+        run: python3 -I tests/test_review.py
+      - name: install.sh against a throwaway HOME
+        run: tests/test_install.sh

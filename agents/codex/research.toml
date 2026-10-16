@@ -1,0 +1,9 @@
+# Codex wrapper for the research agent. The instructions are agents/research.md; the model is
+# agents/models.md's Research row, repeated because Codex reads it nowhere else.
+name = "research"
+description = "Resolves a research question against primary sources (official docs, source code, package registries, specs) and reports the findings back to the session that spawned it. Use for \"quick research\", \"search the web\", wayfinder research tickets and any \"look this up in the docs\" legwork."
+model = "gpt-6-luna"
+model_reasoning_effort = "medium"
+# Live web search: the default cached index can be stale.
+web_search = "live"
+developer_instructions = "Before anything else, read `~/.agents/workflow/agents/research.md` and follow it: it holds this agent's instructions."

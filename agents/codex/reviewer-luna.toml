@@ -1,0 +1,7 @@
+# Codex wrapper for the readback. The instructions are agents/reviewer.md; the model is
+# agents/models.md's Readback row, repeated because Codex reads it nowhere else.
+name = "reviewer-luna"
+description = "The reviewer agent for a light pass. Use for the readback of implement's step 5."
+model = "gpt-6-luna"
+model_reasoning_effort = "low"
+developer_instructions = "Before anything else, read `~/.agents/workflow/agents/reviewer.md` and follow it: it holds this agent's instructions."
