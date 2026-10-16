@@ -305,18 +305,25 @@ T3 source paths below are in pingdotgg/t3code.
 ### preview-tools-verification
 
 - **Workaround:** projects drove UI verification with a browser CLI (`playwright-cli`) because
-  T3's preview screenshots blurred mid-animation and clicks failed when a menu closed in between.
-  On trial since 2026-10-15: in a T3 thread, `implement` step 4 drives with the preview tools
-  (`skills/implement/PREVIEW.md`), each `preview_snapshot` capture after a `preview_wait_for`,
-  and the final report notes where they fell short. rubens runs the trial first.
+  T3's preview screenshots blurred mid-animation, the viewport resized itself and clicks failed
+  when a menu closed in between. On trial since 2026-10-15: in a T3 thread, `implement` step 4
+  drives with the preview tools (`skills/implement/PREVIEW.md`), and the final report notes where
+  they fell short. en-escena's probe on 2026-10-16 found the three old faults gone (no viewport
+  drift in 10 reads, 6 of 6 menu clicks landed, no capture caught mid-transition) and two
+  capture faults in their place: every `preview_snapshot` saves at 1280×800, scaling a wider
+  viewport down, and a `backdrop-filter` blur renders as mirrored tiles of the page. So a project
+  whose design width is over 1280 or whose dialogs blur their backdrop takes PR images with its
+  browser CLI (its `verification.md` § Evidence says so); recordings are full-resolution MP4s.
+  The tools need "Agent browser access" on in Settings and, on Ubuntu 23.10+, a one-time
+  `sudo t3 browser setup`; both were missing until 2026-10-16, so no thread used them before.
 - **Used by:** `skills/implement/PREVIEW.md`; `skills/implement/SKILL.md` § 4; `contract.md`
   (the `verification.md` row)
-- **Would improve if:** after ten verified PRs on rubens, no capture is blurred, no click is
-  lost, console errors are read from the snapshot diagnostics, and recordings cover motion. Then
-  each project's `verification.md` drops the browser CLI and its install, and this entry is
-  resolved.
+- **Would improve if:** captures save at the viewport's size and render `backdrop-filter`
+  correctly. Then § Evidence goes back to `preview_snapshot`. After ten verified PRs with no
+  lost click, each project's `verification.md` drops the browser CLI and its install, and this
+  entry is resolved.
 - **Watch:** `apps/server/src/mcp/toolkits/preview/tools.ts`; the trial's notes in the final
-  reports of rubens' PRs
+  reports of en-escena's and rubens' PRs
 
 ### pr-auto-link
 
