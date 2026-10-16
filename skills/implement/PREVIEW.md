@@ -30,4 +30,5 @@ its numbers.
 7. **Close** the tab with `t3_preview_close`, then stop what § Launch started (§ Cleanup).
 
 Show the user a capture by embedding its `screenshotPath` in the reply. Attach the before and
-after to the PR as `docs/agents/verification.md` § Evidence says.
+after to the PR as `docs/agents/verification.md` § Evidence says: upload the files, never link
+the path, since T3 deletes saved captures after the days set in Settings → Storage.

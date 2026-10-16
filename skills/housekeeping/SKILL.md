@@ -31,26 +31,32 @@ still be a paused thread.
    (`~/.t3/userdata/settings.json`). `worktreeOnMerge` and `worktreeOnDelete` must be on; report
    either one off as the first thing the user can fix, since T3 then leaves work this sweep is not
    built for. `worktreeSettledAfterDays` on is welcome: it hands T3 the settled threads whose PR
-   never merged; when it is off, say so once, as an option. Report `worktreeAfterDays` or
-   `worktreeUnchanged` on as a risk: T3 then removes a live thread's worktree and recreates it on
-   resume, and this sweep would take the recreated one's resources for orphans.
+   never merged; when it is off, say so once, as an option. `worktreeAfterDays` (inactive threads)
+   and `worktreeUnchanged` (no commits yet) remove the worktree of a thread that is only paused;
+   T3 recreates it from the kept branch on resume. With either on, a missing worktree no longer
+   means finished work, so step 2 judges a branch and its resources by the thread, not the
+   worktree.
 
 2. **Survey, changing nothing.** `git worktree prune`, then `git worktree list --porcelain` gives
    each worktree's path and branch, and `git branch --format='%(refname:short) %(worktreepath)'`
    the branches with no worktree. For each, `git status --porcelain` in its worktree and
    `git rev-list --count origin/<default branch>..<branch>` show uncommitted work and unmerged
    commits, and `gh pr list --head <branch> --state all --json number,state,baseRefName` shows
-   its PR. `t3_worktree_list` tells which worktrees T3 tracks and their threads; a folder in
+   its PR. `t3_thread_list` gives each thread's branch and whether it is settled or archived; a
+   **live thread** is one that exists and is neither. `t3_worktree_list` tells which worktrees T3
+   tracks and their threads; a folder in
    T3's folder it does not list is an orphan, judged by the same checks. When
    `docs/agents/housekeeping.md` exists, it says how to list the project's per-worktree resources,
    or names a sweep command that replaces this step and the next. Report, with the reason for
    each:
    - **Would remove**: branches no worktree holds whose PR is merged or closed, or that have no
-     commits of their own; worktrees from the table's "this sweep" rows whose PR is merged or
-     closed and whose tree is clean; and the resources of every worktree that is gone.
+     commits of their own and no live thread; worktrees from the table's "this sweep" rows whose
+     PR is merged or closed and whose tree is clean; and the resources of every worktree that is
+     gone, unless its branch has a live thread, which gets them back on resume.
    - **Left to T3**: the worktrees in T3's folder that its rules will remove, as a count. When its
      Last run says it kept one for an open terminal or a running thread, name the thread.
-   - **Kept**: uncommitted changes, unpushed commits, an open PR, or the main checkout. Name every
+   - **Kept**: uncommitted changes, unpushed commits, an open PR, a live thread, or the main
+     checkout. Name every
      never-committed worktree too: a paused thread with no shell open looks exactly like a
      finished one, so those are where the user's eye is needed.
 
