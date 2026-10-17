@@ -114,8 +114,9 @@ T3 source paths below are in pingdotgg/t3code.
   returns the thread's user and assistant messages, including those from before a compaction, and
   `list_thread_pull_requests` with no `threadId` lists the calling thread's PRs.
 - **Used by:** `skills/implement/THREADS.md` ("A lost context is recovered from T3")
-- **Breaks if:** `currentThreadId` is dropped from the list result, or a thread's timeline stops
-  holding messages from before a compaction.
+- **Breaks if:** `currentThreadId` is dropped from the list result, a thread's timeline stops
+  holding messages from before a compaction, or `list_thread_pull_requests` stops defaulting to
+  the calling thread.
 
 ### pr-watch-is-native
 

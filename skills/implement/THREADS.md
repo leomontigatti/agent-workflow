@@ -30,8 +30,9 @@ directory: T3's Automatically pull keeps it current only while it is clean and o
   merges when its own read of the round (the `babysit-pr` state table) says READY. That list is
   the only source for a child PR's state. A launcher turn that ends before a child has opened its
   PR names that child in its report, since nothing will wake the launcher for it.
-- **A lost context is recovered from T3.** When a compaction fails or a turn starts with no memory
-  of the work, rebuild it from the thread before searching logs or GitHub: `t3_thread_list`
+- **A lost context is recovered from T3.** When a turn starts without the goal, branch or PR of
+  the work (a failed compaction, or a summary that left them out), rebuild them from the thread
+  before searching logs or GitHub: `t3_thread_list`
   returns `currentThreadId`, `t3_thread_read` on it gives the user's requests and your earlier
   reports, and `list_thread_pull_requests` with no `threadId` gives this thread's PRs.
 - **Read-only threads** (writing issues, triage, reviewing a PR without editing code) change no
