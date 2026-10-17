@@ -46,9 +46,9 @@ still be a paused thread.
    `t3_thread_list` with `settled: false` lists them, and `t3_thread_read` (with `limit: 1`) gives
    each one's `branch` and `worktreePath`, which the list does not. Read only the live threads;
    with more than about 50, split them across subagents in the **Miners** role of
-   `~/.agents/workflow/agents/models.md`, each returning `threadId branch worktreePath` lines. `t3_worktree_list` tells which worktrees T3
-   tracks and their threads; a folder in
-   T3's folder it does not list is an orphan, judged by the same checks. When
+   `~/.agents/workflow/agents/models.md`, each returning `threadId branch worktreePath` lines. A
+   folder in T3's folder that no live thread's `worktreePath` names is an orphan, judged by the
+   same checks. When
    `docs/agents/housekeeping.md` exists, it says how to list the project's per-worktree resources,
    or names a sweep command that replaces this step and the next. Report, with the reason for
    each:

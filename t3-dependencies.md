@@ -289,8 +289,7 @@ T3 source paths below are in pingdotgg/t3code.
   git's branch refs and the checkout each one is in, with no thread and no detached worktree
   (seen on 2026-10-17), so an orphan on a branch is listed like any other. An orphan is a folder
   no live thread's `worktreePath` (from `t3_thread_read`) names.
-- **Used by:** `skills/housekeeping/SKILL.md` (the orphan-folder row, and step 1's
-  `t3_worktree_list` line)
+- **Used by:** `skills/housekeeping/SKILL.md` (the orphan-folder row, and step 1's orphan rule)
 - **Would improve if:** T3's cleanup removes an orphan folder by the same rules as a thread's
   worktree, or offers it to the user to remove.
 - **Watch:** `apps/server/src/storageCleanup.ts`; no upstream issue found yet
@@ -329,7 +328,7 @@ T3 source paths below are in pingdotgg/t3code.
 - **Would improve if:** `watch_pull_request` wakes the thread when a required check has not
   reported, and once every check has finished rather than only on a failure or on all required
   checks passing; then the background `gh pr checks --watch` wait goes.
-- **Watch:** pingdotgg/t3code#18047 (open); #16924 (open); #17831 (closed without merging on
+- **Watch:** pingdotgg/t3code discussions/18047 (open); #16924 (open); #17831 (closed without merging on
   2026-10-14)
 
 ### pr-watch-behind-base
@@ -340,7 +339,7 @@ T3 source paths below are in pingdotgg/t3code.
 - **Used by:** `skills/babysit-pr/SKILL.md` § 2 (the `BEHIND` row) and § 4b
 - **Would improve if:** `watch_pull_request` wakes the thread when the PR's merge state becomes
   `BEHIND`.
-- **Watch:** pingdotgg/t3code#18047, the same proposal as `pr-watch-unreported-checks`
+- **Watch:** pingdotgg/t3code discussions/18047, the same proposal as `pr-watch-unreported-checks`
 
 ### pr-watch-unresolved-threads
 
