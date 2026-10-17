@@ -323,11 +323,14 @@ T3 source paths below are in pingdotgg/t3code.
   `sudo t3 browser setup`; both were missing until 2026-10-16, so no thread used them before.
 - **Used by:** `skills/implement/PREVIEW.md`; `skills/implement/SKILL.md` § 4; `contract.md`
   (the `verification.md` row)
-- **Would improve if:** a snapshot renders `backdrop-filter` correctly at a desktop viewport
-  (pingdotgg/t3code#20899) and saves at the viewport's size, or the project accepts images
-  1280 px wide. Re-run en-escena's dialog probe (`/administracion/resultados`, Acciones →
-  Descargar, 1440×900) to confirm. Then § Evidence goes back to `preview_snapshot`. After ten
-  verified PRs with no lost click, each project's `verification.md` drops the browser CLI and its
+- **Would improve if:** both hold, in the installed T3: a snapshot renders `backdrop-filter`
+  correctly at a desktop viewport (pingdotgg/t3code#20899), and it saves at the viewport's size
+  or the user accepts PR images 1280 px wide. A fix to #20899 alone leaves this entry
+  **watching** while the cap stands; ask the user about the 1280 px images. **Ready** only once
+  en-escena's dialog probe passes (`/administracion/resultados`, Acciones → Descargar,
+  1440×900). Adoption is then two steps: first each project's § Evidence
+  takes PR images with `preview_snapshot`, keeping the browser CLI installed; once ten PRs
+  verified that way had no lost click, each `verification.md` drops the browser CLI and its
   install, and this entry is resolved.
 - **Watch:** pingdotgg/t3code#20899 (the blur; no issue asks to lift the size cap, and #10141,
   which tried, closed unmerged); `apps/server/src/preview/ServerBrowserPage.ts`
