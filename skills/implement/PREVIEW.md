@@ -18,7 +18,8 @@ and open the final report with the refusal's exact text.
 
 1. **Open** a tab on the launched app: `preview_open` with the URL, and `open: false` unless the
    user should watch. Keep the returned `tabId` and pass it on every call; parallel subagents
-   each open their own tab (`reuseExistingTab: false`).
+   each open their own tab (`reuseExistingTab: false`) and finish driving before they report: a
+   subagent resumed later by its own background task has lost the preview tools.
 2. **Size** the viewport the screen is designed for with `preview_resize`, once: it holds across
    navigations and sign-ins. Check a dense screen (a table, a long row) at the narrower width the
    project names too.
