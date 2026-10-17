@@ -51,8 +51,8 @@ and end your turn. No subagent, and no `sleep` in the foreground:
 
 On every wake, first bring the local branch level with GitHub, since a branch update may have
 moved it: `git fetch origin <branch> && git merge --ff-only origin/<branch>`. Then **read the
-round**: the PR's state and its unresolved threads, through the commands in
-[triage.md](triage.md#reading-the-round).
+round**: the PR's state, its unresolved threads, and its reviews and top-level comments, through
+the commands in [triage.md](triage.md#reading-the-round).
 The first row that holds decides:
 
 | State                                                                                   | Do                               |
@@ -158,9 +158,11 @@ YOU, listing what is still open. Otherwise go back to step 2.
 
 When the merge is the agent's (above), run
 `python3 -I ~/.agents/workflow/skills/implement/scripts/review.py check --pr <n>`, fix a failure as
-step 4 does, then `gh pr merge <n> --squash` and read the round again: `MERGED` is step 5 as
-MERGED. A refusal names what GitHub still waits on: a check reporting late goes back to step 2,
-anything else is step 5 as BLOCKED. When the merge is not the agent's, step 5 as READY.
+step 4 does, then `gh pr merge <n> --squash --match-head-commit <headRefOid>`, the head the round
+read, so a later push is never merged unread. Read the round again either way: `MERGED` is step 5
+as MERGED, and a refusal lands on its row (a new head or a late check waits again, `BEHIND` is
+step 4b). A refusal that reads "none of these" a second time is step 5 as BLOCKED, quoting
+GitHub's reason. When the merge is not the agent's, step 5 as READY.
 
 ## 5. Report
 

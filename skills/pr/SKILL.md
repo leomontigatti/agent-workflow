@@ -18,7 +18,7 @@ the PR opens (the `implement` skill's step 7), and the agent merges a PR whose m
 ```markdown
 <anything the user must do or decide, first; omit when there is nothing>
 
-<what changed, as the user or the maintainer would see it, in one to three sentences>
+<one or two sentences on what changed, only when the title and the issue leave it unclear>
 
 **Door: one-way.** <what a revert does not undo; the whole line only for a one-way door>
 
@@ -85,7 +85,7 @@ Tier: full, reviewed 1a2b3c4
 
 ## PRD PRs
 
-One PR carries every sub-issue of a PRD. Its body is one paragraph saying what the PRD delivers,
+One PR carries every sub-issue of a PRD. Its body is one sentence saying what the PRD delivers,
 then `## Sub-issues` listing every sub-issue as a checkbox that carries its own keyword
 (`- [ ] Closes #N <title>`), then the `Door: one-way` line when any slice is one, then `## Review` once the
 chain has been reviewed, then `Closes #<PRD>`. GitHub closes only the

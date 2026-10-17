@@ -71,6 +71,15 @@ gh api graphql -F owner='{owner}' -F repo='{repo}' -F n=<n> -f query='
   --jq '.data.repository.pullRequest.reviewThreads.nodes[] | select(.isResolved | not)'
 ```
 
+Then every review with a body, and every top-level comment, oldest first: a review-body finding
+and a question asked in a comment live here, outside any thread:
+
+```bash
+gh pr view <n> --json reviews,comments \
+  --jq '([.reviews[] | select(.body != "") | {at: .submittedAt, who: .author.login, state, body}]
+         + [.comments[] | {at: .createdAt, who: .author.login, body}]) | sort_by(.at)[]'
+```
+
 ## Answering the round
 
 The thread ids come from the review thread's `id` above.
