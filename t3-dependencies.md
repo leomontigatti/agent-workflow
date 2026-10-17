@@ -108,6 +108,16 @@ T3 source paths below are in pingdotgg/t3code.
 - **Breaks if:** the tool is renamed or removed, stops taking a URL, or stops showing status or
   settling the thread on merge.
 
+### own-thread-readable
+
+- **Relies on:** `t3_thread_list` returns the caller's `currentThreadId`, `t3_thread_read` on it
+  returns the thread's user and assistant messages, including those from before a compaction, and
+  `list_thread_pull_requests` with no `threadId` lists the calling thread's PRs.
+- **Used by:** `skills/implement/THREADS.md` ("A lost context is recovered from T3")
+- **Breaks if:** `currentThreadId` is dropped from the list result, a thread's timeline stops
+  holding messages from before a compaction, or `list_thread_pull_requests` stops defaulting to
+  the calling thread.
+
 ### pr-watch-is-native
 
 - **Relies on:** `watch_pull_request` links the PR if needed, has T3 check it about every two
