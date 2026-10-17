@@ -65,8 +65,7 @@ For each report with `status: done`:
    (`docs/agents/issue-tracker.md` § PRD workflow).
 3. Push. After the first merge, open the PR as a **draft** with the PRD PR body of the `pr` skill
    (§ PRD PRs there) and link it to the thread; after that, tick the sub-issue's box in its body.
-   The chain pays one review at the end instead of one per slice, and a review bot that skips
-   drafts waits for it too.
+   The chain pays one review at the end instead of one per slice.
 4. Remove the implementer's worktree and branch (`git worktree remove <path>`,
    `git branch -d <branch>`).
 5. Recompute the frontier from what has merged onto the integration branch, never from GitHub's
@@ -89,8 +88,8 @@ When every ticket has merged:
    the ticket number. Land it with step 3's fast-forward, push and worktree removal; there is no
    sub-issue to comment on or tick. Then re-run only the checks the findings named and step 5's
    fix round over the fixes: no second broad review.
-4. Run `implement` step 4 now that the code is final: the **after** evidence, attached as
-   `docs/agents/verification.md` § Evidence says.
+4. Run `implement` step 4 now that the code is final, then step 7's screen approval: the user
+   approves the **after** in the thread before the PR leaves draft.
 5. Add the `## Review` record to the PR body (the `pr` skill), then
    `gh pr ready <n>`, then call the Skill tool with "babysit-pr".
 6. Remove any implementer worktree still listed in `git worktree list`, and

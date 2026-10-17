@@ -373,7 +373,7 @@ T3 source paths below are in pingdotgg/t3code.
   640 CSS px is captured through a scaled CDP clip: a 1440 design width comes out shrunk, and a
   `backdrop-filter` blur renders as mirrored tiles of the page's top-left corner (checked
   2026-10-17: tiled at the default 1280×800, correct at 640×400). So a project whose dialogs blur
-  their backdrop, or whose design width is over 1280, takes PR images with its browser CLI (its
+  their backdrop, or whose design width is over 1280, takes its images with its browser CLI (its
   `verification.md` § Evidence says so). Recordings capture unscaled: a frame from one is
   full-size (2×) and renders the blur correctly, but extracting it needs an MP4 decoder (no
   system `ffmpeg`; Playwright's bundled one reads no MP4) and is lossy, so the browser CLI stays.
@@ -383,11 +383,11 @@ T3 source paths below are in pingdotgg/t3code.
   (the `verification.md` row)
 - **Would improve if:** both hold, in the installed T3: a snapshot renders `backdrop-filter`
   correctly at a desktop viewport (pingdotgg/t3code#20899), and it saves at the viewport's size
-  or the user accepts PR images 1280 px wide. A fix to #20899 alone leaves this entry
+  or the user accepts images 1280 px wide. A fix to #20899 alone leaves this entry
   **watching** while the cap stands; ask the user about the 1280 px images. **Ready** only once
   en-escena's dialog probe passes (`/administracion/resultados`, Acciones → Descargar,
   1440×900). Adoption is then two steps: first each project's § Evidence
-  takes PR images with `preview_snapshot`, keeping the browser CLI installed; once ten PRs
+  takes its images with `preview_snapshot`, keeping the browser CLI installed; once ten PRs
   verified that way had no lost click, each `verification.md` drops the browser CLI and its
   install, and this entry is resolved.
 - **Watch:** pingdotgg/t3code#20899 (the blur; no issue asks to lift the size cap, and #10141,

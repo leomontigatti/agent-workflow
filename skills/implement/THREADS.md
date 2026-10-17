@@ -23,8 +23,9 @@ directory: T3's Automatically pull keeps it current only while it is clean and o
   merges. To keep working on an existing PR, start the thread on that branch (or link the PR)
   instead of checking it out in another worktree.
 - **A launched thread reports to its own inbox.** A thread started with `t3_thread_launch`
-  babysits its own PR and hands back to the user; its `unwatch_pull_request` wakes nobody else, so
-  the launcher never hears that the PR is ready. When the user hands the merge to the launcher,
+  babysits its own PR, merges it when the merge is the agent's (the `babysit-pr` skill) and
+  otherwise hands back to the user; its `unwatch_pull_request` wakes nobody else, so the launcher
+  never hears that the PR is ready. When the user hands a merge that is theirs to the launcher,
   the child still babysits and the launcher owns only the wait: `list_thread_pull_requests` with
   the child's `threadId` gives the child's PR, the launcher calls `watch_pull_request` on it, and
   merges when its own read of the round (the `babysit-pr` state table) says READY. That list is
