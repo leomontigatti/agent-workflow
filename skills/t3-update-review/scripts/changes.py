@@ -38,6 +38,7 @@ WATCHED_PATHS = [
     "apps/server/src/orchestration-v2/ThreadLaunchService.ts",
     "apps/server/src/orchestration-v2/ThreadPullRequestService.ts",
     "apps/server/src/project/ProjectSetupScriptRunner.ts",
+    "apps/server/src/preview/ServerBrowserPage.ts",
     "packages/contracts/src/orchestratorMcp.ts",
     "packages/contracts/src/t3ProjectFile.ts",
     "packages/contracts/src/threadPullRequest.ts",

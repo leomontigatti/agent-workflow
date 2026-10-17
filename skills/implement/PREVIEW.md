@@ -25,8 +25,9 @@ and open the final report with the refusal's exact text.
    project names too.
 3. **Capture the before**, before the first edit: `preview_snapshot` with `save: true`, its
    `screenshotPath` the evidence file, or the browser CLI when `docs/agents/verification.md`
-   § Evidence names it. The preview saves every capture at 1280×800, scaling a wider viewport
-   down, and draws a blurred backdrop (behind a dialog or sheet) as mirrored tiles of the page.
+   § Evidence names it. The preview saves every capture at most 1280 px wide, scaling a wider
+   viewport down, and at any viewport wider than 640 px draws a blurred backdrop (behind a
+   dialog or sheet) as mirrored tiles of the page: a capture artifact, not an app bug.
 4. **Drive** the flow with `preview_click`, `preview_type`, `preview_select`, `preview_press` and
    `preview_navigate`, targeting elements by the `aria-ref` refs of the latest `preview_snapshot`.
    Refresh the snapshot after a navigation. Before every capture or assertion, `preview_wait_for`
