@@ -1,8 +1,7 @@
 # Review triage
 
-The rubric step 3 of [SKILL.md](SKILL.md) applies to every finding, whether it comes from a review
-bot, a human reviewer or the in-session review. A bot reads the diff and the standards; it has
-neither the issue nor the domain, so each claim is checked against the code before it is acted
+The rubric step 3 of [SKILL.md](SKILL.md) applies to every finding, whether it comes from a person,
+a red check or the in-session review. Each claim is checked against the code before it is acted
 on.
 
 ## The three verbs
@@ -16,17 +15,13 @@ on.
 
 Always **ask**, whatever a pattern says, when the finding touches an area in
 `docs/agents/review.md` § Always ask, a migration, a destructive data path, or a term defined in
-`GLOSSARY.md`; when it needs a product decision; and when a person, not a bot, opened the thread.
+`GLOSSARY.md`; when it needs a product decision; and when a person opened the thread.
 
 A finding backed by a documented standard is never declined on the triager's judgement alone: it
 is a **fix**, or an **ask** when the code is a deliberate exception the user rules on. The one
 ruling already given is a spec that names the exception in so many words: decline only by quoting
 that line of the PRD or issue. A comment in the code is the implementer's claim, not the ruling; it
 points at where to look.
-
-From a bot's third pass on a PR (its third review with a body), lean toward **decline** for a
-finding that matches a pattern below: code churned to quiet a bot is a cost, not a fix. The
-always-ask list still wins.
 
 ## Patterns
 
@@ -74,17 +69,6 @@ gh api graphql -F owner='{owner}' -F repo='{repo}' -F n=<n> -f query='
         comments(first: 20) { nodes { author { login } body url } } } }
     } } }' \
   --jq '.data.repository.pullRequest.reviewThreads.nodes[] | select(.isResolved | not)'
-```
-
-When `docs/agents/pull-requests.md` § Review bot names a bot, its latest review with a body and
-its latest comment, which is where it answers a request (a rate limit, a skip, a review a push
-cancelled). A bot that edits its reply in place shows the current text here:
-
-```bash
-gh pr view <n> --json reviews \
-  --jq '[.reviews[] | select((.author.login | startswith("<bot login>")) and .body != "")] | last | {submittedAt, body}'
-gh pr view <n> --json comments \
-  --jq '[.comments[] | select(.author.login | startswith("<bot login>"))] | last | .body'
 ```
 
 ## Answering the round

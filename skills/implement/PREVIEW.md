@@ -43,7 +43,5 @@ and open the final report with the refusal's exact text.
    `preview_recording_start` before the interaction, `preview_recording_stop` after.
 7. **Close** the tab with `t3_preview_close`, then stop what § Launch started (§ Cleanup).
 
-Show the user a capture by embedding its path in the reply. Attach the before and after to the
-PR as `docs/agents/verification.md` § Evidence says, from the tool it names: upload the files,
-never link a `screenshotPath`, since T3 deletes saved captures after the days set in Settings →
-Storage.
+Show the user a capture by embedding its path in the reply: that is how the `implement` skill's
+step 7 asks for their approval.
