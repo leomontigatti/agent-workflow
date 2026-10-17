@@ -310,20 +310,29 @@ T3 source paths below are in pingdotgg/t3code.
   drives with the preview tools (`skills/implement/PREVIEW.md`), and the final report notes where
   they fell short. en-escena's probe on 2026-10-16 found the three old faults gone (no viewport
   drift in 10 reads, 6 of 6 menu clicks landed, no capture caught mid-transition) and two
-  capture faults in their place: every `preview_snapshot` saves at 1280×800, scaling a wider
-  viewport down, and a `backdrop-filter` blur renders as mirrored tiles of the page. So a project
-  whose design width is over 1280 or whose dialogs blur their backdrop takes PR images with its
-  browser CLI (its `verification.md` § Evidence says so); recordings are full-resolution MP4s.
+  capture faults in their place, both from one cause. `preview_snapshot` caps the PNG at
+  1280 px wide (`MAX_SCREENSHOT_WIDTH`, hardcoded, no option), so any viewport wider than
+  640 CSS px is captured through a scaled CDP clip: a 1440 design width comes out shrunk, and a
+  `backdrop-filter` blur renders as mirrored tiles of the page's top-left corner (checked
+  2026-10-17: tiled at the default 1280×800, correct at 640×400). So a project whose dialogs blur
+  their backdrop, or whose design width is over 1280, takes PR images with its browser CLI (its
+  `verification.md` § Evidence says so). Recordings capture unscaled: a frame from one is
+  full-size (2×) and renders the blur correctly, but extracting it needs an MP4 decoder (no
+  system `ffmpeg`; Playwright's bundled one reads no MP4) and is lossy, so the browser CLI stays.
   The tools need "Agent browser access" on in Settings and, on Ubuntu 23.10+, a one-time
   `sudo t3 browser setup`; both were missing until 2026-10-16, so no thread used them before.
 - **Used by:** `skills/implement/PREVIEW.md`; `skills/implement/SKILL.md` § 4; `contract.md`
   (the `verification.md` row)
-- **Would improve if:** captures save at the viewport's size and render `backdrop-filter`
-  correctly. Then § Evidence goes back to `preview_snapshot`. After ten verified PRs with no
-  lost click, each project's `verification.md` drops the browser CLI and its install, and this
-  entry is resolved.
-- **Watch:** `apps/server/src/mcp/toolkits/preview/tools.ts`; the trial's notes in the final
-  reports of en-escena's and rubens' PRs
+- **Would improve if:** a snapshot renders `backdrop-filter` correctly at a desktop viewport
+  (pingdotgg/t3code#20899) and saves at the viewport's size, or the project accepts images
+  1280 px wide. Re-run en-escena's dialog probe (`/administracion/resultados`, Acciones →
+  Descargar, 1440×900) to confirm. Then § Evidence goes back to `preview_snapshot`. After ten
+  verified PRs with no lost click, each project's `verification.md` drops the browser CLI and its
+  install, and this entry is resolved.
+- **Watch:** pingdotgg/t3code#20899 (the blur; no issue asks to lift the size cap, and #10141,
+  which tried, closed unmerged); `apps/server/src/preview/ServerBrowserPage.ts`
+  (`MAX_SCREENSHOT_WIDTH`, `captureViewport`); `apps/server/src/mcp/toolkits/preview/tools.ts`;
+  the trial's notes in the final reports of en-escena's and rubens' PRs
 
 ### pr-auto-link
 
