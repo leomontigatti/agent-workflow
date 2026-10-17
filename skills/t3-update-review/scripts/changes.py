@@ -44,6 +44,12 @@ WATCHED_PATHS = [
     "packages/contracts/src/threadPullRequest.ts",
     "docs/user/project-settings.md",
     "docs/user/background-service.md",
+    "apps/server/src/mcp/OrchestratorMcpService.ts",
+    "apps/server/src/mcp/threadAccess.ts",
+    "apps/server/src/scheduledTasks/ScheduledTaskService.ts",
+    "apps/server/src/worktreesDirectory.ts",
+    "apps/web/src/components/settings/ScheduledTasksSettings.tsx",
+    "packages/contracts/src/settings.ts",
 ]
 
 PR_LINE = re.compile(r"^\* (.+?) by @\S+ in (https://github\.com/\S+/pull/(\d+))\s*$")

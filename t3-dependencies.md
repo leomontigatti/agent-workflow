@@ -77,6 +77,18 @@ T3 source paths below are in pingdotgg/t3code.
   own; T3 again keeps every worktree a subagent shares, so each reviewed thread's worktree stays;
   or the Last run report moves or stops giving a reason.
 
+### thread-launch-workspace
+
+- **Relies on:** `t3_thread_launch` with a `workspaceStrategy` (`worktree` with `baseRef`,
+  `branch` and `startFromOrigin`; `existing_worktree`; `root`) creates or picks the checkout, binds
+  the new thread to it and runs project setup before the agent starts, so a session never needs
+  `git worktree add` (T3's orchestration instructions;
+  `packages/provider-core/src/server/orchestrationInstructions.ts`).
+- **Used by:** `skills/implement/THREADS.md` ("Work where you started", "A launched thread
+  reports to its own inbox")
+- **Breaks if:** the tool or its `workspaceStrategy` shape changes, or a launched thread stops
+  getting a worktree of its own.
+
 ### renamed-branch-in-thread
 
 - **Relies on:** a thread keeps working after its worktree's branch is renamed with
@@ -120,7 +132,11 @@ T3 source paths below are in pingdotgg/t3code.
   The child's report comes back as `summary`, on the call result and on `task_status`. A child
   that asks a question wakes the parent, and the result carries `hasPendingQuestion`
   (pingdotgg/t3code#19521, #19538); `t3_pending_request_read` and `t3_pending_request_respond`
-  answer it. A Claude subagent can call it too. Source: `packages/contracts/src/orchestratorMcp.ts`. Read-only review
+  answer it. `task_cancel` stops a child, and the tasks it delegated. `orchestrator_capabilities`
+  lists the live provider instances and model ids. A Claude subagent can call `delegate_task`
+  too, but only while the parent's run is active: unlike the other T3 tools, it is still refused
+  (`parent_not_active`) to a background subagent once the parent's turn ended
+  (pingdotgg/t3code#19751). Source: `packages/contracts/src/orchestratorMcp.ts`. Read-only review
   is a prompt rule (`agents/reviewer.md`), not something T3 enforces.
 - **Used by:** `agents/models.md` § Reaching each model; `skills/code-review/SKILL.md` § Spawning
   a reviewer; `agents/reviewer.md`; `agents/research.md`
@@ -128,6 +144,25 @@ T3 source paths below are in pingdotgg/t3code.
   the parent (it would wait forever), `clientRequestId` stops
   deduplicating a retry, the `target` shape or live model ids change, or children stop sharing
   the parent's checkout by default.
+
+### background-subagents-keep-t3-tools
+
+- **Relies on:** a Claude subagent started with the Agent tool runs in the background by default,
+  and keeps calling T3 tools (the preview tools, `html_render`, `t3_thread_send`) with its
+  parent thread's credential after the parent's turn ended, for as long as T3 lists it as a
+  running background subagent of the same provider instance (pingdotgg/t3code#19751, since
+  0.1.1-nightly.20261017.3238; `isLiveCallerShell` in
+  `apps/server/src/mcp/OrchestratorMcpService.ts`, `assertLiveCaller` in
+  `apps/server/src/mcp/threadAccess.ts`). Before that build, such a call failed with
+  `parent_not_active`. Still refused: `delegate_task`, `create_threads` and `request_secret`,
+  and any call from a subagent that finished and was resumed by its own background task. After
+  a restart, T3 now wakes a thread whose subagent's background work the restart cut
+  (pingdotgg/t3code#19750).
+- **Used by:** `skills/implement/PREVIEW.md` § The loop step 1 (parallel subagents each open their
+  own tab); `skills/implement-spec/SKILL.md` § 2 (the orchestrator ends its turn while its
+  background implementers run)
+- **Breaks if:** T3 again ties a caller's tools to the parent's active run, so a background
+  subagent's preview calls fail once the parent's turn ends.
 
 ### login-shell-path
 
@@ -162,6 +197,16 @@ T3 source paths below are in pingdotgg/t3code.
   their own, the MCP default base stops being `main`, or the scheduler drops `fixed_time` tasks.
   A project whose default branch is not `main` sets the task's Base branch in Settings →
   Scheduled tasks (pingdotgg/t3code#16183).
+
+### update-review-reads-t3
+
+- **Relies on:** `t3_environment_read` returns the installed build as `serverVersion`, a nightly
+  tag that is also a release name on pingdotgg/t3code, and `t3_project_list` returns each
+  project's `workspaceRoot`, a git checkout whose `origin` is the project's repo.
+- **Used by:** `skills/t3-update-review/SKILL.md` steps 1 and 3;
+  `skills/t3-update-review/scripts/changes.py`
+- **Breaks if:** `serverVersion` stops matching a release tag, so `changes.py` finds no range, or
+  the project list stops giving a checkout path.
 
 ## Watching
 
@@ -240,8 +285,11 @@ T3 source paths below are in pingdotgg/t3code.
 - **Workaround:** `housekeeping` removes a folder in T3's managed folder that no thread uses, once
   it holds no uncommitted work and its branch's PR is merged or closed. T3 lists such folders, with
   their sizes, under Settings → Storage → Last run (pingdotgg/t3code#19749), but never removes
-  them, and the report has no MCP tool.
-- **Used by:** `skills/housekeeping/SKILL.md` (the orphan-folder row)
+  them, and the report has no MCP tool. `t3_worktree_list` cannot find them either: it lists
+  git's branch refs and the checkout each one is in, with no thread and no detached worktree
+  (seen on 2026-10-17), so an orphan on a branch is listed like any other. An orphan is a folder
+  no live thread's `worktreePath` (from `t3_thread_read`) names.
+- **Used by:** `skills/housekeeping/SKILL.md` (the orphan-folder row, and step 1's orphan rule)
 - **Would improve if:** T3's cleanup removes an orphan folder by the same rules as a thread's
   worktree, or offers it to the user to remove.
 - **Watch:** `apps/server/src/storageCleanup.ts`; no upstream issue found yet
@@ -280,7 +328,7 @@ T3 source paths below are in pingdotgg/t3code.
 - **Would improve if:** `watch_pull_request` wakes the thread when a required check has not
   reported, and once every check has finished rather than only on a failure or on all required
   checks passing; then the background `gh pr checks --watch` wait goes.
-- **Watch:** pingdotgg/t3code#18047 (open); #16924 (open); #17831 (closed without merging on
+- **Watch:** pingdotgg/t3code discussions/18047 (open); #16924 (open); #17831 (closed without merging on
   2026-10-14)
 
 ### pr-watch-behind-base
@@ -291,7 +339,7 @@ T3 source paths below are in pingdotgg/t3code.
 - **Used by:** `skills/babysit-pr/SKILL.md` § 2 (the `BEHIND` row) and § 4b
 - **Would improve if:** `watch_pull_request` wakes the thread when the PR's merge state becomes
   `BEHIND`.
-- **Watch:** pingdotgg/t3code#18047, the same proposal as `pr-watch-unreported-checks`
+- **Watch:** pingdotgg/t3code discussions/18047, the same proposal as `pr-watch-unreported-checks`
 
 ### pr-watch-unresolved-threads
 
