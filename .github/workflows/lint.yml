@@ -28,5 +28,7 @@ jobs:
         run: python3 -m py_compile skills/*/scripts/*.py tests/*.py
       - name: review.py tiers and record check
         run: python3 -I tests/test_review.py
+      - name: upstreams.py mark keeps the file's layout
+        run: python3 -I tests/test_upstreams.py
       - name: install.sh against a throwaway HOME
         run: tests/test_install.sh
