@@ -237,11 +237,30 @@ T3 source paths below are in pingdotgg/t3code.
 - **Workaround:** a scheduled run is read from its thread, never from the task's
   `lastRunStatus`: the scheduler records `succeeded` once the launch returns, whatever the run
   does next (`apps/server/src/scheduledTasks/ScheduledTaskService.ts`). A run's thread without a
-  report, or a bookkeeping PR that never appeared, is a failed run.
+  report, or a bookkeeping PR that never appeared, is a failed run. A run that starts right
+  after the machine wakes can fire before the network is up: workspace preparation fails on
+  `git fetch` ("Git could not reach the remote", `retryable: false`) and the task still says
+  `succeeded` (all three Monday runs on 2026-10-19).
 - **Used by:** `skills/upstream-review/SKILL.md` § Cadence; `skills/t3-update-review/SKILL.md`
   § Cadence
 - **Would improve if:** a run that fails or ends without its result is recorded as failed.
 - **Watch:** pingdotgg/t3code#17889 (open)
+
+### scheduled-missed-runs
+
+- **Workaround:** a `fixed_time` run that falls due while T3 is not running is dropped. When T3
+  comes back more than 10 minutes past the due time, the scheduler moves the task to its next
+  slot without running it (`MISSED_FIXED_TIME_GRACE_MS` in
+  `apps/server/src/scheduledTasks/Schedule.ts`, `rescheduleMissedRun` in
+  `ScheduledTaskService.ts`). Only a server log line records the skip: no thread, and the task's
+  `lastRunStatus`, `lastRunAt` and run count stay at the previous run's. So a scheduled day with
+  no run thread is a missed run, and the next run, or a manual one, covers it. Seen on
+  2026-10-18: T3 was down from 03:45 to 14:17 UTC, and the daily review due at 12:00 never ran.
+- **Used by:** `skills/upstream-review/SKILL.md` § Cadence; `skills/t3-update-review/SKILL.md`
+  § Cadence
+- **Would improve if:** a missed run is run once on startup (catch-up), or is recorded on the
+  task as missed.
+- **Watch:** `apps/server/src/scheduledTasks/Schedule.ts`; no upstream issue found yet
 
 ### t3json-manual-import
 
