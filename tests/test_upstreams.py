@@ -24,6 +24,7 @@ SOURCES = """{
     {
       "id": "b",
       "repo": "o/b",
+      "license": "MIT, Copyright (c) 2026 José Tan",
       "paths": ["b/**", "c/**"],
       "reviewed": "2222222",
       "reviewedAt": "2026-01-01"
@@ -37,13 +38,14 @@ class Mark(unittest.TestCase):
     def run_mark(self, heads, report=True):
         d = tempfile.mkdtemp()
         upstreams.SOURCES = os.path.join(d, "sources.json")
-        open(upstreams.SOURCES, "w").write(SOURCES)
+        open(upstreams.SOURCES, "w", encoding="utf-8").write(SOURCES)
         json.dump(heads, open(os.path.join(d, "heads.json"), "w"))
         rep = os.path.join(d, "report.md")
         if report:
             open(rep, "w").write("# report\n")
         upstreams.mark(d, rep)
-        return open(upstreams.SOURCES).read()
+        self.assertFalse(os.path.exists(upstreams.SOURCES + ".tmp"))
+        return open(upstreams.SOURCES, encoding="utf-8").read()
 
     def test_moves_only_the_watermark_lines(self):
         out = self.run_mark({"a": "1111111", "b": "3333333"})

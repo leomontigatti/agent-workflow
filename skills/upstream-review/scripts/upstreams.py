@@ -107,14 +107,16 @@ def mark(out, report):
     if not os.path.isfile(report):
         sys.exit(f"no report at {report}: write it before moving the watermarks")
     heads = json.load(open(os.path.join(out, "heads.json")))
-    data = json.load(open(SOURCES))
+    data = json.load(open(SOURCES, encoding="utf-8"))
     for s in data["sources"]:
         if s["id"] in heads and s["reviewed"] != heads[s["id"]]:
             s["reviewed"] = heads[s["id"]]
             s["reviewedAt"] = date.today().isoformat()
             print(f"{s['id']}: reviewed -> {s['reviewed'][:7]}")
-    with open(SOURCES, "w") as f:
-        f.write(dumps(data) + "\n")
+    text = dumps(data) + "\n"
+    with open(SOURCES + ".tmp", "w", encoding="utf-8") as f:
+        f.write(text)
+    os.replace(SOURCES + ".tmp", SOURCES)
 
 
 def dumps(value, level=0):
@@ -122,11 +124,11 @@ def dumps(value, level=0):
     the layout sources.json is written in, so a moved watermark is the commit's only change."""
     pad, inner = "  " * level, "  " * (level + 1)
     if isinstance(value, dict) and value:
-        items = [f"{inner}{json.dumps(k)}: {dumps(v, level + 1)}" for k, v in value.items()]
+        items = [f"{inner}{json.dumps(k, ensure_ascii=False)}: {dumps(v, level + 1)}" for k, v in value.items()]
         return "{\n" + ",\n".join(items) + f"\n{pad}}}"
     if isinstance(value, list) and any(isinstance(v, (dict, list)) for v in value):
         return "[\n" + ",\n".join(f"{inner}{dumps(v, level + 1)}" for v in value) + f"\n{pad}]"
-    return json.dumps(value)
+    return json.dumps(value, ensure_ascii=False)
 
 
 def main():
