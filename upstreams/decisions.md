@@ -51,13 +51,13 @@ not.
 
 ## Weekly review (2026-10-19): pstack v0.15.28, mattpocock-skills 5beb35b
 
-Verdicts marked proposed stand until this review's PR merges; the three adopted ones the user approved on 2026-10-19.
+Verdicts marked proposed stand until this review's PR merges; the three adopted ones the user approved, and they merged, on 2026-10-19.
 
 | Id                                          | Idea                                                                                                   | Verdict  | Where or why |
 | ------------------------------------------- | ------------------------------------------------------------------------------------------------------ | -------- | ------------ |
-| `pstack:decidable-asks`                     | Every item waiting on the user listed with link, impact, evidence, risk and pick; never cut to save words. | adopted | To do (#13): `skills/implement/SKILL.md` § The final report. |
-| `pstack:evidence-survives-cleanup`          | After cleanup, confirm the captured evidence is still there.                                           | adopted | To do (#14): `skills/implement/SKILL.md` step 4. |
-| `pstack:skill-name-matches-folder`          | Every skill's `name:` is its folder name.                                                              | adopted | To do (#15): a check in `tests/lint_skills.py`. |
+| `pstack:decidable-asks`                     | Every item waiting on the user listed with link, impact, evidence, risk and pick; never cut to save words. | adopted | `skills/implement/SKILL.md` § The final report (#13). |
+| `pstack:evidence-survives-cleanup`          | After cleanup, confirm the captured evidence is still there.                                           | adopted | `skills/implement/SKILL.md` step 4 (#14). |
+| `pstack:skill-name-matches-folder`          | Every skill's `name:` is its folder name.                                                              | adopted | `tests/lint_skills.py` `check_skill_names` (#15). |
 | `pstack:formal-verification-skill`          | A project skill that formally checks one costly property tests rarely reach, shown able to fail.      | later (proposed) | When a project has a race, retry or state machine whose bug is costly; then an optional `docs/agents/formal-verification.md` row. |
 | `pstack:maintain-formal-verification`       | Re-sync a formal check after code changes and classify each failure as drift or bug.                   | later (proposed) | Once `pstack:formal-verification-skill` is adopted somewhere; then a scheduled task. |
 | `pstack:claude-code-adapter`                | A table mapping Cursor names to Claude Code.                                                           | declined (proposed) | Each harness has its own wrapper (`agents/claude/`, `agents/codex/`); models live only in `agents/models.md`. |
