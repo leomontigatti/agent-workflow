@@ -54,7 +54,7 @@ def content(repo, path, sha):
 
 
 def collect(out):
-    sources = json.load(open(SOURCES))["sources"]
+    sources = json.load(open(SOURCES, encoding="utf-8"))["sources"]
     os.makedirs(out, exist_ok=True)
     for name in os.listdir(out):
         os.remove(os.path.join(out, name))
