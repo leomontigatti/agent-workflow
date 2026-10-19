@@ -37,5 +37,18 @@ expect_failure "broken anchor" skills/tdd/SKILL.md 'See [this](tests.md#no-such-
 expect_failure "upstream mention" skills/tdd/SKILL.md 'Taken from mattpocock/skills.' "mentions an upstream"
 expect_failure "former upstream" agents/reviewer.md 'Adapted from show-me.' "mentions an upstream: show-me"
 
+work="$(mktemp -d)"
+cp -r "$repo/." "$work"
+rm -rf "$work/.git"
+sed -i 's/^name: tdd$/name: test-driven/' "$work/skills/tdd/SKILL.md"
+if out="$(python3 -I "$work/tests/lint_skills.py" 2>&1)"; then
+  echo "FAIL skill name off its folder: the lint passed"; fail=1
+elif ! grep -q -- 'does not match its folder "tdd"' <<<"$out"; then
+  echo "FAIL skill name off its folder: expected the folder message in:"; echo "$out"; fail=1
+else
+  echo "ok   skill name off its folder"
+fi
+rm -rf "$work"
+
 if python3 -I "$repo/tests/lint_skills.py" >/dev/null; then echo "ok   the repo itself passes"; else echo "FAIL the repo itself"; fail=1; fi
 exit "$fail"
