@@ -48,3 +48,20 @@ not.
 | `pstack:correct-twice`           | A class of mistake counts once it has happened twice; one session is an anecdote.                      | adopted  | `skills/retro/SKILL.md` step 6, with an exception for a single event that lost data or shipped a bug.                              |
 | `pstack:correct-proof`           | A new check must fail on the real past mistake before it is trusted.                                   | adopted  | `skills/retro/SKILL.md` § Fix ladder and the report's Proof line.                                                                    |
 | `pstack:correct-enforcer-table`  | A rule→enforcer table, so an unenforced rule shows as a repeat.                                        | adopted  | `skills/retro/SKILL.md` report § Enforcers.                                                                                          |
+
+## Weekly review (2026-10-19): pstack v0.15.28, mattpocock-skills 5beb35b
+
+Verdicts are proposed until this PR merges.
+
+| Id                                          | Idea                                                                                                   | Verdict  | Where or why |
+| ------------------------------------------- | ------------------------------------------------------------------------------------------------------ | -------- | ------------ |
+| `pstack:decidable-asks`                     | Every item waiting on the user listed with link, impact, evidence, risk and pick; never cut to save words. | adopted (proposed) | To do: `skills/implement/SKILL.md` § The final report. |
+| `pstack:evidence-survives-cleanup`          | After cleanup, confirm the captured evidence is still there.                                           | adopted (proposed) | To do: `skills/implement/SKILL.md` step 4. |
+| `pstack:skill-name-matches-folder`          | Every skill's `name:` is its folder name.                                                              | adopted (proposed) | To do: a check in `tests/lint_skills.py`. |
+| `pstack:formal-verification-skill`          | A project skill that formally checks one costly property tests rarely reach, shown able to fail.      | later (proposed) | When a project has a race, retry or state machine whose bug is costly; then an optional `docs/agents/formal-verification.md` row. |
+| `pstack:maintain-formal-verification`       | Re-sync a formal check after code changes and classify each failure as drift or bug.                   | later (proposed) | Once `pstack:formal-verification-skill` is adopted somewhere; then a scheduled task. |
+| `pstack:claude-code-adapter`                | A table mapping Cursor names to Claude Code.                                                           | declined (proposed) | Each harness has its own wrapper (`agents/claude/`, `agents/codex/`); models live only in `agents/models.md`. |
+| `pstack:docs-vs-tree-check`                 | A CI check that the docs match the skill tree.                                                         | declined (proposed) | No doc enumerates our skills; `tests/lint_skills.py` checks every link. |
+| `pstack:brand-via-type-guard`               | A TypeScript brand comes from a type guard, never `as`.                                                | declined (proposed) | A language rule is a project's coding standard. |
+| `pstack:rereview-by-delta`                  | After a verified head, small changes get one fresh verifier; only new behaviour gets the full panel.  | declined (proposed) | `skills/implement/SKILL.md` § Fix round already reviews the fixes alone. |
+| `mattpocock-skills:dated-commit-cited-wiki` | Orchestrator memory as a wiki of dated, commit-cited claims.                                           | declined (proposed) | Memory is the harness's; our docs describe the present, kept true by PRs. |
