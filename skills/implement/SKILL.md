@@ -153,7 +153,9 @@ only at the skill's report.
 
 ## The final report
 
-What needs the user first (every **ask**, every check you could not run and why), then what
+What needs the user first: every **ask**, one bullet each however many there are, with the call,
+your pick, the evidence behind it, its risk (a low one too) and its link when there is one, so the
+user can decide from the report alone; then every check you could not run and why. Then what
 changed, then what was found. Label each claim about behaviour **measured** (you ran it: paste the
 failing-then-passing output), **inferred** (from reading the code: give the `file:line`) or
 **guess**.
