@@ -188,7 +188,7 @@ def check_upstreams(path, text, names):
             report(path, i, f"mentions an upstream: {m.group(1)}")
 
 
-FRONT_NAME = re.compile(r"""^name:\s*(?:"([^"]*)"|'([^']*)'|([^\s#]+))""")
+FRONT_NAME = re.compile(r"""^name:\s*(?:"([^"]*)"|'([^']*)'|(\S*?))\s*(?:\s#.*)?$""")
 
 
 def check_skill_names():
@@ -198,11 +198,8 @@ def check_skill_names():
             continue
         lines = open(path, encoding="utf-8").read().splitlines()
         front = []
-        if lines and lines[0] == "---":
-            for line in lines[1:]:
-                if line == "---":
-                    break
-                front.append(line)
+        if lines and lines[0] == "---" and "---" in lines[1:]:
+            front = lines[1:lines.index("---", 1)]
         for n, line in enumerate(front, 2):
             m = FRONT_NAME.match(line)
             if m:

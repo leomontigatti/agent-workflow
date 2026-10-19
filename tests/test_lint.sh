@@ -60,6 +60,8 @@ expect_name() {
 expect_name "skill name off its folder" 's/^name: tdd$/name: test-driven/' 'does not match its folder "tdd"'
 expect_name "skill name only in the body" 's/^name: tdd$/title: tdd/; $a name: tdd' "no name: line in its frontmatter"
 expect_name "quoted skill name with a comment" 's/^name: tdd$/name: "tdd" # the folder/' ""
+expect_name "a hash inside a bare name" 's/^name: tdd$/name: tdd#other/' 'skill name "tdd#other"'
+expect_name "unclosed frontmatter" '0,/^---$/!{0,/^---$/s/^---$/title: open/}' "no name: line in its frontmatter"
 
 if python3 -I "$repo/tests/lint_skills.py" >/dev/null; then echo "ok   the repo itself passes"; else echo "FAIL the repo itself"; fail=1; fi
 exit "$fail"
