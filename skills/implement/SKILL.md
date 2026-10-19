@@ -48,7 +48,8 @@ clean before moving to the next. Read a failure where the command prints it: out
 When the change alters anything a user sees or drives, prove it by `docs/agents/verification.md`:
 launch, drive the flows its § Feature map names for the area (in a T3 thread, with T3's preview
 tools as [PREVIEW.md](PREVIEW.md) says), and capture the **after** on the
-same screen, data and account as the before. Clean up what you launched. A check you can run is
+same screen, data and account as the before. Clean up what you launched, then check that each
+capture is still at its path: step 7 embeds it from there. A check you can run is
 never handed to the user: run it and show the result. Skip this step for changes with no surface a
 user reaches, and say so.
 
