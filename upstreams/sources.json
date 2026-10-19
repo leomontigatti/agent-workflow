@@ -6,8 +6,8 @@
       "branch": "main",
       "paths": ["pstack/**"],
       "license": "MIT, Copyright (c) 2026 Lauren Tan (pstack/LICENSE)",
-      "reviewed": "e5136d82418d2db3165ea1050d17577cd618cc05",
-      "reviewedAt": "2026-10-15"
+      "reviewed": "d457567332aa6989e753ea289f30ea2bfbc80bc0",
+      "reviewedAt": "2026-10-19"
     },
     {
       "id": "mattpocock-skills",
@@ -15,8 +15,8 @@
       "branch": "main",
       "paths": ["skills/**"],
       "license": "MIT, Copyright (c) 2026 Matt Pocock (LICENSE)",
-      "reviewed": "49dd158d1076134a641b33efb035946536778336",
-      "reviewedAt": "2026-10-15"
+      "reviewed": "5beb35b040e3de97e54fa9e386d7e42d15c295c2",
+      "reviewedAt": "2026-10-19"
     }
   ]
 }
