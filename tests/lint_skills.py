@@ -188,19 +188,30 @@ def check_upstreams(path, text, names):
             report(path, i, f"mentions an upstream: {m.group(1)}")
 
 
+FRONT_NAME = re.compile(r"""^name:\s*(?:"([^"]*)"|'([^']*)'|([^\s#]+))""")
+
+
 def check_skill_names():
     for d in sorted(os.listdir(os.path.join(ROOT, "skills"))):
         path = os.path.join(ROOT, "skills", d, "SKILL.md")
         if not os.path.isfile(path):
             continue
-        for n, line in enumerate(open(path, encoding="utf-8"), 1):
-            if line.startswith("name:"):
-                name = line[5:].strip().strip("\"'")
+        lines = open(path, encoding="utf-8").read().splitlines()
+        front = []
+        if lines and lines[0] == "---":
+            for line in lines[1:]:
+                if line == "---":
+                    break
+                front.append(line)
+        for n, line in enumerate(front, 2):
+            m = FRONT_NAME.match(line)
+            if m:
+                name = next(g for g in m.groups() if g is not None)
                 if name != d:
                     report(path, n, f'skill name "{name}" does not match its folder "{d}"')
                 break
         else:
-            report(path, 1, "skill has no name: line")
+            report(path, 1, "skill has no name: line in its frontmatter")
 
 
 def walk(dirs, exts):
