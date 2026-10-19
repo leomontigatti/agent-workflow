@@ -59,4 +59,4 @@ The review writes down what it learns and proposes what to change. What it learn
 
 ## Cadence
 
-Daily: the T3 scheduled task "T3 update review" runs it at 09:00 in a fresh thread on the shared-workflow repo. Nightlies land several times a day, and a run with nothing new costs one version check. A run's thread is its only record: the task's `lastRunStatus` says `succeeded` whatever the run did, so a thread with no report is a failed run.
+Daily: the T3 scheduled task "T3 update review" runs it at 09:00 in a fresh thread on the shared-workflow repo. Nightlies land several times a day, and a run with nothing new costs one version check. A run's thread is its only record: the task's `lastRunStatus` says `succeeded` whatever the run did, so a thread with no report is a failed run, and a scheduled day with no thread is a run T3 skipped because it was down at the time.
