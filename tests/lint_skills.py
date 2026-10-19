@@ -8,6 +8,7 @@ Fails (exit 1) when:
 - a shared file names a project command (`pnpm`, `uv`, `just`, `vp`, ...);
 - a shared file names a project file that `contract.md` does not list;
 - a relative Markdown link, or its anchor, does not resolve, anywhere in the repo;
+- a skill's frontmatter `name:` is not its folder name, which the Skill tool calls it by;
 - a shared file mentions an upstream repo (`upstreams/sources.json`, plus the former sources
   listed below).
 
@@ -187,6 +188,29 @@ def check_upstreams(path, text, names):
             report(path, i, f"mentions an upstream: {m.group(1)}")
 
 
+FRONT_NAME = re.compile(r"""^name:\s*(?:"([^"]*)"|'([^']*)'|(\S*?))\s*(?:\s#.*)?$""")
+
+
+def check_skill_names():
+    for d in sorted(os.listdir(os.path.join(ROOT, "skills"))):
+        path = os.path.join(ROOT, "skills", d, "SKILL.md")
+        if not os.path.isfile(path):
+            continue
+        lines = open(path, encoding="utf-8").read().splitlines()
+        front = []
+        if lines and lines[0] == "---" and "---" in lines[1:]:
+            front = lines[1:lines.index("---", 1)]
+        for n, line in enumerate(front, 2):
+            m = FRONT_NAME.match(line)
+            if m:
+                name = next(g for g in m.groups() if g is not None)
+                if name != d:
+                    report(path, n, f'skill name "{name}" does not match its folder "{d}"')
+                break
+        else:
+            report(path, 1, "skill has no name: line in its frontmatter")
+
+
 def walk(dirs, exts):
     for d in dirs:
         for dirpath, dirnames, filenames in os.walk(os.path.join(ROOT, d)):
@@ -212,6 +236,8 @@ def main():
             lines = text.splitlines()
             check_paths(path, lines, contract)
             check_commands(path, lines)
+
+    check_skill_names()
 
     for p in problems:
         print(p)

@@ -37,5 +37,31 @@ expect_failure "broken anchor" skills/tdd/SKILL.md 'See [this](tests.md#no-such-
 expect_failure "upstream mention" skills/tdd/SKILL.md 'Taken from mattpocock/skills.' "mentions an upstream"
 expect_failure "former upstream" agents/reviewer.md 'Adapted from show-me.' "mentions an upstream: show-me"
 
+# The name cases edit the frontmatter in place: appending a line cannot reach it.
+expect_name() {
+  local name="$1" script="$2" want="$3" work
+  work="$(mktemp -d)"
+  cp -r "$repo/." "$work"
+  rm -rf "$work/.git"
+  sed -i "$script" "$work/skills/tdd/SKILL.md"
+  if [[ -z "$want" ]]; then
+    if python3 -I "$work/tests/lint_skills.py" >/dev/null; then echo "ok   $name"
+    else echo "FAIL $name: the lint failed"; fail=1; fi
+  elif out="$(python3 -I "$work/tests/lint_skills.py" 2>&1)"; then
+    echo "FAIL $name: the lint passed"; fail=1
+  elif ! grep -q -- "$want" <<<"$out"; then
+    echo "FAIL $name: expected '$want' in:"; echo "$out"; fail=1
+  else
+    echo "ok   $name"
+  fi
+  rm -rf "$work"
+}
+
+expect_name "skill name off its folder" 's/^name: tdd$/name: test-driven/' 'does not match its folder "tdd"'
+expect_name "skill name only in the body" 's/^name: tdd$/title: tdd/; $a name: tdd' "no name: line in its frontmatter"
+expect_name "quoted skill name with a comment" 's/^name: tdd$/name: "tdd" # the folder/' ""
+expect_name "a hash inside a bare name" 's/^name: tdd$/name: tdd#other/' 'skill name "tdd#other"'
+expect_name "unclosed frontmatter" '0,/^---$/!{0,/^---$/s/^---$/title: open/}' "no name: line in its frontmatter"
+
 if python3 -I "$repo/tests/lint_skills.py" >/dev/null; then echo "ok   the repo itself passes"; else echo "FAIL the repo itself"; fail=1; fi
 exit "$fail"
