@@ -33,13 +33,11 @@ directory: T3's Automatically pull keeps it current only while it is clean and o
   PR names that child in its report, since nothing will wake the launcher for it.
 - **A lost context is recovered from T3.** When a turn starts without the goal, branch or PR of
   the work (a failed compaction, or a summary that left them out), rebuild them from the thread
-  before searching logs or GitHub: `t3_thread_list`
-  returns `currentThreadId`, `t3_thread_read` on it gives the user's requests and your earlier
-  reports, and `list_thread_pull_requests` with no `threadId` gives this thread's PRs.
+  before searching logs or GitHub: `t3_thread_list` returns `currentThreadId`, and
+  `t3_thread_read` on it gives the user's requests, your earlier reports, and in `pullRequests`
+  this thread's PRs with their state.
 - **Read-only threads** (writing issues, triage, reviewing a PR without editing code) change no
-  branch. One started in "local" mode, with no worktree, still runs the `runOnWorktreeCreate`
-  script, in the main checkout; a setup terminal that fails there is expected, and is no reason
-  to change the main checkout.
+  branch.
 - **Leaving a worktree behind is fine; abandoning a branch is not.** Push the branch or delete it.
   T3's storage cleanup removes a worktree T3 created once its PR merges or its last thread is
   deleted, and keeps the branch; the branches, and the worktrees it skips, go with the

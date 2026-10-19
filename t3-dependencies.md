@@ -116,17 +116,15 @@ T3 source paths below are in pingdotgg/t3code.
 
 ### own-thread-readable
 
-- **Relies on:** `t3_thread_list` returns the caller's `currentThreadId`, `t3_thread_read` on it
-  returns the thread's user and assistant messages, including those from before a compaction, and
-  `list_thread_pull_requests` with no `threadId` lists the calling thread's PRs. Since
-  pingdotgg/t3code#17454 (0.1.1-nightly.20261018.3331) `t3_thread_list` and `t3_thread_read` also
-  return `pullRequests`, every linked PR with its `url`, `source` and `state` (null until read
-  from the host); `linkedPullRequest` is the legacy single link and can be null meanwhile
-  (`OrchestratorMcpThreadPullRequest` in `packages/contracts/src/orchestratorMcp.ts`).
+- **Relies on:** `t3_thread_list` returns the caller's `currentThreadId`, and `t3_thread_read` on
+  it returns the thread's user and assistant messages, including those from before a compaction,
+  and `pullRequests`, every linked PR with its `url`, `source` and `state` (null until read from
+  the host; pingdotgg/t3code#17454, since 0.1.1-nightly.20261018.3331). `linkedPullRequest` is the
+  legacy single link and can be null meanwhile (`OrchestratorMcpThreadPullRequest` in
+  `packages/contracts/src/orchestratorMcp.ts`).
 - **Used by:** `skills/implement/THREADS.md` ("A lost context is recovered from T3")
 - **Breaks if:** `currentThreadId` is dropped from the list result, a thread's timeline stops
-  holding messages from before a compaction, or `list_thread_pull_requests` stops defaulting to
-  the calling thread.
+  holding messages from before a compaction, or `t3_thread_read` stops returning `pullRequests`.
 
 ### pr-watch-is-native
 
@@ -413,35 +411,28 @@ T3 source paths below are in pingdotgg/t3code.
 
 ## Ready
 
+None.
+
+## Resolved
+
 ### setup-runs-in-main-checkout
 
-- **Workaround:** a "local" thread, with no worktree, runs the `runOnWorktreeCreate` script in the
-  main checkout, untracked, with `T3CODE_WORKTREE_PATH` set to the project root. `contract.md`
-  asks every project's script to be safe there, and `skills/implement/THREADS.md` says a failed
-  setup terminal there is expected.
-- **Used by:** `contract.md` (the `t3.json` row); `skills/implement/THREADS.md` (Read-only
-  threads)
-- **Met in:** 0.1.1-nightly.20261018.3331 (pingdotgg/t3code#18891, merged 2026-10-18; closes
-  #18882): `ThreadLaunchService` skips the setup action, and its progress step, when the thread
-  has no worktree path. Not covered: an `existing_worktree` launch whose path is the project root
-  still runs it.
-- **Adopting it:** `skills/implement/THREADS.md` (Read-only threads) drops the sentence about the
-  setup script and its failed terminal in the main checkout. `contract.md`'s `t3.json` row keeps
-  "safe to run in the main checkout", with the reason changed to the `existing_worktree` launch on
-  the project root. Then this entry is resolved.
+- **Workaround:** a "local" thread, with no worktree, ran the `runOnWorktreeCreate` script in the
+  main checkout; `skills/implement/THREADS.md` said a failed setup terminal there was expected.
+- **Met in:** 0.1.1-nightly.20261018.3331 (pingdotgg/t3code#18891; closes #18882). An
+  `existing_worktree` launch on the project root still runs the script, so `contract.md`'s
+  `t3.json` row keeps it safe to run in the main checkout.
+- **Adopted:** 2026-10-19; the sentence left `THREADS.md` and the contract row names the
+  `existing_worktree` case.
 
 ### thread-read-lists-prs
 
-- **Workaround:** a session recovering a lost context reads its thread with `t3_thread_read`,
-  then calls `list_thread_pull_requests` for its PRs.
-- **Used by:** `skills/implement/THREADS.md` ("A lost context is recovered from T3")
-- **Met in:** 0.1.1-nightly.20261018.3331 (pingdotgg/t3code#17454): `t3_thread_read` returns
-  `pullRequests`, each with `url` and `state`.
-- **Adopting it:** "A lost context is recovered from T3" takes the PRs from the same
-  `t3_thread_read` call, and keeps `list_thread_pull_requests` for a PR's watch or check detail;
-  `own-thread-readable` then relies on `pullRequests` in place of the list call's default.
-
-## Resolved
+- **Workaround:** recovering a lost context called `list_thread_pull_requests` after
+  `t3_thread_read` for the thread's PRs.
+- **Met in:** 0.1.1-nightly.20261018.3331 (pingdotgg/t3code#17454: `pullRequests` on
+  `t3_thread_read` and `t3_thread_list`).
+- **Adopted:** 2026-10-19; "A lost context is recovered from T3" takes them from `t3_thread_read`,
+  and `own-thread-readable` relies on that.
 
 ### storage-cleanup-settled-threads
 
