@@ -55,6 +55,21 @@ class Mark(unittest.TestCase):
     def test_up_to_date_leaves_the_file_unchanged(self):
         self.assertEqual(self.run_mark({"a": "1111111", "b": "2222222"}), SOURCES)
 
+    def test_the_real_file_round_trips(self):
+        path = os.path.join(ROOT, "upstreams", "sources.json")
+        text = open(path).read()
+        self.assertEqual(upstreams.dumps(json.loads(text)) + "\n", text)
+
+    def test_adds_a_missing_review_date(self):
+        global SOURCES
+        old = SOURCES
+        SOURCES = old.replace('"2222222",\n      "reviewedAt": "2026-01-01"', '"2222222"')
+        try:
+            out = json.loads(self.run_mark({"b": "3333333"}))
+        finally:
+            SOURCES = old
+        self.assertEqual(out["sources"][1]["reviewedAt"], date.today().isoformat())
+
     def test_refuses_without_a_report(self):
         with self.assertRaises(SystemExit):
             self.run_mark({"a": "9999999"}, report=False)
