@@ -24,6 +24,7 @@ import difflib
 import fnmatch
 import json
 import os
+import re
 import subprocess
 import sys
 from datetime import date
@@ -107,15 +108,25 @@ def mark(out, report):
     if not os.path.isfile(report):
         sys.exit(f"no report at {report}: write it before moving the watermarks")
     heads = json.load(open(os.path.join(out, "heads.json")))
-    data = json.load(open(SOURCES))
-    for s in data["sources"]:
+    text = open(SOURCES).read()
+    for s in json.loads(text)["sources"]:
         if s["id"] in heads and s["reviewed"] != heads[s["id"]]:
-            s["reviewed"] = heads[s["id"]]
-            s["reviewedAt"] = date.today().isoformat()
-            print(f"{s['id']}: reviewed -> {s['reviewed'][:7]}")
+            text = set_watermark(text, s["id"], heads[s["id"]], date.today().isoformat())
+            print(f"{s['id']}: reviewed -> {heads[s['id']][:7]}")
     with open(SOURCES, "w") as f:
-        json.dump(data, f, indent=2)
-        f.write("\n")
+        f.write(text)
+
+
+def set_watermark(text, sid, sha, day):
+    """Rewrite one source's `reviewed` and `reviewedAt` in place, so the rest of the file keeps
+    the layout it was written in and the commit shows only the watermark."""
+    start = re.search(rf'"id":\s*{re.escape(json.dumps(sid))}', text).end()
+    nxt = re.compile(r'"id":\s*"').search(text, start)
+    end = nxt.start() if nxt else len(text)
+    block = text[start:end]
+    block = re.sub(r'("reviewed":\s*)"[^"]*"', lambda m: f'{m.group(1)}"{sha}"', block, count=1)
+    block = re.sub(r'("reviewedAt":\s*)"[^"]*"', lambda m: f'{m.group(1)}"{day}"', block, count=1)
+    return text[:start] + block + text[end:]
 
 
 def main():
