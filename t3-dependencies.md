@@ -71,7 +71,10 @@ T3 source paths below are in pingdotgg/t3code.
   `worktreeUnchanged: true` and `browserArtifactsAfterDays: 5`. The first and third remove a
   paused thread's worktree, and T3 recreates it from the kept branch on resume, so `housekeeping`
   judges branches and resources by the live thread (`t3_thread_list`, then `t3_thread_read` for its
-  branch), not by the worktree.
+  branch), not by the worktree. Since pingdotgg/t3code#20449 (0.1.1-nightly.20261017.3272) T3
+  recreates a missing worktree only at `<managed folder>/<repo>/<folder>`, compared by real path
+  (`makeIsManagedWorktreePath` in `apps/server/src/worktreesDirectory.ts`); a thread bound to a
+  folder outside it fails its turn instead, and `t3_worktree_handoff` no longer takes `path`.
 - **Breaks if:** the settings are reset or the merge and delete rules turned off; T3 stops
   recreating a removed worktree from its branch on resume, or deletes the branch; T3 moves its managed folder, so `housekeeping` would take T3's worktrees for its
   own; T3 again keeps every worktree a subagent shares, so each reviewed thread's worktree stays;
@@ -93,7 +96,10 @@ T3 source paths below are in pingdotgg/t3code.
 
 - **Relies on:** a thread keeps working after its worktree's branch is renamed with
   `git branch -m`, and a PR linked by URL or number keeps its status. The link carries no branch
-  name (`PullRequestTargetInput` in `apps/server/src/mcp/toolkits/pullRequests/tools.ts`).
+  name (`PullRequestTargetInput` in `apps/server/src/mcp/toolkits/pullRequests/tools.ts`). Only
+  T3's automatic branch association follows the branch: since pingdotgg/t3code#20223
+  (0.1.1-nightly.20261018.3331) a merged or closed PR it found is dropped once its head branch is
+  no longer the thread's; explicit links keep theirs (`ThreadPullRequestService.ts`).
 - **Used by:** `skills/implement/THREADS.md` ("Branch names")
 - **Breaks if:** T3 starts resolving a thread's PR, or its state, from the branch name recorded
   when the thread started.
@@ -112,7 +118,11 @@ T3 source paths below are in pingdotgg/t3code.
 
 - **Relies on:** `t3_thread_list` returns the caller's `currentThreadId`, `t3_thread_read` on it
   returns the thread's user and assistant messages, including those from before a compaction, and
-  `list_thread_pull_requests` with no `threadId` lists the calling thread's PRs.
+  `list_thread_pull_requests` with no `threadId` lists the calling thread's PRs. Since
+  pingdotgg/t3code#17454 (0.1.1-nightly.20261018.3331) `t3_thread_list` and `t3_thread_read` also
+  return `pullRequests`, every linked PR with its `url`, `source` and `state` (null until read
+  from the host); `linkedPullRequest` is the legacy single link and can be null meanwhile
+  (`OrchestratorMcpThreadPullRequest` in `packages/contracts/src/orchestratorMcp.ts`).
 - **Used by:** `skills/implement/THREADS.md` ("A lost context is recovered from T3")
 - **Breaks if:** `currentThreadId` is dropped from the list result, a thread's timeline stops
   holding messages from before a compaction, or `list_thread_pull_requests` stops defaulting to
@@ -123,7 +133,9 @@ T3 source paths below are in pingdotgg/t3code.
 - **Relies on:** `watch_pull_request` links the PR if needed, has T3 check it about every two
   minutes, and wakes the thread on a failed check, passed required checks, a new or edited
   comment or review, or a conflict with the base. Only comments posted after the call wake the
-  thread. A subagent thread cannot call it. `unwatch_pull_request` ends the watch and returns the
+  thread. Watching a PR again starts from the check and conflict state the last watch reported,
+  so it does not repeat news the thread already got (`endedWatch`, pingdotgg/t3code#21155, since
+  0.1.1-nightly.20261018.3331). A subagent thread cannot call it. `unwatch_pull_request` ends the watch and returns the
   thread to the user's inbox; it wakes no other thread. `list_thread_pull_requests` with another
   thread's `threadId` lists that thread's PRs.
 - **Used by:** `skills/babysit-pr/SKILL.md` § 2 and § 5; `skills/implement/SKILL.md` § 7;
@@ -142,7 +154,9 @@ T3 source paths below are in pingdotgg/t3code.
   The child's report comes back as `summary`, on the call result and on `task_status`. A child
   that asks a question wakes the parent, and the result carries `hasPendingQuestion`
   (pingdotgg/t3code#19521, #19538); `t3_pending_request_read` and `t3_pending_request_respond`
-  answer it. `task_cancel` stops a child, and the tasks it delegated. `orchestrator_capabilities`
+  answer it. Since 0.1.1-nightly.20261018.3331 `summary` is the child's newest assistant message
+  (pingdotgg/t3code#19058). `task_cancel` stops a child, and the tasks it delegated, and since
+  0.1.1-nightly.20261019.3348 also cancels the task's own queued turn (pingdotgg/t3code#21487). `orchestrator_capabilities`
   lists the live provider instances and model ids. A Claude subagent can call `delegate_task`
   too, but only while the parent's run is active: unlike the other T3 tools, it is still refused
   (`parent_not_active`) to a background subagent once the parent's turn ended
@@ -231,19 +245,6 @@ T3 source paths below are in pingdotgg/t3code.
 - **Would improve if:** a run that fails or ends without its result is recorded as failed.
 - **Watch:** pingdotgg/t3code#17889 (open)
 
-### setup-runs-in-main-checkout
-
-- **Workaround:** a "local" thread, with no worktree, runs the `runOnWorktreeCreate` script in the
-  main checkout, untracked, with `T3CODE_WORKTREE_PATH` set to the project root. `contract.md`
-  asks every project's script to be safe there, and `skills/implement/THREADS.md` says a failed
-  setup terminal there is expected.
-- **Used by:** `contract.md` (the `t3.json` row); `skills/implement/THREADS.md` (Read-only
-  threads)
-- **Would improve if:** a thread with no worktree skips `runOnWorktreeCreate`
-  (`apps/server/src/orchestration-v2/ThreadLaunchService.ts` passes
-  `worktreePath ?? project.workspaceRoot`; `apps/server/src/project/ProjectSetupScriptRunner.ts`).
-- **Watch:** pingdotgg/t3code#18882 (open)
-
 ### t3json-manual-import
 
 - **Workaround:** each project's `t3.json` is imported once per T3 install (project settings →
@@ -277,10 +278,9 @@ T3 source paths below are in pingdotgg/t3code.
 - **Used by:** `skills/housekeeping/SKILL.md` § 1
 - **Would improve if:** T3's storage cleanup sees archived threads' worktrees, so they are removed
   by the rules the user has set.
-- **Watch:** pingdotgg/t3code#17811 (open); fix PR pingdotgg/t3code#16473 (open). Since
-  pingdotgg/t3code#15208 the cleanup code says "Active threads only: archived threads are not
-  candidates", so the fix runs against a maintainer's stated choice and may never land. Deleting
-  a finished thread instead of archiving it hands its worktree to T3.
+- **Watch:** fix pingdotgg/t3code#16473, merged 2026-10-19 (`034b506`; closes #17811), after
+  0.1.1-nightly.20261019.3373 was cut, so the next nightly should carry it: cleanup then reads
+  archived threads as candidates and as sharers. Ready once the installed build includes it.
 
 ### storage-cleanup-stack-layers
 
@@ -326,7 +326,8 @@ T3 source paths below are in pingdotgg/t3code.
   parent's local commit, with project setup done before the child starts) can commit to its own
   named branch that the orchestrator merges. Its result has no branch field today
   (`OrchestratorMcpDelegateTaskResult` in `packages/contracts/src/orchestratorMcp.ts`). Not tried
-  yet: needs a trial.
+  yet: needs a trial. Since pingdotgg/t3code#20213 such a call is refused when the project's repo
+  lacks the parent checkout's commit.
 - **Watch:** `apps/server/src/mcp/toolkits/orchestrator/tools.ts` (`delegate_task`)
 
 ### pr-watch-unreported-checks
@@ -404,11 +405,41 @@ T3 source paths below are in pingdotgg/t3code.
   Today the tool says to register "every pull request you open ... right after creating it",
   which implies it does not.
 - **Watch:** `packages/contracts/src/threadPullRequest.ts` (`ThreadPullRequestLinkSource` has no
-  branch-detected value)
+  branch-detected value). A lead: T3 already finds a thread's PR by its branch after each turn and
+  keeps it as `branchPullRequest`, apart from the links (discovery in
+  `apps/server/src/orchestration-v2/ThreadPullRequestService.ts`; pingdotgg/t3code#20223 shows it
+  in the sidebar). Whether that association settles the thread on merge and can be watched is
+  untested: needs a trial with a PR opened by `gh` and never linked.
 
 ## Ready
 
-None.
+### setup-runs-in-main-checkout
+
+- **Workaround:** a "local" thread, with no worktree, runs the `runOnWorktreeCreate` script in the
+  main checkout, untracked, with `T3CODE_WORKTREE_PATH` set to the project root. `contract.md`
+  asks every project's script to be safe there, and `skills/implement/THREADS.md` says a failed
+  setup terminal there is expected.
+- **Used by:** `contract.md` (the `t3.json` row); `skills/implement/THREADS.md` (Read-only
+  threads)
+- **Met in:** 0.1.1-nightly.20261018.3331 (pingdotgg/t3code#18891, merged 2026-10-18; closes
+  #18882): `ThreadLaunchService` skips the setup action, and its progress step, when the thread
+  has no worktree path. Not covered: an `existing_worktree` launch whose path is the project root
+  still runs it.
+- **Adopting it:** `skills/implement/THREADS.md` (Read-only threads) drops the sentence about the
+  setup script and its failed terminal in the main checkout. `contract.md`'s `t3.json` row keeps
+  "safe to run in the main checkout", with the reason changed to the `existing_worktree` launch on
+  the project root. Then this entry is resolved.
+
+### thread-read-lists-prs
+
+- **Workaround:** a session recovering a lost context reads its thread with `t3_thread_read`,
+  then calls `list_thread_pull_requests` for its PRs.
+- **Used by:** `skills/implement/THREADS.md` ("A lost context is recovered from T3")
+- **Met in:** 0.1.1-nightly.20261018.3331 (pingdotgg/t3code#17454): `t3_thread_read` returns
+  `pullRequests`, each with `url` and `state`.
+- **Adopting it:** "A lost context is recovered from T3" takes the PRs from the same
+  `t3_thread_read` call, and keeps `list_thread_pull_requests` for a PR's watch or check detail;
+  `own-thread-readable` then relies on `pullRequests` in place of the list call's default.
 
 ## Resolved
 
