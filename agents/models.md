@@ -18,6 +18,10 @@ Effort starts at the row's level. Raise it one step for the hardest work (a migr
 concurrency bug, a design nobody has settled); lower it for routine reading. A change of effort
 keeps the family, so a diverse panel stays diverse.
 
+A task can run on a different model than its row names when that model fits it better (a
+judgment too hard for the light model, say). The family rule still holds, and the report names
+the model and why, as it does for a fallback.
+
 | Role                  | What it does                                              | Model                                                    | Effort  | Fallback                                     |
 | --------------------- | --------------------------------------------------------- | -------------------------------------------------------- | ------- | -------------------------------------------- |
 | Standards, Spec       | `code-review`'s two axes                                  | the other family: Sol, or Opus when Codex wrote it       | medium  | `reviewer-opus` (Claude) / `reviewer` (Codex) |
