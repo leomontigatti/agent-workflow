@@ -162,7 +162,7 @@ T3 source paths below are in pingdotgg/t3code.
   `pendingApproval`, which ends a `mode: wait` early like a question. `orchestrator_capabilities`
   lists the live provider instances and model ids, from the composer's catalog: a model hidden in
   Settings (`providerModelPreferences.<instance>.hiddenModels`) is absent from it, yet
-  `delegate_task` still runs it (checked 2026-10-21 with `claude-sonnet-5-5`, hidden there). A Claude subagent can call `delegate_task`
+  `delegate_task` still runs it (checked 2026-10-21 with `claude-sonnet-5-5`, then hidden). A Claude subagent can call `delegate_task`
   too, but only while the parent's run is active: unlike the other T3 tools, it is still refused
   (`parent_not_active`) to a background subagent once the parent's turn ended
   (pingdotgg/t3code#19751). Source: `packages/contracts/src/orchestratorMcp.ts`. Read-only review
