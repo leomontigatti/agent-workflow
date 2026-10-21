@@ -86,7 +86,10 @@ T3 source paths below are in pingdotgg/t3code.
   `branch` and `startFromOrigin`; `existing_worktree`; `root`) creates or picks the checkout, binds
   the new thread to it and runs project setup before the agent starts, so a session never needs
   `git worktree add` (T3's orchestration instructions;
-  `packages/provider-core/src/server/orchestrationInstructions.ts`).
+  `packages/provider-core/src/server/orchestrationInstructions.ts`). Since
+  pingdotgg/t3code#21032 (0.1.1-nightly.20261020.3386) `startFromOrigin: true` fetches the base
+  branch's own remote (`resolveWorktreeBaseRemote` in `ThreadLaunchService.ts`), not `origin` by
+  name; every project here tracks `origin`, so nothing changes.
 - **Used by:** `skills/implement/THREADS.md` ("Work where you started", "A launched thread
   reports to its own inbox")
 - **Breaks if:** the tool or its `workspaceStrategy` shape changes, or a launched thread stops
@@ -154,8 +157,12 @@ T3 source paths below are in pingdotgg/t3code.
   (pingdotgg/t3code#19521, #19538); `t3_pending_request_read` and `t3_pending_request_respond`
   answer it. Since 0.1.1-nightly.20261018.3331 `summary` is the child's newest assistant message
   (pingdotgg/t3code#19058). `task_cancel` stops a child, and the tasks it delegated, and since
-  0.1.1-nightly.20261019.3348 also cancels the task's own queued turn (pingdotgg/t3code#21487). `orchestrator_capabilities`
-  lists the live provider instances and model ids. A Claude subagent can call `delegate_task`
+  0.1.1-nightly.20261019.3348 also cancels the task's own queued turn (pingdotgg/t3code#21487).
+  Since 0.1.1-nightly.20261020.3386 the result also carries the child's `options` and a
+  `pendingApproval`, which ends a `mode: wait` early like a question. `orchestrator_capabilities`
+  lists the live provider instances and model ids, from the composer's catalog: a model hidden in
+  Settings (`providerModelPreferences.<instance>.hiddenModels`) is absent from it, yet
+  `delegate_task` still runs it (checked 2026-10-21 with `claude-sonnet-5-5`, then hidden). A Claude subagent can call `delegate_task`
   too, but only while the parent's run is active: unlike the other T3 tools, it is still refused
   (`parent_not_active`) to a background subagent once the parent's turn ended
   (pingdotgg/t3code#19751). Source: `packages/contracts/src/orchestratorMcp.ts`. Read-only review
@@ -240,7 +247,10 @@ T3 source paths below are in pingdotgg/t3code.
   report, or a bookkeeping PR that never appeared, is a failed run. A run that starts right
   after the machine wakes can fire before the network is up: workspace preparation fails on
   `git fetch` ("Git could not reach the remote", `retryable: false`) and the task still says
-  `succeeded` (all three Monday runs on 2026-10-19).
+  `succeeded` (all three Monday runs on 2026-10-19). Still so in 0.1.2-nightly.20261021.3473:
+  `lastRunStatus` is `failed` only when the launch call itself fails. `run_scheduled_task_now`
+  now returns the thread its run went to (`null` when dispatch failed), so a manual run's thread
+  is found from the call.
 - **Used by:** `skills/upstream-review/SKILL.md` § Cadence; `skills/t3-update-review/SKILL.md`
   § Cadence
 - **Would improve if:** a run that fails or ends without its result is recorded as failed.
@@ -287,17 +297,6 @@ T3 source paths below are in pingdotgg/t3code.
   of these two reasons.
 - **Watch:** pingdotgg/t3code#16559 and #17813 (open); #11078 (open; the sidebar keeps the
   creation-time branch name after a rename)
-
-### storage-cleanup-archived-threads
-
-- **Workaround:** `housekeeping` sweeps an archived thread's worktree once its PR is merged or
-  closed and its tree is clean; deleting the thread also hands it to T3 (`worktreeOnDelete`).
-- **Used by:** `skills/housekeeping/SKILL.md` § 1
-- **Would improve if:** T3's storage cleanup sees archived threads' worktrees, so they are removed
-  by the rules the user has set.
-- **Watch:** fix pingdotgg/t3code#16473, merged 2026-10-19 (`034b506`; closes #17811), after
-  0.1.1-nightly.20261019.3373 was cut, so the next nightly should carry it: cleanup then reads
-  archived threads as candidates and as sharers. Ready once the installed build includes it.
 
 ### storage-cleanup-stack-layers
 
@@ -430,7 +429,18 @@ T3 source paths below are in pingdotgg/t3code.
 
 ## Ready
 
-None.
+### storage-cleanup-archived-threads
+
+- **Workaround:** `housekeeping` sweeps an archived thread's worktree once its PR is merged or
+  closed and its tree is clean; deleting the thread also hands it to T3 (`worktreeOnDelete`).
+- **Used by:** `skills/housekeeping/SKILL.md` (the archived-thread row, and § 1)
+- **Met in:** 0.1.2-nightly.20261021.3473 (pingdotgg/t3code#16473, `034b506`, shipped in
+  0.1.1-nightly.20261020.3386; closes #17811). Cleanup's `readThreads` now returns
+  `[...snapshot.threads, ...snapshot.archivedThreads]`, and the sharer check reads
+  `getThreadWorktreePaths({ includeArchived: true })`, so an archived thread's worktree is judged
+  by the same merge, settle and age rules as a live one's, and an archived sharer keeps it.
+- **Adopting:** the archived-thread row of `housekeeping`'s table moves to T3, and § 1 stops
+  sweeping those worktrees itself; then this entry is resolved.
 
 ## Resolved
 
