@@ -13,7 +13,7 @@ PR that closes the chain, reviewed and babysat once.
 The sub-issues are a **task graph**, not a list: their blocking edges decide what can start, and
 the **frontier** is every open ticket whose blockers have all merged onto the integration branch.
 Every ticket on the frontier runs at once, each in an `implementer` subagent with its own
-worktree. Talk to the implementers through pointers (the ticket, the PRD, the notes file, a
+worktree, except the first lone ticket (step 2). Talk to the implementers through pointers (the ticket, the PRD, the notes file, a
 commit), never pasted summaries.
 
 ## 1. Read the graph
@@ -53,6 +53,13 @@ Notes: /tmp/implement-spec-<PRD>/notes.md
 ```
 
 Then end your turn; each implementer re-invokes you when it reports.
+
+An implementer pays for itself (a fresh read of the ticket and the code, a worktree and its
+setup) through **parallelism** or a **fresh context**. A frontier of one ticket, with no
+implementer running, offers no parallelism: build the first such ticket yourself, by the
+implementer's step 3, committing to the integration branch, then do items 2, 3 and 5 of step 3
+below. Send every later lone ticket to an implementer, whose fresh context keeps this session's
+short.
 
 ## 3. Merge each report
 
