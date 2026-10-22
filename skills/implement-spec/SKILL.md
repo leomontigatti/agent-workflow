@@ -56,10 +56,10 @@ Then end your turn; each implementer re-invokes you when it reports.
 
 An implementer pays for itself (a fresh read of the ticket and the code, a worktree and its
 setup) through **parallelism** or a **fresh context**. A frontier of one ticket, with no
-implementer running, offers no parallelism: build the first such ticket yourself, by the
-implementer's step 3, committing to the integration branch, then do items 2, 3 and 5 of step 3
-below. Send every later lone ticket to an implementer, whose fresh context keeps this session's
-short.
+implementer running, offers no parallelism: build it yourself, by the implementer's step 3,
+committing to the integration branch, then do step 3's comment, push and frontier recomputation
+below (its items 2, 3 and 5). That holds once per session, a resumed one included:
+send every later lone ticket to an implementer, whose fresh context keeps this session's short.
 
 ## 3. Merge each report
 
