@@ -17,6 +17,24 @@
       "license": "MIT, Copyright (c) 2026 Matt Pocock (LICENSE)",
       "reviewed": "5beb35b040e3de97e54fa9e386d7e42d15c295c2",
       "reviewedAt": "2026-10-19"
+    },
+    {
+      "id": "gentle-ai",
+      "repo": "Gentleman-Programming/gentle-ai",
+      "branch": "main",
+      "paths": ["skills/**", "docs/trigger-rules.md", "docs/usage.md", "docs/review-integration.md"],
+      "license": "MIT, Copyright (c) 2025 Gentleman Programming (LICENSE)",
+      "reviewed": "42edf9a905c61cd65b8153607843b1d17ac51264",
+      "reviewedAt": "2026-10-22"
+    },
+    {
+      "id": "engram",
+      "repo": "Gentleman-Programming/engram",
+      "branch": "main",
+      "paths": ["skills/**", "docs/AGENT-SETUP.md"],
+      "license": "MIT, Copyright (c) 2026 Alan Buscaglia (LICENSE)",
+      "reviewed": "61ec5c829fd91b33a22c7e126b8721c1c3ca8855",
+      "reviewedAt": "2026-10-22"
     }
   ]
 }

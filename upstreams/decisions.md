@@ -65,3 +65,17 @@ Verdicts marked proposed stand until this review's PR merges; the three adopted 
 | `pstack:brand-via-type-guard`               | A TypeScript brand comes from a type guard, never `as`.                                                | declined (proposed) | A language rule is a project's coding standard. |
 | `pstack:rereview-by-delta`                  | After a verified head, small changes get one fresh verifier; only new behaviour gets the full panel.  | declined (proposed) | `skills/implement/SKILL.md` § Fix round already reviews the fixes alone. |
 | `mattpocock-skills:dated-commit-cited-wiki` | Orchestrator memory as a wiki of dated, commit-cited claims.                                           | declined (proposed) | Memory is the harness's; our docs describe the present, kept true by PRs. |
+
+## First look: gentle-ai 42edf9a, engram 61ec5c8 (2026-10-22)
+
+Neither is adopted as a whole: gentle-ai writes its own workflow into the harness config that
+`install.sh` links, and neither knows T3. Verdicts marked proposed stand until this review's PR
+merges.
+
+| Id                                    | Idea                                                                                                  | Verdict  | Where or why |
+| ------------------------------------- | ----------------------------------------------------------------------------------------------------- | -------- | ------------ |
+| `gentle-ai:delegate-for-a-reason`     | A subagent only for a named reason (parallel writers, fresh context, exploration, verifier); otherwise inline. | adopted (proposed) | `skills/implement-spec/SKILL.md` step 2: the first lone frontier ticket is built inline. Exploration is the Codebase mapping row of `agents/models.md`. |
+| `gentle-ai:spec-by-reference`         | Hand a worker the spec itself, never a paraphrase.                                                   | declined (proposed) | Already there: `skills/implement-spec/SKILL.md` (pointers, never pasted summaries) and `implement` step 5 (the spec's body pasted to reviewers). |
+| `gentle-ai:frozen-review-candidate`   | Freeze the candidate before a review reads it, and bind the evidence to it.                           | declined (proposed) | The `## Review` record names the reviewed commit and `review-record` fails a later change; fix rounds diff against a `git stash create` snapshot. |
+| `gentle-ai:credential-deny-list`      | Permission rules denying reads and edits of `.env`, `.ssh`, keys and secrets.                         | later (proposed) | `Read`/`Edit` rules do not stop Bash, and `.env` is legitimate local config. Only if a retro shows an agent touching credentials; then a Bash hook in `hooks/`. |
+| `engram:persistent-memory`            | A memory store shared across harnesses (SQLite, MCP, session hooks).                                 | later (proposed) | When `retro` finds context lost between Claude and Codex sessions twice; until then `mattpocock-skills:dated-commit-cited-wiki`'s reason holds. |
