@@ -313,9 +313,9 @@ T3 source paths below are in pingdotgg/t3code.
   T3 counts only merges into the default branch (`storageCleanupPullRequestMerged`).
 - **Used by:** `skills/housekeeping/SKILL.md` (the stack-layer row)
 - **Would improve if:** T3's merged-worktree cleanup accepts a PR merged into a stack parent.
-- **Watch:** nothing upstream: pingdotgg/t3code#14758 closed `not_planned` on 2026-10-21, with
-  feature requests sent to Ideas discussions, and none carries it yet;
-  `apps/server/src/storageCleanup.ts`
+- **Watch:** pingdotgg/t3code discussions/24108 (open; posted 2026-10-23 after #14758 closed
+  `not_planned` with feature requests sent to Ideas); `storageCleanupPullRequestMerged` in
+  `apps/server/src/storageCleanup.ts` (its `baseRef === defaultBranch` condition)
 
 ### storage-cleanup-orphan-folders
 
