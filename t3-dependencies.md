@@ -55,9 +55,10 @@ T3 source paths below are in pingdotgg/t3code.
   `worktreeOnMerge: true`, `worktreeOnDelete: true`; `worktreeKeepWhen` left at its default,
   `uncommitted-changes`). Hourly, at startup and on a settings change, it removes a worktree in
   its managed folder (`~/.t3/worktrees/<project>/`) once the thread's PR merges into the default
-  branch or its last thread is deleted (archived ones included), keeps one with uncommitted
-  changes, an open terminal, a running or queued thread or an open provider session, and reports
-  why it kept each one under Settings → Storage → Last run. A worktree other threads share is
+  branch or its last thread is deleted, archived threads included (pingdotgg/t3code#16473, since
+  0.1.1-nightly.20261020.3386), keeps one with uncommitted changes, an open terminal, a running
+  or queued thread or an open provider session, and reports why it kept each one under Settings →
+  Storage → Last run. A worktree other threads share is
   kept, unless every one of them is a subagent of the same parent, whose rules then decide
   (pingdotgg/t3code#19748, since 0.1.1-nightly.20261016.3203): that is what lets a thread whose
   reviewers ran through `delegate_task` in its checkout be removed. Last run also lists folders
@@ -429,20 +430,20 @@ T3 source paths below are in pingdotgg/t3code.
 
 ## Ready
 
-### storage-cleanup-archived-threads
-
-- **Workaround:** `housekeeping` sweeps an archived thread's worktree once its PR is merged or
-  closed and its tree is clean; deleting the thread also hands it to T3 (`worktreeOnDelete`).
-- **Used by:** `skills/housekeeping/SKILL.md` (the archived-thread row, and § 1)
-- **Met in:** 0.1.2-nightly.20261021.3473 (pingdotgg/t3code#16473, `034b506`, shipped in
-  0.1.1-nightly.20261020.3386; closes #17811). Cleanup's `readThreads` now returns
-  `[...snapshot.threads, ...snapshot.archivedThreads]`, and the sharer check reads
-  `getThreadWorktreePaths({ includeArchived: true })`, so an archived thread's worktree is judged
-  by the same merge, settle and age rules as a live one's, and an archived sharer keeps it.
-- **Adopting:** the archived-thread row of `housekeeping`'s table moves to T3, and § 1 stops
-  sweeping those worktrees itself; then this entry is resolved.
+None yet.
 
 ## Resolved
+
+### storage-cleanup-archived-threads
+
+- **Workaround:** `housekeeping` swept an archived thread's worktree once its PR was merged or
+  closed and its tree was clean; deleting the thread also handed it to T3 (`worktreeOnDelete`).
+- **Met in:** 0.1.2-nightly.20261021.3473 (pingdotgg/t3code#16473, `034b506`, shipped in
+  0.1.1-nightly.20261020.3386; closes #17811). Cleanup judges an archived thread's worktree by the
+  same merge, settle and age rules as a live one's, and an archived sharer keeps it.
+- **Adopted:** 2026-10-23; the archived-thread row left `housekeeping`'s table, and its first row
+  gives T3 a merged or deleted thread's worktree, archived or not. Part of
+  `storage-cleanup-removes-thread-worktrees` since.
 
 ### setup-runs-in-main-checkout
 
