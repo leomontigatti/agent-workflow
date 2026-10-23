@@ -12,11 +12,10 @@ only what T3 leaves by design:
 
 | Left behind                                   | Why T3 leaves it                                                    | Who cleans it                    |
 | --------------------------------------------- | ------------------------------------------------------------------- | -------------------------------- |
-| a merged or deleted thread's worktree         | nothing: T3 removes it (`worktreeOnMerge`, `worktreeOnDelete`)      | T3                               |
+| a merged or deleted thread's worktree, archived or not | nothing: T3 removes it (`worktreeOnMerge`, `worktreeOnDelete`) | T3                      |
 | the local branch of every worktree T3 removed | kept on purpose, so a resumed thread can recreate its checkout      | this sweep                       |
 | worktrees outside T3's folder (`.claude/worktrees/`, hand-made) | never T3's                                         | this sweep                       |
 | a worktree whose branch was renamed           | T3 keeps it as "Repository or branch changed", or "A subagent thread's branch differs" | this sweep, until T3 fixes it    |
-| an archived thread's worktree                 | T3's sweep skips archived threads                                   | this sweep, until T3 fixes it    |
 | a stack layer merged into another PR's branch | T3 counts only merges into the default branch                       | this sweep, until T3 fixes it    |
 | a folder in T3's folder that no thread uses   | T3 lists it under Last run but never removes it                     | this sweep, until T3 fixes it    |
 | per-worktree resources (a database, a cache)  | T3 runs no script when it removes a worktree                        | this sweep, by `docs/agents/housekeeping.md` |
