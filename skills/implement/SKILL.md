@@ -34,6 +34,9 @@ Call the Skill tool with "tdd" and follow its loop at those seams: one failing t
 code to pass it, repeat. The `tdd` skill also follows the project's `docs/agents/tdd-*.md` notes
 for the kind of code the change touches.
 
+Write a comment only for intent or a constraint the code cannot show: the review holds the code to
+the **Comments** entry of the `code-review` skill's smell baseline.
+
 Validate as you go: run `docs/agents/validation.md` § As you go for the slice each time it goes
 green.
 
