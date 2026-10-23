@@ -15,7 +15,8 @@ on.
 
 Always **ask**, whatever a pattern says, when the finding touches an area in
 `docs/agents/review.md` § Always ask, a migration, a destructive data path, or a term defined in
-`GLOSSARY.md`; when it needs a product decision; and when a person opened the thread.
+`GLOSSARY.md`; when it needs a product decision; when its fix is speculative hardening (step 2 of
+the `implement` skill); and when a person opened the thread.
 
 A finding backed by a documented standard is never declined on the triager's judgement alone: it
 is a **fix**, or an **ask** when the code is a deliberate exception the user rules on. The one

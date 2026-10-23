@@ -37,6 +37,11 @@ for the kind of code the change touches.
 Write a comment only for intent or a constraint the code cannot show: the review holds the code to
 the **Comments** entry of the `code-review` skill's smell baseline.
 
+**Speculative hardening** is complexity (a lock, a retry, a second validation, a new state) added
+against a race or an edge case that is unlikely to happen. Leave it out, and bring it to the final
+report as an **ask**: the concrete failure mode, how likely it is, and what the fix costs. The user
+rules on it. A traced `critical` finding is never speculative.
+
 Validate as you go: run `docs/agents/validation.md` § As you go for the slice each time it goes
 green.
 
@@ -90,8 +95,9 @@ branch, running the test or the call when reading does not settle it, then give 
   that covers it) for the final report.
 - **ask**: the call is the user's. That is every finding that touches an area in
   `docs/agents/review.md` § Always ask, a migration, a destructive data path or a `GLOSSARY.md`
-  term and that you cannot settle from the issue, and every finding that needs a product decision.
-  Bring it to them in the final report.
+  term and that you cannot settle from the issue, every finding that needs a product decision, and
+  every finding whose fix is **speculative hardening** (step 2). Bring it to them in the final
+  report.
 
 When the spec and a documented standard disagree, the standard wins unless the spec names the
 exception in so many words: a spec that points at a nonconforming file as its model asks for the

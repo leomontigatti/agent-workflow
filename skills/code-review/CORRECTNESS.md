@@ -29,9 +29,9 @@ this one asks whether it is **wrong**.
    > an empty variable.
    >
    > For each finding give its severity (`critical`: a wrong result, lost or corrupt data, a
-   > security hole; `warning`: holds today and breaks under a condition you can name), the hunk
-   > (file and line), and the **path** that triggers it: the input or sequence of calls, traced
-   > through the code, that makes it go wrong. A suspicion you could not trace to a path goes
+   > security hole; `warning`: holds today and breaks under a condition you can name, and how
+   > likely that condition is), the hunk (file and line), and the **path** that triggers it: the
+   > input or sequence of calls, traced through the code, that makes it go wrong. A suspicion you could not trace to a path goes
    > under "Untraced", one line each. Style, naming and structure belong to another reviewer.
    >
    > End with one line: `Would merge: yes | after fixes | no`, and the finding that decides it.
