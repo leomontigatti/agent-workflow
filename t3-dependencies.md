@@ -133,8 +133,11 @@ T3 source paths below are in pingdotgg/t3code.
 
 - **Relies on:** `watch_pull_request` links the PR if needed, has T3 check it about every two
   minutes, and wakes the thread on a failed check, passed required checks, a new or edited
-  comment or review, or a conflict with the base. Only comments posted after the call wake the
-  thread. Watching a PR again starts from the check and conflict state the last watch reported,
+  comment or review, or a conflict with the base. Since 0.1.3-nightly.20261023.3566 it also wakes once the other checks
+  finish after the required ones passed early (`owedChecks`, pingdotgg/t3code#23904), and, on
+  GitHub, once when a head has had no checks for 15 minutes or more (`checksAwaitedSince`,
+  pingdotgg/t3code#23863; `packages/contracts/src/threadPullRequest.ts`). Only comments posted
+  after the call wake the thread. Watching a PR again starts from the check and conflict state the last watch reported,
   so it does not repeat news the thread already got (`endedWatch`, pingdotgg/t3code#21155, since
   0.1.1-nightly.20261018.3331). A subagent thread cannot call it. `unwatch_pull_request` ends the watch and returns the
   thread to the user's inbox; it wakes no other thread. `list_thread_pull_requests` with another
@@ -162,7 +165,12 @@ T3 source paths below are in pingdotgg/t3code.
   `pendingApproval`, which ends a `mode: wait` early like a question. `orchestrator_capabilities`
   lists the live provider instances and model ids, from the composer's catalog: a model hidden in
   Settings (`providerModelPreferences.<instance>.hiddenModels`) is absent from it, yet
-  `delegate_task` still runs it (checked 2026-10-21 with `claude-sonnet-5-5`, then hidden). A Claude subagent can call `delegate_task`
+  `delegate_task` still runs it (checked 2026-10-21 with `claude-sonnet-5-5`, then hidden). Since
+  0.1.2-nightly.20261021.3486 it lists a short set (pingdotgg/t3code#22889): every current
+  Codex and Claude model (`FULL_CATALOG_DRIVERS`), plus favorites, custom models and the
+  caller's own; a legacy model is found with `search`, and "delegate_task accepts any catalog
+  model, listed or not". Each model's options are `{id, values, default}`, and `label` is
+  omitted when it restates the id. Every id in `agents/models.md` was listed on 2026-10-23. A Claude subagent can call `delegate_task`
   too, but only while the parent's run is active: unlike the other T3 tools, it is still refused
   (`parent_not_active`) to a background subagent once the parent's turn ended
   (pingdotgg/t3code#19751). Source: `packages/contracts/src/orchestratorMcp.ts`. Read-only review
@@ -295,8 +303,9 @@ T3 source paths below are in pingdotgg/t3code.
   pingdotgg/t3code#20079 (0.1.1-nightly.20261016.3203), which now renames the subagents' branch
   too (`apps/server/src/storageCleanup.ts`). On 2026-10-16, 28 worktrees were kept, most for one
   of these two reasons.
-- **Watch:** pingdotgg/t3code#16559 and #17813 (open); #11078 (open; the sidebar keeps the
-  creation-time branch name after a rename)
+- **Watch:** pingdotgg/t3code#17813 (open; #16559 closed as its duplicate on 2026-10-22), fixed by
+  PR #22805 (open: run finalization updates `thread.branch` to the checked-out branch); #11078
+  (open; the sidebar keeps the creation-time branch name after a rename)
 
 ### storage-cleanup-stack-layers
 
@@ -304,7 +313,9 @@ T3 source paths below are in pingdotgg/t3code.
   T3 counts only merges into the default branch (`storageCleanupPullRequestMerged`).
 - **Used by:** `skills/housekeeping/SKILL.md` (the stack-layer row)
 - **Would improve if:** T3's merged-worktree cleanup accepts a PR merged into a stack parent.
-- **Watch:** pingdotgg/t3code#14758 (open)
+- **Watch:** nothing upstream: pingdotgg/t3code#14758 closed `not_planned` on 2026-10-21, with
+  feature requests sent to Ideas discussions, and none carries it yet;
+  `apps/server/src/storageCleanup.ts`
 
 ### storage-cleanup-orphan-folders
 
@@ -355,8 +366,13 @@ T3 source paths below are in pingdotgg/t3code.
 - **Would improve if:** `watch_pull_request` wakes the thread when a required check has not
   reported, and once every check has finished rather than only on a failure or on all required
   checks passing; then the background `gh pr checks --watch` wait goes.
-- **Watch:** pingdotgg/t3code discussions/18047 (open); #16924 (open); #17831 (closed without merging on
-  2026-10-14)
+- **Partly met in:** 0.1.3-nightly.20261023.3566. T3 now wakes once the other checks finish after
+  the required ones passed early (pingdotgg/t3code#23904), and once when a GitHub head has had no
+  checks for 15 minutes or more, about 30 in practice (pingdotgg/t3code#23863). Still no wake
+  while a required check has not reported and others have, nor when the rest finish after a red
+  check woke the thread, so the background wait stays.
+- **Watch:** pingdotgg/t3code discussions/18047 (open); discussions/23245 (open; #16924,
+  converted 2026-10-22); #17831 (closed without merging on 2026-10-14)
 
 ### pr-watch-behind-base
 
@@ -375,7 +391,7 @@ T3 source paths below are in pingdotgg/t3code.
 - **Used by:** `skills/babysit-pr/SKILL.md` § 2
 - **Would improve if:** `watch_pull_request` wakes on unresolved review threads that the branch's
   resolution rules hold open.
-- **Watch:** pingdotgg/t3code#17703 (open)
+- **Watch:** pingdotgg/t3code discussions/23305 (open; #17703, converted 2026-10-22)
 
 ### preview-tools-verification
 
