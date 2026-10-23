@@ -26,7 +26,7 @@ read.
      never runs two such tickets at once, so the next migration number is yours.
    - Use the names the notes file fixes for anything another ticket also touches.
    - **Speculative hardening** (the `implement` skill's step 2) stays out of the code and goes
-     under `risks`, with its failure mode, likelihood and cost.
+     under `risks`, in plain words: what breaks and for whom, how likely it is, and what the fix costs.
 4. **Land on the tip.** `git merge <integration branch>` into your branch, resolving conflicts
    with the `resolving-merge-conflicts` skill, then re-run `docs/agents/validation.md` § As you go (§ Before committing when it has
    none) for what you touched when the merge brought anything in. The orchestrator fast-forwards onto

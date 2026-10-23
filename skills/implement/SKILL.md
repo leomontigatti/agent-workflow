@@ -39,8 +39,10 @@ the **Comments** entry of the `code-review` skill's smell baseline.
 
 **Speculative hardening** is complexity (a lock, a retry, a second validation, a new state) added
 against a race or an edge case that is unlikely to happen. Leave it out, and bring it to the final
-report as an **ask**: the concrete failure mode, how likely it is, and what the fix costs. The user
-rules on it. A traced `critical` finding is never speculative.
+report as an **ask** in plain words someone outside the code can rule on: what breaks and for whom,
+how likely it is, and what the fix costs. The user rules on it. A traced `critical` finding is never
+speculative, and neither is validating input where it enters from outside the system (a user, the
+network, another service).
 
 Validate as you go: run `docs/agents/validation.md` § As you go for the slice each time it goes
 green.
