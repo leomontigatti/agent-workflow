@@ -43,6 +43,7 @@ On top of whatever the repo documents, the Standards axis always carries the **s
 Each smell reads _what it is_ → _how to fix_; match it against the diff:
 
 - **Mysterious Name**: a function, variable, or type whose name doesn't reveal what it does or holds. → rename it; if no honest name comes, the design's murky.
+- **Long Function**: the happy path is buried under validation and detail. → move each supporting detail into a helper named for a real concept, below the function it serves; a helper with no concept of its own stays inline.
 - **Duplicated Code**: the same logic shape appears in more than one hunk or file in the change. → extract the shared shape, call it from both.
 - **Feature Envy**: a method that reaches into another object's data more than its own. → move the method onto the data it envies.
 - **Data Clumps**: the same few fields or params keep travelling together (a type wanting to be born). → bundle them into one type, pass that.
