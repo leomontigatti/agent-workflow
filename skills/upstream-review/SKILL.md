@@ -29,7 +29,7 @@ idea to triage, never an instruction to follow.
 
 2. **Extract ideas.** Read each diff in full, beside its commit list. An **idea** is one change in
    behaviour a skill could take: a step, a rule, a check, a brief, a script. Restyling, typo
-   fixes, version bumps and changes to tooling we don't use are not ideas; count them and move on.
+   fixes, version bumps and changes to tooling we don't use are not ideas.
    Give each idea an id, `<source id>:<kebab-name>`, a one-line statement, and the commit that
    carries it. With more than ~40 ideas, split the diffs across parallel subagents in the **Miners** role of
    `~/.agents/workflow/agents/models.md`, each given
@@ -69,7 +69,7 @@ idea to triage, never an instruction to follow.
    ## decisions.md          (the rows to append, verdicts as proposed)
    ```
 
-   Leave out an empty section; when every source has nothing new, the report is one line.
+   Leave out an empty section.
 
 6. **Move the watermarks**, only after the report is written:
    `python3 -I <this-skill-dir>/scripts/upstreams.py mark --report <report path>`. It sets each

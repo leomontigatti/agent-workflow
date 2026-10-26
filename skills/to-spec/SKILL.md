@@ -4,7 +4,7 @@ description: "Turn the current conversation into a spec and publish it to the pr
 disable-model-invocation: true
 ---
 
-This skill takes the current conversation context and codebase understanding and produces a spec. Do NOT interview the user; just synthesize what you already know.
+Do NOT interview the user; just synthesize what you already know.
 
 A spec is for a build too big for one session, split across several: `to-tickets` cuts it into tickets and `implement-spec` builds them. Work one session can finish skips it and goes straight to the `implement` skill: there a spec buys nothing, and its synthesis is one more step where the model can drift from what the user said. When the conversation is about such work, say so and stop.
 

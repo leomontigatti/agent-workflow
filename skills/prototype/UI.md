@@ -41,8 +41,6 @@ Write down the plan in one line, in the prototype's location or a top-of-file co
 
 > "Three variants of the settings page, switchable via `?variant=`, on the existing `/settings` route."
 
-This works whether the user is here to push back or not.
-
 ### 2. Generate radically different variants
 
 Draft each variant. Hold each one to:
@@ -93,7 +91,7 @@ Put the switcher in a single shared component so both sub-shapes can reuse it. L
 
 ### 5. Hand it over
 
-Surface the URL (and the `?variant=` keys). The user will flip through whenever they get to it. The interesting feedback is usually **"I want the header from B with the sidebar from C"**, which is the actual design they want.
+Surface the URL (and the `?variant=` keys). The user will flip through whenever they get to it.
 
 ### 6. Capture the answer and clean up
 

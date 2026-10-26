@@ -51,7 +51,7 @@ Keep it beautiful but restrained: clean typography, generous spacing, one accent
 
 ### 4. Hand it over
 
-Send them the file, or open it for them. They'll click through the walkthroughs and free-play whenever they get to it; the interesting moments are when they say "wait, that shouldn't be possible" or "huh, I assumed X would be different"; those are the bugs in the _idea_, which is the whole point. If they want new actions or a new scenario, add them. Prototypes evolve.
+Send them the file, or open it for them. They'll click through the walkthroughs and free-play whenever they get to it. If they want new actions or a new scenario, add them. Prototypes evolve.
 
 ### 5. Capture the answer and the prototype
 
@@ -59,9 +59,6 @@ Once the prototype has answered its question, capture the answer, then capture t
 
 ## Anti-patterns
 
-- **Don't add tests.** A prototype that needs tests is no longer a prototype.
-- **Don't wire it to the real database.** Use in-memory state unless the question is specifically about persistence.
 - **Don't generalise.** No "what if we wanted to support X later." The prototype answers one question.
-- **Don't blur the logic and the page together.** If the pure module references the DOM, `document`, or button handlers, it's no longer liftable. Keep the page as a thin shell over a pure module.
 - **Don't reach for a framework, bundler, or server.** One file the recipient double-clicks; a React app or a dev server defeats "shareable".
 - **Don't ship the HTML shell into production.** The page is optimised for being clicked through by hand. The logic module behind it is the bit worth keeping.
