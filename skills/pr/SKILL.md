@@ -5,7 +5,7 @@ description: "Write a PR body. Use when opening a PR or rewriting its descriptio
 
 # PR body
 
-PRs are squash-merged: the title becomes the commit subject, and the issue is the record of why.
+PRs are squash-merged: the title becomes the commit subject.
 The title is a Conventional Commit subject (`feat:`, `fix:`, `docs:`, `chore:`, `refactor:`,
 `test:`, with a scope when one module owns the change) in English, whose words name the effect a
 reader cares about, not the mechanism that delivers it (`cut websocket frames 70% with gzip`, not

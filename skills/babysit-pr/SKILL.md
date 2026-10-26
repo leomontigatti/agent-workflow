@@ -199,4 +199,4 @@ nothing to list is left out):
 ```
 
 Beyond step 4c's merge, nothing here marks a PR draft or ready, rebases or force-pushes: those are
-the user's. `implement-spec` marks its own draft ready before it calls this skill.
+the user's.

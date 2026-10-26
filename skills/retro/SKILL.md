@@ -4,7 +4,7 @@ description: "Retrospective over a repo's recent agent sessions: find recurring 
 disable-model-invocation: true
 ---
 
-The user has asked for a **retrospective**: read what agent sessions in this repo went through, and propose changes to the agent's **environment** (docs, skills, checks, hooks, tools) so future runs go better. A friction that recurs across sessions is worth more than a dramatic one-off, so this reads many sessions, not one.
+The user has asked for a **retrospective**: read what agent sessions in this repo went through, and propose changes to the agent's **environment** (docs, skills, checks, hooks, tools) so future runs go better.
 
 You propose; you change nothing. The user picks what to act on, and that work goes through the repo's normal implementation workflow.
 

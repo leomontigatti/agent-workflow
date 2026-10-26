@@ -23,8 +23,7 @@ only what T3 leaves by design:
 The "until T3 fixes it" rows are watched in the shared `t3-dependencies.md`; when one is fixed,
 its row moves to T3 here.
 
-Nothing is removed until the user accepts a dry-run report: a worktree that looks finished can
-still be a paused thread.
+Nothing is removed until the user accepts a dry-run report.
 
 1. **Check T3's rules, changing nothing.** Read the `storageCleanup` block of T3's settings
    (`~/.t3/userdata/settings.json`). `worktreeOnMerge` and `worktreeOnDelete` must be on; report

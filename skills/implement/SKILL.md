@@ -75,9 +75,7 @@ prints (a `GLOSSARY.md` term no path shows, anything else you judge risky), neve
 - **`full`** when the diff touches an area in `docs/agents/review.md` § Full review, a migration,
   a term defined in `GLOSSARY.md`, or an operational script that deletes or overwrites (a database
   reset or restore, a sync with delete): call the Skill tool with "code-review" on the changes
-  since the branch point, and add the correctness axis. The reviewer starts from its prompt alone,
-  so paste the spec's body and comments into the Spec axis's prompt, never a `gh` command for it
-  to run.
+  since the branch point, and add the correctness axis.
 - **`readback+correctness`** when the diff changes behaviour, config included (a header, a cache
   directive, a build or server setting, a permission rule): follow
   [READBACK.md](../code-review/READBACK.md), one sub-agent that restates what the diff does and

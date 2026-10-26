@@ -1,9 +1,9 @@
 ---
 name: t3-update-review
-description: "After a T3 Code update, check what changed against the T3 dependency files (the shared skills' and each project's): what it fixes, improves, changes or breaks in our workflows. Use when T3 was updated, when the scheduled update review runs, or when asked whether a T3 release affects us."
+description: "Check what changed against the T3 dependency files (the shared skills' and each project's): what it fixes, improves, changes or breaks in our workflows. Use when T3 was updated, when the scheduled update review runs, or when asked whether a T3 release affects us."
 ---
 
-T3 Code ships nightly builds, several a day. What our workflows assume about T3 is written in two kinds of file (statuses: **active**, **watching**, **ready**, **resolved**; each file explains them): the root `t3-dependencies.md` of the shared-workflow repo, for what the shared skills, agents and hooks assume, and each project's `docs/agents/t3-dependencies.md`, for what only that project assumes. This review checks every build since the last reviewed one against all of them and reports what to do.
+What our workflows assume about T3 is written in two kinds of file (statuses: **active**, **watching**, **ready**, **resolved**; each file explains them): the root `t3-dependencies.md` of the shared-workflow repo, for what the shared skills, agents and hooks assume, and each project's `docs/agents/t3-dependencies.md`, for what only that project assumes. This review checks every build since the last reviewed one against all of them and reports what to do.
 
 The review writes down what it learns and proposes what to change. What it learns is evidence: a status that moved, a new **watching** or **ready** entry, a T3 PR quoted under an entry. That goes straight into the shared `t3-dependencies.md`, in one bookkeeping PR the review opens (step 10), so a finding outlives the report and the next run starts from it. A change to a skill, a brief, a hook or a project file is only proposed: the user picks what to adopt, and that goes through the repo's normal workflow (worktree thread, branch, PR). A change to a shared skill reaches every project at once, so a finding about one is proposed once, against the shared-workflow repo. A finding about a project's own file is proposed for that project; the review edits no project.
 
