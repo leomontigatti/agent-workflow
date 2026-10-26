@@ -7,7 +7,9 @@ description: "Write a PR body. Use when opening a PR or rewriting its descriptio
 
 PRs are squash-merged: the title becomes the commit subject, and the issue is the record of why.
 The title is a Conventional Commit subject (`feat:`, `fix:`, `docs:`, `chore:`, `refactor:`,
-`test:`, with a scope when one module owns the change) in English; when
+`test:`, with a scope when one module owns the change) in English, whose words name the effect a
+reader cares about, not the mechanism that delivers it (`cut websocket frames 70% with gzip`, not
+`negotiate permessage-deflate`); when
 `docs/agents/pull-requests.md` names a command that checks it, run it before `gh pr create`. When
 `gh pr create` fails because GitHub's GraphQL budget is spent (`gh api rate_limit --jq
 .resources.graphql` shows `remaining` near 0), open it through REST, which has its own budget:
@@ -38,6 +40,8 @@ Closes #N
 
 ## Rules
 
+- **Nothing private leaves.** Before `gh pr create` or a body edit, read the title, the body and
+  anything it quotes for a secret, a token, a private host or personal data, and take it out.
 - **The issue carries the why.** The investigation, the alternatives and the domain reasoning live
   in the issue or an ADR; link them.
 - **Anything the user must do or decide goes first**: a migration to run, a setting to change, a
