@@ -30,7 +30,7 @@ the model and why, as it does for a fallback.
 | Design runners        | `codebase-design`'s design-it-twice, `prototype` variants | both families, alternating: Opus, Sol, Opus…             | high    | one family, at the same count                |
 | Research              | primary sources outside the repo (`research` agent)       | Codex `gpt-6-luna`                                       | medium  | Claude `research` on Sonnet                  |
 | Miners                | slices of transcripts or diffs (`retro`, `upstream-review`, `t3-update-review`) | Codex `gpt-6-luna`                 | low     | Claude Sonnet                                |
-| Implementer           | one ticket (`implement-spec`)                             | the author's family: Opus in Claude Code, `gpt-6.1-sol` in Codex | medium in Codex | none                     |
+| Implementer           | one ticket (`implement-spec`)                             | the author's family: Opus (`claudeAgent`) in Claude Code, `gpt-6.1-sol` (`codex`) in Codex | medium in Codex | none                     |
 | Codebase mapping      | a narrow read of 4+ files for the session                 | the harness's own explorer (Claude's `Explore`, Codex's default agent) | default | inline                       |
 
 Model ids: Sol is `gpt-6.1-sol`, Luna is `gpt-6-luna` (Codex); Opus is `claude-opus-5-5`, Sonnet is
@@ -59,6 +59,8 @@ family is enough, and then this table changes.
 - **Codex**: a Claude role goes through T3's `delegate_task` with
   `target: {providerInstanceId: "claudeAgent", model}`; a Codex role is a native agent
   (`reviewer`, `reviewer-luna`, `research`).
+- **The Implementer**, from either harness, is a `delegate_task` child with
+  `isolation: "worktree"`, for the checkout T3 prepares; it has no harness wrapper.
 - **Outside T3** (no `delegate_task`): the fallback column.
 
 When a call refuses a model id, `orchestrator_capabilities` lists the live ones; fix the table
