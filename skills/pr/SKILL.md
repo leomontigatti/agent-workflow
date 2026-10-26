@@ -33,6 +33,8 @@ Closes #N
 
 ## Rules
 
+- **Nothing private leaves.** Before `gh pr create` or a body edit, read the title, the body and
+  anything it quotes for a secret, a token, a private host or personal data, and take it out.
 - **The issue carries the why.** The investigation, the alternatives and the domain reasoning live
   in the issue or an ADR; link them.
 - **Anything the user must do or decide goes first**: a migration to run, a setting to change, a
