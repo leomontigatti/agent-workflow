@@ -103,7 +103,7 @@ def review(args):
     # The manifest pins what this directory measures: a review on disk is reused only when its
     # model and prompt are the ones asked for now.
     manifest_path = os.path.join(out, "manifest.json")
-    manifest = json.load(open(manifest_path)) if os.path.exists(manifest_path) else {"models": {}, "prompts": {}}
+    manifest = json.load(open(manifest_path)) if os.path.exists(manifest_path) else {"models": {}, "prompts": {}, "runs": []}
     prompts = {c["id"]: prompt_for(c, ensure(c)) for c in cases}
     wanted = {"models": {m: MODEL_IDS[m] for m in models},
               "prompts": {i: hashlib.sha256(p.encode()).hexdigest() for i, p in prompts.items()}}
@@ -112,7 +112,8 @@ def review(args):
         if clash:
             sys.exit(f"{out} holds a different {key[:-1]} for {', '.join(clash)}: use a new directory")
         manifest[key].update(wanted[key])
-    manifest["repeats"] = max(repeats, manifest.get("repeats", 0))
+    asked = [f"{c['id']}.{m}.{k}" for c in cases for m in models for k in range(1, repeats + 1)]
+    manifest["runs"] = sorted(set(manifest["runs"]) | set(asked))  # only the runs someone asked for
     json.dump(manifest, open(manifest_path, "w"), indent=2)
     tmp = tempfile.mkdtemp(prefix="reviewer-recall-")
     jobs, worktrees = [], []
@@ -191,22 +192,20 @@ def grade(args):
 def report(args):
     out = args["out"]
     manifest = json.load(open(os.path.join(out, "manifest.json")))
-    models, repeats = sorted(manifest["models"]), manifest["repeats"]
+    models = sorted(manifest["models"])
     cases = {c["id"]: c for c in load_cases(None) if c["id"] in manifest["prompts"]}
-    # Every expected run is True, False, or missing (failed, timed out, or not graded yet), so a
+    # Every run asked for is True, False, or missing (failed, timed out, or not graded yet), so a
     # model that failed half its runs shows it instead of reporting recall on the rest.
-    runs = {}
-    for case in cases:
-        for m in models:
-            for k in range(1, repeats + 1):
-                path = os.path.join(out, f"{case}.{m}.{k}.json")
-                runs.setdefault(case, {}).setdefault(m, []).append(
-                    json.load(open(path))["found"] if os.path.exists(path) else None)
+    runs = {case: {m: [] for m in models} for case in cases}
+    for run in manifest["runs"]:
+        case, m, _ = run.split(".")
+        path = os.path.join(out, run + ".json")
+        runs[case][m].append(json.load(open(path))["found"] if os.path.exists(path) else None)
     print("| case | severity | first found by | " + " | ".join(models) + " |")
     print("| -- | -- | -- | " + " | ".join("--" for _ in models) + " |")
     for case, by in sorted(runs.items()):
-        cells = [f"{sum(v is True for v in by[m])}/{sum(v is not None for v in by[m])}"
-                 + ("" if None not in by[m] else f" ({by[m].count(None)} missing)") for m in models]
+        cells = [(f"{sum(v is True for v in by[m])}/{sum(v is not None for v in by[m])}"
+                  + ("" if None not in by[m] else f" ({by[m].count(None)} missing)")) if by[m] else "" for m in models]
         print(f"| {case} | {cases[case]['severity']} | {cases[case]['found_by']} | " + " | ".join(cells) + " |")
     print()
     for m in models:
@@ -225,7 +224,7 @@ def report(args):
     for a in models:
         for b in models:
             if a < b:
-                full = [by for by in runs.values() if None not in by[a] + by[b]]
+                full = [by for by in runs.values() if by[a] and by[b] and None not in by[a] + by[b]]
                 union = sum(any(by[a]) or any(by[b]) for by in full)
                 print(f"{a}+{b}: {union}/{len(full)} fully graded cases caught by at least one run of either")
 
