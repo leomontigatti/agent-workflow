@@ -7,7 +7,9 @@ description: "Write a PR body. Use when opening a PR or rewriting its descriptio
 
 PRs are squash-merged: the title becomes the commit subject, and the issue is the record of why.
 The title is a Conventional Commit subject (`feat:`, `fix:`, `docs:`, `chore:`, `refactor:`,
-`test:`, with a scope when one module owns the change) in English; when
+`test:`, with a scope when one module owns the change) in English, whose words name the effect a
+reader cares about, not the mechanism that delivers it (`cut websocket frames 70% with gzip`, not
+`negotiate permessage-deflate`); when
 `docs/agents/pull-requests.md` names a command that checks it, run it before `gh pr create`.
 
 The body has two readers: the `review-record` check, which reads `## Review`, and the user, who
