@@ -158,8 +158,18 @@ YOU, listing what is still open. Otherwise go back to step 2.
 
 When the merge is the agent's (above), run
 `python3 -I ~/.agents/workflow/skills/implement/scripts/review.py check --pr <n>`, fix a failure as
-step 4 does, then `gh pr merge <n> --squash --match-head-commit <headRefOid>`, the head the round
-read, so a later push is never merged unread. Read the round again either way: `MERGED` is step 5
+step 4 does. Then check what landed on the base since the PR branched: a base whose protection
+does not require an up-to-date branch never reports `BEHIND`, so a green run may never have seen
+the PR beside a newer change to the same files. `git fetch origin <base>`, then
+
+```sh
+gh pr diff <n> --name-only |
+  grep -Fx -f <(git diff --name-only "$(git merge-base HEAD origin/<base>)" origin/<base>)
+```
+
+prints the files both changed. Any file printed: bring the branch up to date as step 4b does for
+`BEHIND`, and go back to step 2. Nothing printed: `gh pr merge <n> --squash --match-head-commit
+<headRefOid>`, the head the round read, so a later push is never merged unread. Read the round again either way: `MERGED` is step 5
 as MERGED, and a refusal lands on its row (a new head or a late check waits again, `BEHIND` is
 step 4b). A refusal that reads "none of these" a second time is step 5 as BLOCKED, quoting
 GitHub's reason. When the merge is not the agent's, step 5 as READY.

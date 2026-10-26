@@ -102,8 +102,8 @@ Nine skills for Claude Code and Codex that already lean on T3 (`watch_pull_reque
 
 | Id | Idea | Verdict | Where or why |
 | -- | ---- | ------- | ------------ |
-| `tstack:watch-rate-limit` | A watch that ended because it could not read the PR: check the GraphQL budget before watching again; read through REST meanwhile. | adopted (proposed) | To do: `skills/babysit-pr/SKILL.md` § 2, and a `t3-dependencies.md` entry. |
-| `tstack:merge-base-overlap` | Before merging, a base commit since the merge base that touches the PR's files sends it back to update and wait. | adopted (proposed) | To do: `skills/babysit-pr/SKILL.md` § 4c. |
+| `tstack:watch-rate-limit` | A watch that ended because it could not read the PR: check the GraphQL budget before watching again; read through REST meanwhile. | declined (proposed) | T3 already pauses a watch while GitHub rate-limits it and counts only other failures toward giving up (`isRateLimited` in `apps/server/src/orchestration-v2/PullRequestWatchReactor.ts`, read 2026-10-26). |
+| `tstack:merge-base-overlap` | Before merging, a base commit since the merge base that touches the PR's files sends it back to update and wait. | adopted | `skills/babysit-pr/SKILL.md` § 4c. |
 | `tstack:review-scope-guard` | Prefer the fix that deletes or narrows code; a true finding outside the PR's goal is declined as out of scope and listed as a follow-up. | adopted (proposed) | To do: `skills/babysit-pr/triage.md` § The three verbs. |
 | `tstack:pr-title-says-why` | The PR title names the effect that matters, not the mechanism. | adopted (proposed) | To do: `skills/pr/SKILL.md` intro. |
 | `tstack:secrets-check-before-posting` | Read a PR title, body or comment, and what it quotes, for secrets and private data before posting. | adopted (proposed) | To do: `skills/pr/SKILL.md` § Rules and `skills/babysit-pr/SKILL.md` § 4. |
