@@ -25,7 +25,7 @@ jobs:
       - name: Shellcheck
         run: shellcheck install.sh hooks/*.sh tests/*.sh skills/*/scripts/*.sh
       - name: Python syntax
-        run: python3 -m py_compile skills/*/scripts/*.py tests/*.py
+        run: python3 -m py_compile skills/*/scripts/*.py tests/*.py evals/*/*.py
       - name: review.py tiers and record check
         run: python3 -I tests/test_review.py
       - name: upstreams.py mark keeps the file's layout
