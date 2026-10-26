@@ -124,7 +124,7 @@ Nine skills for Claude Code and Codex that already lean on T3 (`watch_pull_reque
 | `tstack:only-owner-watches` | A delegated child never watches; the parent owns the PR. | declined (proposed) | `skills/babysit-pr/SKILL.md` § 2; T3 refuses it. |
 | `tstack:proof-per-fix` | Proof for each review fix before pushing it. | declined (proposed) | `skills/babysit-pr/SKILL.md` § 4. |
 | `tstack:pr-body-problem-first` | The PR body opens with the problem in the user's words, not an inventory. | declined (proposed) | `skills/pr/SKILL.md`: the why lives in the issue. |
-| `tstack:rest-fallback-pr-create` | When `gh pr create` fails because GitHub's GraphQL budget is spent, open the PR through REST (`gh api repos/{owner}/{repo}/pulls` with the body from a file). | adopted (proposed) | To do: `skills/pr/SKILL.md`, beside the `gh pr create` step; the REST reads are `tstack:watch-rate-limit`'s. |
+| `tstack:rest-fallback-pr-create` | When `gh pr create` fails because GitHub's GraphQL budget is spent, open the PR through REST (`gh api repos/{owner}/{repo}/pulls` with the body from a file). | adopted | `skills/pr/SKILL.md` intro. |
 
 ## Spec-driven development, researched (2026-10-26)
 
