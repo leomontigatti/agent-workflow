@@ -34,6 +34,7 @@ if [ -f "$HOME/.claude/agents/reviewer-opus.md" ] && [ -f "$HOME/.codex/agents/r
 if jq -e '.permissions.allow == ["Bash(git status)"]' "$HOME/.claude/settings.json" >/dev/null; then ok "other settings kept"; else bad "other settings kept"; fi
 if jq -e '[.hooks.PreToolUse[].hooks[].command] | index("/own/hook.sh") != null' "$HOME/.claude/settings.json" >/dev/null; then ok "own hook kept"; else bad "own hook kept"; fi
 if jq -e '[.hooks.PreToolUse[].hooks[].command] | any(endswith("/block-pkill-f.sh"))' "$HOME/.claude/settings.json" >/dev/null; then ok "pkill hook wired for Claude"; else bad "pkill hook wired for Claude"; fi
+if jq -e '[.hooks.PreToolUse[].hooks[].command] | any(endswith("/block-push-default-branch.sh"))' "$HOME/.claude/settings.json" >/dev/null; then ok "push hook wired for Claude"; else bad "push hook wired for Claude"; fi
 if jq -e '[.hooks.SessionStart[].hooks[].command] | any(endswith("/check-tool-path.sh"))' "$HOME/.codex/hooks.json" >/dev/null; then ok "path hook wired for Codex"; else bad "path hook wired for Codex"; fi
 
 second="$("$repo/install.sh")"

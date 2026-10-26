@@ -91,7 +91,8 @@ prune() {
 hooks_json() {
   jq -n --arg dir "$root_link/hooks" '{
     SessionStart: [{hooks: [{type: "command", command: ($dir + "/check-tool-path.sh")}]}],
-    PreToolUse: [{matcher: "Bash", hooks: [{type: "command", command: ($dir + "/block-pkill-f.sh")}]}]
+    PreToolUse: [{matcher: "Bash", hooks: [{type: "command", command: ($dir + "/block-pkill-f.sh")},
+                                            {type: "command", command: ($dir + "/block-push-default-branch.sh")}]}]
   }'
 }
 
