@@ -202,7 +202,8 @@ T3 source paths below are in pingdotgg/t3code.
   (`apps/server/src/mcp/toolkits/orchestrator/tools.ts`,
   `packages/contracts/src/orchestratorMcp.ts`). The result has no branch field, so the child's
   report names it. Tried 2026-10-26; the trial is under `implementer-worktrees`.
-- **Used by:** `skills/implement-spec/SKILL.md` § 2, § 3 and § 4 step 3; `agents/implementer.md`;
+- **Used by:** `skills/implement-spec/SKILL.md` § 2, § 3, § Route change (`task_cancel`, under
+  `delegate-task-reviews`) and § 4 step 3; `agents/implementer.md`;
   `agents/models.md` (Reaching each model); `skills/implement/THREADS.md` ("Work where you
   started")
 - **Breaks if:** the checkout stops starting at the parent's local commit or skips setup, an
