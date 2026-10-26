@@ -17,6 +17,7 @@ the PR's head ref. Worktrees are made under a temporary directory and removed at
 
 import concurrent.futures
 import datetime
+import hashlib
 import json
 import os
 import re
@@ -45,8 +46,8 @@ def codex(model):
                                      "-s", "read-only", "--ephemeral", "-C", wt, "-o", out, prompt], wt, out)
 
 
-MODELS = {"opus": claude("claude-opus-5-5"), "sonnet": claude("claude-sonnet-5-5"),
-          "sol": codex("gpt-6.1-sol"), "luna": codex("gpt-6-luna")}
+MODEL_IDS = {"opus": "claude-opus-5-5", "sonnet": "claude-sonnet-5-5", "sol": "gpt-6.1-sol", "luna": "gpt-6-luna"}
+MODELS = {alias: (claude if alias in ("opus", "sonnet") else codex)(model) for alias, model in MODEL_IDS.items()}
 JUDGE = ["claude", "-p", "--model", "claude-sonnet-5-5", "--effort", "low",
          "--no-session-persistence"]
 
@@ -99,6 +100,20 @@ def review(args):
     repeats = int(args.get("repeats", 2))
     out = args["out"]
     os.makedirs(out, exist_ok=True)
+    # The manifest pins what this directory measures: a review on disk is reused only when its
+    # model and prompt are the ones asked for now.
+    manifest_path = os.path.join(out, "manifest.json")
+    manifest = json.load(open(manifest_path)) if os.path.exists(manifest_path) else {"models": {}, "prompts": {}}
+    prompts = {c["id"]: prompt_for(c, ensure(c)) for c in cases}
+    wanted = {"models": {m: MODEL_IDS[m] for m in models},
+              "prompts": {i: hashlib.sha256(p.encode()).hexdigest() for i, p in prompts.items()}}
+    for key in ("models", "prompts"):
+        clash = [k for k, v in wanted[key].items() if manifest[key].get(k, v) != v]
+        if clash:
+            sys.exit(f"{out} holds a different {key[:-1]} for {', '.join(clash)}: use a new directory")
+        manifest[key].update(wanted[key])
+    manifest["repeats"] = max(repeats, manifest.get("repeats", 0))
+    json.dump(manifest, open(manifest_path, "w"), indent=2)
     tmp = tempfile.mkdtemp(prefix="reviewer-recall-")
     jobs, worktrees = [], []
     for case in cases:
@@ -106,10 +121,12 @@ def review(args):
         wt = os.path.join(tmp, case["id"])
         git(repo, "worktree", "add", "-q", "--detach", wt, case["before"])
         worktrees.append((repo, wt))
-        prompt = prompt_for(case, repo)
+        prompt = prompts[case["id"]]
         for model in models:
             for k in range(1, repeats + 1):
                 path = os.path.join(out, f"{case['id']}.{model}.{k}.md")
+                if os.path.exists(path + ".err"):
+                    os.remove(path + ".err")  # a failed run is retried
                 if not os.path.exists(path):
                     jobs.append((model, prompt, wt, path))
     print(f"{len(jobs)} reviews to run", flush=True)
@@ -155,9 +172,14 @@ def grade(args):
                   "or a vague worry with no path to this failure, is false.\n\n"
                   f"Known bug: {case['bug']}\nFiles: {', '.join(case['files'])}\n\n"
                   f"<review>\n{text}\n</review>\n")
-        run = subprocess.run(JUDGE + [prompt], capture_output=True, text=True, timeout=600, stdin=subprocess.DEVNULL)
-        m = re.search(r"\{.*\}", run.stdout, re.S)
-        verdict = json.loads(m.group(0)) if m else {"found": None, "evidence": run.stdout[-500:]}
+        try:
+            run = subprocess.run(JUDGE + [prompt], capture_output=True, text=True, timeout=600,
+                                 stdin=subprocess.DEVNULL)
+            verdict = json.loads(re.search(r"\{.*\}", run.stdout, re.S).group(0))
+        except (subprocess.TimeoutExpired, AttributeError, ValueError):
+            return name, "error"  # nothing saved: the next `grade` retries it
+        if run.returncode or not isinstance(verdict.get("found"), bool):
+            return name, "error"
         json.dump(verdict, open(os.path.join(out, name[:-3] + ".json"), "w", encoding="utf-8"))
         return name, verdict["found"]
 
@@ -168,29 +190,37 @@ def grade(args):
 
 def report(args):
     out = args["out"]
-    rows = {}
-    for name in sorted(os.listdir(out)):
-        if name.endswith(".json"):
-            case, model, _ = name[:-5].split(".")
-            rows.setdefault(case, {}).setdefault(model, []).append(json.load(open(os.path.join(out, name)))["found"])
-    models = sorted({m for r in rows.values() for m in r})
-    cases = {c["id"]: c for c in load_cases(None)}
+    manifest = json.load(open(os.path.join(out, "manifest.json")))
+    models, repeats = sorted(manifest["models"]), manifest["repeats"]
+    cases = {c["id"]: c for c in load_cases(None) if c["id"] in manifest["prompts"]}
+    # Every expected run is True, False, or missing (failed, timed out, or not graded yet), so a
+    # model that failed half its runs shows it instead of reporting recall on the rest.
+    runs = {}
+    for case in cases:
+        for m in models:
+            for k in range(1, repeats + 1):
+                path = os.path.join(out, f"{case}.{m}.{k}.json")
+                runs.setdefault(case, {}).setdefault(m, []).append(
+                    json.load(open(path))["found"] if os.path.exists(path) else None)
     print("| case | severity | first found by | " + " | ".join(models) + " |")
     print("| -- | -- | -- | " + " | ".join("--" for _ in models) + " |")
-    for case, by in sorted(rows.items()):
-        cells = [f"{sum(v is True for v in by.get(m, []))}/{len(by.get(m, []))}" if m in by else "" for m in models]
+    for case, by in sorted(runs.items()):
+        cells = [f"{sum(v is True for v in by[m])}/{sum(v is not None for v in by[m])}"
+                 + ("" if None not in by[m] else f" ({by[m].count(None)} missing)") for m in models]
         print(f"| {case} | {cases[case]['severity']} | {cases[case]['found_by']} | " + " | ".join(cells) + " |")
     print()
     for m in models:
-        runs = [v for r in rows.values() for v in r.get(m, [])]
-        caught = sum(v is True for v in runs)
-        print(f"{m}: {caught}/{len(runs)} reviews caught their bug ({100 * caught // max(len(runs), 1)}%)")
+        done = [v for by in runs.values() for v in by[m] if v is not None]
+        missing = sum(by[m].count(None) for by in runs.values())
+        caught = sum(done)
+        print(f"{m}: {caught}/{len(done)} graded reviews caught their bug ({100 * caught // max(len(done), 1)}%)"
+              + (f"; {missing} runs missing, so this is incomplete" if missing else ""))
     for a in models:
         for b in models:
             if a < b:
-                both = [r for r in rows.values() if a in r and b in r]
-                union = sum(any(r[a]) or any(r[b]) for r in both)
-                print(f"{a}+{b}: {union}/{len(both)} cases caught by at least one run of either")
+                full = [by for by in runs.values() if None not in by[a] + by[b]]
+                union = sum(any(by[a]) or any(by[b]) for by in full)
+                print(f"{a}+{b}: {union}/{len(full)} fully graded cases caught by at least one run of either")
 
 
 def load_cases(ids):
