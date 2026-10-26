@@ -124,3 +124,16 @@ Nine skills for Claude Code and Codex that already lean on T3 (`watch_pull_reque
 | `tstack:proof-per-fix` | Proof for each review fix before pushing it. | declined (proposed) | `skills/babysit-pr/SKILL.md` § 4. |
 | `tstack:pr-body-problem-first` | The PR body opens with the problem in the user's words, not an inventory. | declined (proposed) | `skills/pr/SKILL.md`: the why lives in the issue. |
 | `tstack:rest-fallback-pr-create` | Open the PR through REST when GraphQL is spent. | declined (proposed) | Folded into `tstack:watch-rate-limit`. |
+
+## Spec-driven development, researched (2026-10-26)
+
+Is a written spec still worth it as models improve? Read from mattpocock-skills' `docs/engineering/` (which `sources.json` did not watch until now, so these never reached a weekly review), pstack's README, gentle-ai v4.0.0 and Anthropic's Claude Code best practices. They agree: no spec for work one session finishes; a short, disposable handoff for work split across sessions. Verdicts marked proposed stand until this PR merges.
+
+| Id | Idea | Verdict | Where or why |
+| -- | ---- | ------- | ------------ |
+| `mattpocock-skills:spec-multi-session-only` | A spec only when the build spans several sessions; otherwise go straight to implementation, since the synthesis is one more place to drift. | adopted (proposed) | `skills/to-spec/SKILL.md` intro. |
+| `mattpocock-skills:spec-is-snapshot` | The spec is a snapshot nothing keeps in sync; lasting knowledge goes to the glossary and ADRs; a changed route replaces tickets, not the spec; disposable after the work ships. | adopted (proposed) | `skills/to-spec/SKILL.md` § A snapshot, not a source. |
+| `mattpocock-skills:implement-spec-one-review` | The parallel run's output is a draft that one final review completes; no second broad review. | declined (proposed) | Already there: `skills/implement-spec/SKILL.md` § 4 (draft PR, one review, "no second broad review"). |
+| `mattpocock-skills:deterministic-afk-loop` | For truly unattended runs, a script or CI loop orchestrates more cheaply and reliably than an agent. | later (proposed) | When `implement-spec` runs overnight unattended and its agent orchestration shows up in a retro as a cost or a failure. |
+| `pstack:no-planning-default` | Planning is not the default; "the best spec is code"; a checked plan only for multi-phase work. | declined (proposed) | Already our shape: `implement` is the default and every spec skill is user-invoked (`disable-model-invocation`). |
+| `gentle-ai:odd-feature-document` | One feature document per substantial change (the user's words verbatim, tasks, log) replaces a named SDD workflow. | declined (proposed) | Our spec issue and its tickets do the same on the project's tracker, which `implement-spec` and `review-record` already read. |

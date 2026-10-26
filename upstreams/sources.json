@@ -13,7 +13,7 @@
       "id": "mattpocock-skills",
       "repo": "mattpocock/skills",
       "branch": "main",
-      "paths": ["skills/**"],
+      "paths": ["skills/**", "docs/**"],
       "license": "MIT, Copyright (c) 2026 Matt Pocock (LICENSE)",
       "reviewed": "5beb35b040e3de97e54fa9e386d7e42d15c295c2",
       "reviewedAt": "2026-10-19"

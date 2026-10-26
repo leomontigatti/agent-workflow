@@ -6,6 +6,8 @@ disable-model-invocation: true
 
 This skill takes the current conversation context and codebase understanding and produces a spec. Do NOT interview the user; just synthesize what you already know.
 
+A spec is for a build too big for one session, split across several: `to-tickets` cuts it into tickets and `implement-spec` builds them. Work one session can finish skips it and goes straight to the `implement` skill: there a spec buys nothing, and its synthesis is one more step where the model can drift from what the user said. When the conversation is about such work, say so and stop.
+
 Read `docs/agents/issue-tracker.md` first: it says how this repo's tracker expresses specs, tickets, sub-issues, blocking and labels.
 
 ## Process
@@ -73,3 +75,7 @@ A description of the things that are out of scope for this spec.
 Any further notes about the feature.
 
 </spec-template>
+
+## A snapshot, not a source
+
+The spec records what was decided when it was written, and stays the one place the reasoning behind the tickets lives while they are built. Nothing keeps it in sync with the code, and the build will teach things it doesn't say. What should outlast the build goes to `GLOSSARY.md` or `docs/adr/` (the `domain-modeling` skill), never into an edited spec. When the route changes mid-build, close the unbuilt tickets and cut new ones with `to-tickets`; the spec stays. When the destination changes, that is a new spec. Once the PRD's PR merges, the spec is history: the code, its tests, the glossary and the ADRs describe the system.
