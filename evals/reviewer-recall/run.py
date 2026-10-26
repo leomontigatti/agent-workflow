@@ -215,6 +215,13 @@ def report(args):
         caught = sum(done)
         print(f"{m}: {caught}/{len(done)} graded reviews caught their bug ({100 * caught // max(len(done), 1)}%)"
               + (f"; {missing} runs missing, so this is incomplete" if missing else ""))
+    # Every case was caught once, by the model in `found_by`: a model's recall on its own family's
+    # cases is inflated, so compare on the cases the other family first found.
+    family = {"opus": "claude", "sonnet": "claude", "sol": "codex", "luna": "codex"}
+    for m in models:
+        other = [v for case, by in runs.items() for v in by[m]
+                 if v is not None and family.get(cases[case]["found_by"].lower()) not in (None, family[m])]
+        print(f"{m} on the other family's cases: {sum(other)}/{len(other)}")
     for a in models:
         for b in models:
             if a < b:
