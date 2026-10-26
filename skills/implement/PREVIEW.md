@@ -38,7 +38,8 @@ and open the final report with the refusal's exact text.
    navigation label matches before the page loads). Click a menu item by a ref from a snapshot
    taken while the menu is open, or by a role locator: the snapshot's tree stops at 10 000
    characters, so a long page leaves a popover without refs. A menu that closed in between fails
-   as a bare click timeout: reopen it and click again.
+   as a bare click timeout: reopen it and click again. A role locator can time out on a visible
+   button too; click it by its ref.
 5. **Diagnose from the page**: the snapshot's diagnostics for console errors, `preview_evaluate`
    for anything the snapshot omits. Its console entries cover the tab's whole life: read their
    timestamps to tell which screen logged what. Done when the touched screens show no error.
