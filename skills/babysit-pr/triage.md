@@ -6,11 +6,15 @@ on.
 
 ## The three verbs
 
-- **fix**: the claim holds on the branch and the change is in the PR's scope. Fix it, reply with
-  the SHA, resolve.
+- **fix**: the claim holds on the branch and the change is in the PR's scope. Fix it with the
+  change that deletes or narrows code where one will do, rather than one that adds a guard, a
+  helper or an option; reply with the SHA, resolve.
 - **decline**: the code disproves the claim, or it matches a pattern below. Reply with the
   disproof (a `file:line`, a test, the invariant that covers it) and resolve. "Intentional" alone
-  is not a reason.
+  is not a reason. A claim that holds but whose fix lies outside the PR's goal is declined too:
+  reply that it is out of scope and left as a follow-up, resolve, and list it under **Declined**
+  in the report. Review rounds grow a PR one cheap-looking fix at a time; this keeps it the size
+  its goal needs.
 - **ask**: the call is the user's. Leave the thread open and bring it to them.
 
 Always **ask**, whatever a pattern says, when the finding touches an area in
