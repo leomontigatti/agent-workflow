@@ -69,7 +69,8 @@ send every later lone ticket to an implementer, whose fresh context keeps this s
 
 ## 3. Merge each report
 
-For each child's report (its result's `summary`) with `status: done`:
+For each child's report (its result's `summary`) with `status: done`, unless the notes file marks
+its ticket retired (a report that crossed § Route change: discard its branch as that section does):
 
 1. Check the branch builds on the tip: `git merge --ff-only <its branch>` in this worktree. When
    it is not a fast-forward (another ticket merged meanwhile), send the ticket back: a new child as
@@ -98,7 +99,9 @@ destination stays the same, the spec gets its `## Changed during the build` line
 § A snapshot, not a source) and the graph changes with it:
 
 1. **Retire** each unmerged ticket the change replaces: cancel its running child with
-   `task_cancel`, remove its worktree and branch as step 3 item 4 does, and close it as
+   `task_cancel`, discard its work and every earlier attempt's (`git worktree remove --force
+   <path>`, `git branch -D <branch>`: unmerged by design, so step 3's safe removal refuses), mark
+   it retired in the notes file, and close it as
    `docs/agents/issue-tracker.md` § Closing an issue says for work that will not be done. A
    ticket already merged is not retired: what the change undoes in it is a new ticket in item 2.
 2. **Replace** it: draft the new tickets with the user as `to-tickets` does (its § 4 quiz, then
@@ -107,7 +110,7 @@ destination stays the same, the spec gets its `## Changed during the build` line
    (`- [x] ~~#<n> <title>~~ replaced by #<m>`) and add each new ticket.
 3. **Re-point the edges**: every open ticket a retired one blocked is now blocked by that
    ticket's replacements, in the tracker (`docs/agents/issue-tracker.md` § Ticket operations) and
-   in the notes file, which marks the retired tickets so nothing waits on them or respawns them.
+   in the notes file, so nothing waits on a retired ticket or respawns it.
 4. Recompute the frontier as step 3 item 5 does.
 
 ## 4. Close out, once
