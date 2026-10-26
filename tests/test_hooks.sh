@@ -42,6 +42,8 @@ check allowed "git push origin HEAD:feat/x"
 check allowed "git push origin v1.0.1"
 check allowed "git push"
 check allowed "git push --delete origin feat/x"
+check blocked "git push --delete origin feat/x main"
+check blocked "git push origin :main"
 check allowed "git log --oneline main"
 check allowed "echo 'git push origin main' > notes.md"
 

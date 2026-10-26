@@ -9,10 +9,11 @@
 # terminal.
 #
 # Blocked: a refspec whose destination is the default branch (`main`, `HEAD:main`,
-# `+HEAD:refs/heads/main`), a push with no refspec or `HEAD` while the default branch is checked
-# out, and `--all`, `--branches` or `--mirror`. The default branch is `origin/HEAD`, else both
-# `main` and `master`. Only a `git` in command position counts: at the start or after `;`, `&&`,
-# `||`, `|`, `&` or `(`, past env assignments and `sudo`.
+# `+HEAD:refs/heads/main`, `:main`), a push with no refspec or `HEAD` while the default branch is
+# checked out, the same destinations under `--delete`, and `--all`, `--branches` or `--mirror`.
+# The default branch is `origin/HEAD`, else both `main` and `master`. Only a `git` in command
+# position counts: at the start or after `;`, `&&`, `||`, `|`, `&` or `(`, past env assignments
+# and `sudo`.
 
 set -euo pipefail
 
@@ -66,9 +67,7 @@ def blocked(tokens):
         if arg in ("--all", "--branches", "--mirror"):
             return f"git push {arg}"
         if arg in ("-d", "--delete", "--tags") or arg.startswith("--prune"):
-            if arg in ("-d", "--delete"):
-                return None
-            continue
+            continue  # a deleted ref is a destination too: deleting the default branch is blocked
         if arg in ("-o", "--push-option", "--repo", "--receive-pack", "--exec") and args:
             args.pop(0)
         elif not arg.startswith("-"):
