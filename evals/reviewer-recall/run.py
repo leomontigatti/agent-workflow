@@ -11,7 +11,7 @@ Usage, from anywhere:
   python3 -I run.py report DIR       print recall per model and per case
 
 DIR defaults to ~/.local/state/reviewer-recall/<today>. `review` skips a review already on disk, so
-a stopped run resumes. Repos are read from ~/.t3/projects/<repo>; a missing commit is fetched from
+a stopped run resumes. Repos are read from ~/.t3/projects/<repo>, else cloned once into ~/.cache/reviewer-recall; a missing commit is fetched from
 the PR's head ref. Worktrees are made under a temporary directory and removed at the end.
 """
 
@@ -27,6 +27,7 @@ import tempfile
 HERE = os.path.dirname(os.path.realpath(__file__))
 ROOT = os.path.normpath(os.path.join(HERE, "..", ".."))
 PROJECTS = os.path.expanduser("~/.t3/projects")
+CACHE = os.path.expanduser("~/.cache/reviewer-recall")  # a clone for a repo with no project checkout
 TIMEOUT = 1800
 
 # The models agents/models.md names for review roles, at the correctness role's effort.
@@ -80,6 +81,12 @@ def prompt_for(case, repo):
 
 def ensure(case):
     repo = os.path.join(PROJECTS, case["repo"])
+    origin = subprocess.run(["git", "-C", repo, "remote", "get-url", "origin"], capture_output=True, text=True).stdout
+    if f"leomontigatti/{case['repo']}." not in origin + ".":
+        repo = os.path.join(CACHE, case["repo"])
+        if not os.path.isdir(repo):
+            subprocess.run(["gh", "repo", "clone", f"leomontigatti/{case['repo']}", repo, "--", "-q",
+                            "--filter=blob:none"], check=True, capture_output=True)
     for sha in (case["base"], case["before"]):
         if subprocess.run(["git", "-C", repo, "cat-file", "-e", f"{sha}^{{commit}}"], capture_output=True).returncode:
             git(repo, "fetch", "-q", "origin", f"pull/{case['pr']}/head")
