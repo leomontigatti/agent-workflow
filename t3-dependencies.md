@@ -208,8 +208,9 @@ T3 source paths below are in pingdotgg/t3code.
   0.1.3-nightly.20261025.3669 T3's injected instructions steer away from it
   (pingdotgg/t3code#24850, `orchestrationInstructions.ts`): "Claude `Agent` always with
   `run_in_background:false`", and "Use `delegate_task` for ... a separate checkout
-  (`isolation:"worktree"`), background work". Both users below contradict that text, so an agent
-  reads two opposite rules until they change or the skill names itself the exception.
+  (`isolation:"worktree"`), background work". Since 2026-10-26 `implement-spec` § 2 names its
+  background implementers as the exception to that text, until `implementer-worktrees` moves
+  them to `delegate_task`; the parallel subagents in `PREVIEW.md` step 1 are those implementers.
 - **Used by:** `skills/implement/PREVIEW.md` § The loop step 1 (parallel subagents each open their
   own tab); `skills/implement-spec/SKILL.md` § 2 (the orchestrator ends its turn while its
   background implementers run)
@@ -357,25 +358,6 @@ T3 source paths below are in pingdotgg/t3code.
   remove; then each project moves its teardown there and the resources row moves to T3.
 - **Watch:** `packages/contracts/src/t3ProjectFile.ts`; no upstream issue found yet
 
-### implementer-worktrees
-
-- **Workaround:** `implement-spec` runs each implementer as an Agent-tool worktree under
-  `.claude/worktrees/`, sets it up by hand (`agents/implementer.md` step 2), and removes it itself
-  (`skills/implement-spec/SKILL.md` § 3 step 4, and § 4 step 6).
-- **Used by:** `agents/implementer.md`; `skills/implement-spec/SKILL.md`;
-  `skills/implement/THREADS.md` (the exception)
-- **Would improve if:** a `delegate_task` child with `isolation: worktree` (a checkout of the
-  parent's local commit, with project setup done before the child starts) can commit to its own
-  named branch that the orchestrator merges. Its result has no branch field today
-  (`OrchestratorMcpDelegateTaskResult` in `packages/contracts/src/orchestratorMcp.ts`). Not tried
-  yet: needs a trial. Since pingdotgg/t3code#20213 such a call is refused when the project's repo
-  lacks the parent checkout's commit. Since 0.1.3-nightly.20261025.3669 T3 points agents at it:
-  the `delegate_task` description says "Separate checkout or PR per child:
-  `isolation:'worktree'`", and the injected instructions say "Never make a child's checkout in the
-  shell or in `task`" (pingdotgg/t3code#24850), which this workaround does in
-  `agents/implementer.md` step 2. The trial is now the way to end that conflict.
-- **Watch:** `apps/server/src/mcp/toolkits/orchestrator/tools.ts` (`delegate_task`)
-
 ### pr-watch-unreported-checks
 
 - **Workaround:** `babysit-pr` reads the round on every wake and treats a required check not
@@ -450,14 +432,47 @@ T3 source paths below are in pingdotgg/t3code.
   instructions add a hurdle (pingdotgg/t3code#24850): "Never use `preview_*` to verify or show
   your own edit, even a frontend edit ... Use them only when the current request asks for browser
   work", and the browser section dropped its exception for "a skill or documented repository
-  workflow that names one". `PREVIEW.md` must say why its use is asked for, or a T3 agent may
-  skip step 4's drive.
+  workflow that names one". Since 2026-10-26 `PREVIEW.md` says why its use is asked for: step 4
+  and the project's `verification.md` require the drive.
 - **Watch:** pingdotgg/t3code#20899 (the blur, fixed; no issue asks to lift the size cap, and #10141,
   which tried, closed unmerged); `apps/server/src/preview/ServerBrowserPage.ts`
   (`MAX_SCREENSHOT_WIDTH`, `captureViewport`); `apps/server/src/mcp/toolkits/preview/tools.ts`;
   the trial's notes in the final reports of en-escena's and rubens' PRs
 
 ## Ready
+
+### implementer-worktrees
+
+- **Workaround:** `implement-spec` runs each implementer as an Agent-tool worktree under
+  `.claude/worktrees/`, sets it up by hand (`agents/implementer.md` step 2), and removes it itself
+  (`skills/implement-spec/SKILL.md` § 3 step 4, and § 4 step 6).
+- **Used by:** `agents/implementer.md`; `skills/implement-spec/SKILL.md`;
+  `skills/implement/THREADS.md` (the exception)
+- **Would improve if:** a `delegate_task` child with `isolation: worktree` (a checkout of the
+  parent's local commit, with project setup done before the child starts) can commit to its own
+  named branch that the orchestrator merges. Its result has no branch field today
+  (`OrchestratorMcpDelegateTaskResult` in `packages/contracts/src/orchestratorMcp.ts`). Not tried
+  yet: needs a trial. Since pingdotgg/t3code#20213 such a call is refused when the project's repo
+  lacks the parent checkout's commit. Since 0.1.3-nightly.20261025.3669 T3 points agents at it:
+  the `delegate_task` description says "Separate checkout or PR per child:
+  `isolation:'worktree'`", and the injected instructions say "Never make a child's checkout in the
+  shell or in `task`" (pingdotgg/t3code#24850), which this workaround does in
+  `agents/implementer.md` step 2. Tried 2026-10-26 (a Sonnet child, `role: test`): the child got
+  a checkout in T3's managed folder at the parent's local commit, made and committed to a branch
+  of its own name, and that branch was a fast-forward of the parent's from the parent's worktree;
+  the result still carries no branch field, so the report names it, as an implementer's does now.
+  One catch: T3 had renamed the child's branch (`t3/<id>` to `t3/<slug>`), and a child that
+  switches away from it is one storage cleanup keeps (`storage-cleanup-renamed-branches`), so the
+  child commits on the branch T3 gave it.
+- **Met in:** 0.1.3-nightly.20261026.3717, by the trial above.
+- **Adopting:** `implement-spec` § 2 spawns each implementer with `delegate_task`
+  (`isolation: worktree`, `mode: async`, the implementer brief as `task`), the implementer
+  commits on its own branch and reports it, `agents/implementer.md` step 2 (setup by hand) and
+  § 3 step 4's removal go, and `THREADS.md` drops its exception. Then the conflict in
+  `background-subagents-keep-t3-tools` ends too.
+- **Watch:** `apps/server/src/mcp/toolkits/orchestrator/tools.ts` (`delegate_task`)
+
+## Resolved
 
 ### pr-auto-link
 
@@ -473,11 +488,10 @@ T3 source paths below are in pingdotgg/t3code.
   Tried 2026-10-26 on this review's own PR (#28): `gh pr create`, run as the last of several
   shell commands, was linked with source `created` before any call, and `link_pull_request`
   afterwards returned `alreadyLinked: true`.
-- **Adopting:** the three places stop calling `link_pull_request` after `gh pr create`, and keep
-  it for a PR opened another way (`gh api`, a loop) or missing from `t3_thread_read`'s
-  `pullRequests`. A repeat call is harmless (`alreadyLinked`), so the risk is one unlinked PR.
-
-## Resolved
+- **Adopted:** 2026-10-26; `THREADS.md` ("One thread, one branch, one PR") says T3 links a PR
+  `gh pr create` opens, and keeps `link_pull_request` for a PR opened another way or missing from
+  `t3_thread_read`'s `pullRequests`; `implement` § 7, `implement-spec` § 3 step 3 and
+  `t3-update-review` step 10 point at it.
 
 ### storage-cleanup-archived-threads
 
