@@ -11,9 +11,11 @@
 # Blocked: a refspec whose destination is the default branch (`main`, `HEAD:main`,
 # `+HEAD:refs/heads/main`, `:main`), a push with no refspec or `HEAD` while the default branch is
 # checked out, the same destinations under `--delete`, and `--all`, `--branches` or `--mirror`.
-# The default branch is `origin/HEAD`, else both `main` and `master`. Only a `git` in command
-# position counts: at the start or after `;`, `&&`, `||`, `|`, `&` or `(`, past env assignments
-# and `sudo`.
+# A bare push follows `remote.<name>.push`, `push.default=matching` and `@{push}`. The default
+# branch is `origin/HEAD`, else both `main` and `master`. Only a `git` in command position counts:
+# at the start or after `;`, `&&`, `||`, `|`, `&` or `(`, past env assignments and wrappers
+# (`sudo`, `env -i`, `then`). A heredoc body is data. Known gap: `<<WORD` inside quoted text on a
+# line is read as a heredoc opening, so the lines after it go unchecked.
 
 set -euo pipefail
 
@@ -31,7 +33,7 @@ cwd = data.get("cwd") or os.getcwd()
 SEPARATORS = {";", "&&", "||", "|", "&", "(", ")", ";;", "|&"}
 PREFIXES = {"sudo", "then", "do", "else", "elif", "if", "while", "until", "!", "{", "time", "command",
             "exec", "nohup", "env"}
-HEREDOC = re.compile(r"<<-?\s*(['\"]?)([A-Za-z_][A-Za-z0-9_]*)\1")
+HEREDOC = re.compile(r"(?<!<)<<-?(?!<)\s*(['\"]?)([^\s'\"<>;&|()]+)\1")
 
 
 def drop_heredoc_bodies(text):
@@ -54,7 +56,8 @@ def git(where, *args):
 
 def segments(text):
     # A newline ends a command; the `;` after it keeps a `#` comment from swallowing the next line.
-    lexer = shlex.shlex(drop_heredoc_bodies(text).replace("\n", "\n;"), posix=True,
+    text = drop_heredoc_bodies(text).replace("\\\n", " ")  # a continued line is one command
+    lexer = shlex.shlex(text.replace("\n", "\n;"), posix=True,
                         punctuation_chars=";&|()")
     lexer.whitespace_split = True
     current = []
@@ -71,7 +74,10 @@ def segments(text):
 
 
 def blocked(tokens):
-    while tokens and ("=" in tokens[0] and not tokens[0].startswith("-") or tokens[0] in PREFIXES):
+    prefixed = False
+    while tokens and ("=" in tokens[0] and not tokens[0].startswith("-") or tokens[0] in PREFIXES
+                      or prefixed and tokens[0].startswith("-")):  # `env -i`, `command --`
+        prefixed = prefixed or tokens[0] in PREFIXES
         tokens = tokens[1:]
     if not tokens or os.path.basename(tokens[0]) != "git":
         return None
@@ -84,7 +90,7 @@ def blocked(tokens):
                 where = os.path.join(where, value)
     if not rest or rest[0] != "push":
         return None
-    positional, tags, args = [], False, rest[1:]
+    positional, tags, repo, args = [], False, None, rest[1:]
     while args:
         arg = args.pop(0)
         if arg in ("--all", "--branches", "--mirror"):
@@ -93,10 +99,16 @@ def blocked(tokens):
             tags = True
         elif arg in ("-d", "--delete") or arg.startswith("--prune"):
             continue  # a deleted ref is a destination too: deleting the default branch is blocked
-        elif arg in ("-o", "--push-option", "--repo", "--receive-pack", "--exec") and args:
+        elif arg == "--repo" and args:
+            repo = args.pop(0)
+        elif arg.startswith("--repo="):
+            repo = arg.split("=", 1)[1]
+        elif arg in ("-o", "--push-option", "--receive-pack", "--exec") and args:
             args.pop(0)
         elif not arg.startswith("-"):
             positional.append(arg)
+    if repo:
+        positional.insert(0, repo)
     remote = positional[0] if positional else "origin"
     head = git(where, "symbolic-ref", "--short", f"refs/remotes/{remote}/HEAD")
     defaults = {head.split("/", 1)[1]} if "/" in head else {"main", "master"}
@@ -104,10 +116,18 @@ def blocked(tokens):
     if not positional[1:]:
         if tags:
             return None  # `--tags` alone pushes tags only
-        # Where a bare push goes follows push.default and the upstream: ask git.
-        target = git(where, "rev-parse", "--abbrev-ref", "--symbolic-full-name", "@{push}")
-        dst = target.split("/", 1)[1] if "/" in target else current
-        return f"git push to {dst}" if dst in defaults else None
+        # Where a bare push goes follows the remote's push refspecs, push.default and the
+        # upstream: `matching` pushes every branch the remote also has, the default one included.
+        configured = git(where, "config", "--get-all", f"remote.{remote}.push").split()
+        if configured:
+            positional = [remote, *configured]
+        elif git(where, "config", "push.default") == "matching" and any(
+                git(where, "rev-parse", "--verify", "-q", f"refs/heads/{d}") for d in defaults):
+            return "git push with push.default=matching"
+        else:
+            target = git(where, "rev-parse", "--abbrev-ref", "--symbolic-full-name", "@{push}")
+            dst = target.split("/", 1)[1] if "/" in target else current
+            return f"git push to {dst}" if dst in defaults else None
     for refspec in positional[1:]:
         dst = refspec.lstrip("+").rsplit(":", 1)[-1] or refspec
         if dst == "HEAD":

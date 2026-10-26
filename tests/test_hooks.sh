@@ -69,4 +69,19 @@ check blocked "git push origin HEAD"
 check allowed "git push origin v1.0.1"
 check allowed "git push --tags origin"
 
+git -C "$tmp/work" switch -q feat/x
+check blocked $'cat <<<EOF\ngit push origin HEAD:main'
+check allowed $'cat <<\'123\' > notes.md\ngit push origin main\n123'
+check blocked $'git push \\\n  origin HEAD:main'
+check blocked "git push --repo origin HEAD:main"
+check blocked "env -i PATH=/usr/bin git push origin HEAD:main"
+check blocked "command -- git push origin HEAD:main"
+git -C "$tmp/work" config push.default matching
+check blocked "git push"
+git -C "$tmp/work" config --unset push.default
+git -C "$tmp/work" config remote.origin.push HEAD:main
+check blocked "git push"
+git -C "$tmp/work" config --unset remote.origin.push
+check allowed "git push"
+
 exit "$fail"
