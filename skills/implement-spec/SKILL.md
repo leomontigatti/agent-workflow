@@ -1,6 +1,6 @@
 ---
 name: implement-spec
-description: "Implement a PRD's sub-issues in parallel: background implementer subagents, one worktree per ticket, merged onto this thread's branch and one draft PR, reviewed once at the end."
+description: "Implement a PRD's sub-issues in parallel: background implementer children, one T3 worktree per ticket, merged onto this thread's branch and one draft PR, reviewed once at the end."
 disable-model-invocation: true
 ---
 
@@ -12,7 +12,7 @@ PR that closes the chain, reviewed and babysat once.
 
 The sub-issues are a **task graph**, not a list: their blocking edges decide what can start, and
 the **frontier** is every open ticket whose blockers have all merged onto the integration branch.
-Every ticket on the frontier runs at once, each in an `implementer` subagent with its own
+Every ticket on the frontier runs at once, each in an implementer child with its own
 worktree, except the first lone ticket (step 2). Talk to the implementers through pointers (the ticket, the PRD, the notes file, a
 commit), never pasted summaries.
 
@@ -41,47 +41,55 @@ If the PRD alters anything a user sees, capture its **before** now, from this wo
 
 ## 2. Run the frontier
 
-Spawn one Agent per frontier ticket, all in one message: `subagent_type: "implementer"`,
-`isolation: "worktree"`, `run_in_background: true`. These worktrees are the one exception to
-"never create a worktree of your own" in the `implement` skill's
-[THREADS.md](../implement/THREADS.md): the PR stays on this thread's worktree. The prompt is pointers only:
+Spawn one implementer per frontier ticket, all in one message: `delegate_task` with
+`isolation: "worktree"`, `mode: "async"`, `role: "implementation"`, the `target` of the
+Implementer row in `~/.agents/workflow/agents/models.md`, the ticket as `title`, and a
+`clientRequestId` of `implement-spec-<PRD>-<n>-<attempt>`. T3 gives each child a prepared
+checkout of this worktree's commit, with uncommitted edits left out. The task is pointers only:
 
 ```
+Before anything else, read `~/.agents/workflow/agents/implementer.md` and follow it.
+
 Ticket #<n>, part of PRD #<PRD>. Integration branch: <branch>.
 Orchestrator worktree (not yours): <this worktree's path>.
 Notes: /tmp/implement-spec-<PRD>/notes.md
 ```
 
-Then end your turn; each implementer re-invokes you when it reports.
+Keep each attempt's `taskId` in the notes file, and its report's branch and worktree once it
+arrives, then end your turn: each child's completion wakes this
+thread. This step needs `delegate_task`; outside a T3 thread, build every ticket yourself, one at
+a time, as the lone ticket below.
 
 An implementer pays for itself (a fresh read of the ticket and the code, a worktree and its
 setup) through **parallelism** or a **fresh context**. A frontier of one ticket, with no
-implementer running, offers no parallelism: build it yourself, by the implementer's step 3,
+implementer running, offers no parallelism: build it yourself, by the implementer's step 2,
 committing to the integration branch, then do step 3's comment, push and frontier recomputation
 below (its items 2, 3 and 5). That holds once per session, a resumed one included:
 send every later lone ticket to an implementer, whose fresh context keeps this session's short.
 
 ## 3. Merge each report
 
-For each report with `status: done`:
+For each child's report (its result's `summary`) with `status: done`:
 
 1. Check the branch builds on the tip: `git merge --ff-only <its branch>` in this worktree. When
-   it is not a fast-forward (another ticket merged meanwhile), send it back with SendMessage to
-   merge the tip again, and move on.
+   it is not a fast-forward (another ticket merged meanwhile), send the ticket back: a new child as
+   in step 2, its task adding `Earlier branch: <its branch>`, and move on.
 2. Comment `Implemented in <sha>. Part of #<PRD>.` on the sub-issue, which stays open
    (`docs/agents/issue-tracker.md` § PRD workflow).
 3. Push. After the first merge, open the PR as a **draft** with the PRD PR body of the `pr` skill
-   (§ PRD PRs there) and link it to the thread; after that, tick the sub-issue's box in its body.
+   (§ PRD PRs there), linked to the thread as the `implement` skill's
+   [THREADS.md](../implement/THREADS.md) says; after that, tick the sub-issue's box in its body.
    The chain pays one review at the end instead of one per slice.
 4. Remove the implementer's worktree and branch (`git worktree remove <path>`,
-   `git branch -d <branch>`).
+   `git branch -d <branch>`), and every earlier attempt's: the child's thread opens no PR, so T3's
+   storage cleanup has no merge to remove them on.
 5. Recompute the frontier from what has merged onto the integration branch, never from GitHub's
    `blockedBy`, which drops only when a blocker closes, at the end. Spawn, as in step 2, only
    the tickets on it that are not already running: keep the merged and running tickets in the
    notes file, so neither starts twice.
 
-A `blocked` report carries a question: answer it from the PRD if it settles it and send it back
-with SendMessage; otherwise bring it to the user, and keep the rest of the graph running.
+A `blocked` report carries a question: answer it from the PRD if it settles it and send the ticket
+back as in step 1, with the answer in the task; otherwise bring it to the user, and keep the rest of the graph running.
 
 ## 4. Close out, once
 
@@ -99,5 +107,5 @@ When every ticket has merged:
    approves the **after** in the thread before the PR leaves draft.
 5. Add the `## Review` record to the PR body (the `pr` skill), then
    `gh pr ready <n>`, then call the Skill tool with "babysit-pr".
-6. Remove any implementer worktree still listed in `git worktree list`, and
+6. Remove any implementer worktree still listed in `git worktree list`, its branch, and
    `/tmp/implement-spec-<PRD>/`.

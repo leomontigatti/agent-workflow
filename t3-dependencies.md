@@ -25,8 +25,8 @@ T3 source paths below are in pingdotgg/t3code.
   worktree (`packages/contracts/src/t3ProjectFile.ts`, `packages/shared/src/projectScripts.ts`).
   T3 runs the script only once the project imported `t3.json` (project settings → Actions →
   Import from t3.json).
-- **Used by:** `skills/implement/THREADS.md`; `agents/implementer.md` step 2 (runs the same
-  script by hand, with `T3CODE_PROJECT_ROOT` set, for a worktree T3 did not create)
+- **Used by:** `skills/implement/THREADS.md`; `agents/implementer.md` step 1 (T3 set up the
+  implementer's checkout before it started)
 - **Breaks if:** T3 stops applying `defaultThreadEnvMode` or running create-time scripts, starts
   the agent before an `async: false` script exits, or stops passing `T3CODE_PROJECT_ROOT`.
 
@@ -44,10 +44,9 @@ T3 source paths below are in pingdotgg/t3code.
   any worktree outside its managed folder alone: it neither sets one up nor removes it ("outside
   the managed worktree folder" in `apps/server/src/storageCleanup.ts`).
 - **Used by:** `skills/implement/THREADS.md` ("Work where you started");
-  `skills/implement-spec/SKILL.md` § 2, § 3 step 4 and § 4 step 6;
   `skills/housekeeping/SKILL.md` (the worktrees the sweep owns)
 - **Breaks if:** T3's cleanup starts removing worktrees outside its managed folder, which would
-  race the removal `implement-spec` and `housekeeping` do themselves.
+  race the removal `housekeeping` does itself.
 
 ### storage-cleanup-removes-thread-worktrees
 
@@ -61,7 +60,9 @@ T3 source paths below are in pingdotgg/t3code.
   Storage → Last run. A worktree other threads share is
   kept, unless every one of them is a subagent of the same parent, whose rules then decide
   (pingdotgg/t3code#19748, since 0.1.1-nightly.20261016.3203): that is what lets a thread whose
-  reviewers ran through `delegate_task` in its checkout be removed. Last run also lists folders
+  reviewers ran through `delegate_task` in its checkout be removed. Since
+  0.1.3-nightly.20261023.3592 a deleted thread still owns a worktree its remaining subagents share,
+  so `worktreeOnDelete` removes it too (pingdotgg/t3code#23900). Last run also lists folders
   in the managed folder no thread uses (pingdotgg/t3code#19749), which T3 never removes. It keeps
   the branch on purpose, runs no script on removal, and has no MCP tool to trigger or read it
   (`apps/server/src/storageCleanup.ts`; `packages/contracts/src/settings.ts`;
@@ -140,7 +141,11 @@ T3 source paths below are in pingdotgg/t3code.
   pingdotgg/t3code#23863; `packages/contracts/src/threadPullRequest.ts`). Only comments posted
   after the call wake the thread. Watching a PR again starts from the check and conflict state the last watch reported,
   so it does not repeat news the thread already got (`endedWatch`, pingdotgg/t3code#21155, since
-  0.1.1-nightly.20261018.3331). A subagent thread cannot call it. `unwatch_pull_request` ends the watch and returns the
+  0.1.1-nightly.20261018.3331). A subagent thread cannot call it: since
+  0.1.3-nightly.20261025.3669 a `delegate_task` child no longer even sees the watch tools
+  (pingdotgg/t3code#24808), and each wake says the PR stays linked and watched, so the session
+  never calls the tool again on a wake (pingdotgg/t3code#24781). A watched PR keeps the thread in
+  Working (pingdotgg/t3code#24610). `unwatch_pull_request` ends the watch and returns the
   thread to the user's inbox; it wakes no other thread. `list_thread_pull_requests` with another
   thread's `threadId` lists that thread's PRs.
 - **Used by:** `skills/babysit-pr/SKILL.md` § 2 and § 5; `skills/implement/SKILL.md` § 7;
@@ -174,7 +179,10 @@ T3 source paths below are in pingdotgg/t3code.
   omitted when it restates the id. Every id in `agents/models.md` was listed on 2026-10-23. A Claude subagent can call `delegate_task`
   too, but only while the parent's run is active: unlike the other T3 tools, it is still refused
   (`parent_not_active`) to a background subagent once the parent's turn ended
-  (pingdotgg/t3code#19751). Source: `packages/contracts/src/orchestratorMcp.ts`. Read-only review
+  (pingdotgg/t3code#19751). Since 0.1.3-nightly.20261025.3669 a result for a task still running
+  carries `next` ("Completion wakes this thread, so end your turn", pingdotgg/t3code#24782) and
+  every result carries the child's thread `link` (pingdotgg/t3code#24784).
+  Source: `packages/contracts/src/orchestratorMcp.ts`. Read-only review
   is a prompt rule (`agents/reviewer.md`), not something T3 enforces.
 - **Used by:** `agents/models.md` § Reaching each model; `skills/code-review/SKILL.md` § Spawning
   a reviewer; `agents/reviewer.md`; `agents/research.md`
@@ -182,6 +190,24 @@ T3 source paths below are in pingdotgg/t3code.
   the parent (it would wait forever), `clientRequestId` stops
   deduplicating a retry, the `target` shape or live model ids change, or children stop sharing
   the parent's checkout by default.
+
+### delegate-task-worktrees
+
+- **Relies on:** a `delegate_task` child with `isolation: worktree` gets a checkout in T3's
+  managed folder at the parent's local commit, on a branch of its own, with the project's setup
+  run before it starts (uncommitted edits stay out; refused when the repo lacks that commit,
+  pingdotgg/t3code#20213). T3 may rename that branch, so the child reads it rather than assume
+  it. With `mode: async` the call returns at once with `next` ("Completion wakes this thread, so
+  end your turn"), and the child's completion wakes the parent with its `summary`
+  (`apps/server/src/mcp/toolkits/orchestrator/tools.ts`,
+  `packages/contracts/src/orchestratorMcp.ts`). The result has no branch field, so the child's
+  report names it. Tried 2026-10-26; the trial is under `implementer-worktrees`.
+- **Used by:** `skills/implement-spec/SKILL.md` § 2, § 3 and § 4 step 3; `agents/implementer.md`;
+  `agents/models.md` (Reaching each model); `skills/implement/THREADS.md` ("Work where you
+  started")
+- **Breaks if:** the checkout stops starting at the parent's local commit or skips setup, an
+  async child's completion stops waking the parent, or storage cleanup starts removing a child's
+  checkout before the orchestrator merged its branch.
 
 ### background-subagents-keep-t3-tools
 
@@ -195,10 +221,14 @@ T3 source paths below are in pingdotgg/t3code.
   `parent_not_active`. Still refused: `delegate_task`, `create_threads` and `request_secret`,
   and any call from a subagent that finished and was resumed by its own background task. After
   a restart, T3 now wakes a thread whose subagent's background work the restart cut
-  (pingdotgg/t3code#19750).
+  (pingdotgg/t3code#19750). The mechanism is unchanged in 0.1.3-nightly.20261026.3717, but since
+  0.1.3-nightly.20261025.3669 T3's injected instructions steer away from it
+  (pingdotgg/t3code#24850, `orchestrationInstructions.ts`): "Claude `Agent` always with
+  `run_in_background:false`", and "Use `delegate_task` for ... a separate checkout
+  (`isolation:"worktree"`), background work". `implement-spec` moved its background implementers
+  to `delegate_task` on 2026-10-26 (`implementer-worktrees`).
 - **Used by:** `skills/implement/PREVIEW.md` § The loop step 1 (parallel subagents each open their
-  own tab); `skills/implement-spec/SKILL.md` § 2 (the orchestrator ends its turn while its
-  background implementers run)
+  own tab)
 - **Breaks if:** T3 again ties a caller's tools to the parent's active run, so a background
   subagent's preview calls fail once the parent's turn ends.
 
@@ -284,9 +314,9 @@ T3 source paths below are in pingdotgg/t3code.
 ### t3json-manual-import
 
 - **Workaround:** each project's `t3.json` is imported once per T3 install (project settings →
-  Actions → Import from t3.json); until then T3 runs no setup, and `agents/implementer.md` step 2
-  is the same script by hand.
-- **Used by:** `skills/implement/THREADS.md`; `agents/implementer.md` step 2
+  Actions → Import from t3.json); until then T3 runs no setup, in a thread's worktree or an
+  implementer's checkout.
+- **Used by:** `skills/implement/THREADS.md`; `agents/implementer.md` step 1
 - **Would improve if:** T3 reads `runOnWorktreeCreate` from the checked-in `t3.json` without an
   import (`setupProjectScript` in `packages/shared/src/projectScripts.ts` sees only imported
   scripts).
@@ -343,21 +373,6 @@ T3 source paths below are in pingdotgg/t3code.
   remove; then each project moves its teardown there and the resources row moves to T3.
 - **Watch:** `packages/contracts/src/t3ProjectFile.ts`; no upstream issue found yet
 
-### implementer-worktrees
-
-- **Workaround:** `implement-spec` runs each implementer as an Agent-tool worktree under
-  `.claude/worktrees/`, sets it up by hand (`agents/implementer.md` step 2), and removes it itself
-  (`skills/implement-spec/SKILL.md` § 3 step 4, and § 4 step 6).
-- **Used by:** `agents/implementer.md`; `skills/implement-spec/SKILL.md`;
-  `skills/implement/THREADS.md` (the exception)
-- **Would improve if:** a `delegate_task` child with `isolation: worktree` (a checkout of the
-  parent's local commit, with project setup done before the child starts) can commit to its own
-  named branch that the orchestrator merges. Its result has no branch field today
-  (`OrchestratorMcpDelegateTaskResult` in `packages/contracts/src/orchestratorMcp.ts`). Not tried
-  yet: needs a trial. Since pingdotgg/t3code#20213 such a call is refused when the project's repo
-  lacks the parent checkout's commit.
-- **Watch:** `apps/server/src/mcp/toolkits/orchestrator/tools.ts` (`delegate_task`)
-
 ### pr-watch-unreported-checks
 
 - **Workaround:** `babysit-pr` reads the round on every wake and treats a required check not
@@ -394,6 +409,8 @@ T3 source paths below are in pingdotgg/t3code.
   resolution rules hold open.
 - **Watch:** pingdotgg/t3code discussions/23305 (open; #17703, converted 2026-10-22)
 
+## Ready
+
 ### preview-tools-verification
 
 - **Workaround:** projects drove UI verification with a browser CLI (`playwright-cli`) because
@@ -424,31 +441,81 @@ T3 source paths below are in pingdotgg/t3code.
   takes its images with `preview_snapshot`, keeping the browser CLI installed; once ten PRs
   verified that way had no lost click, each `verification.md` drops the browser CLI and its
   install, and this entry is resolved.
-- **Watch:** pingdotgg/t3code#20899 (the blur; no issue asks to lift the size cap, and #10141,
+- **Met in:** 0.1.3-nightly.20261026.3717. pingdotgg/t3code#24618 (closes #20899)
+  captures at full scale and shrinks the finished PNG in the page, since Chromium "mirrors the
+  top-left of the page into a `backdrop-filter` in any capture it shrinks"
+  (`shrinkPng` in `ServerBrowserPage.ts`). The 1280 px cap stands (`MAX_SCREENSHOT_WIDTH`), so
+  en-escena's dialog probe remains: the user accepted images 1280 px wide on 2026-10-26. The same build's injected
+  instructions add a hurdle (pingdotgg/t3code#24850): "Never use `preview_*` to verify or show
+  your own edit, even a frontend edit ... Use them only when the current request asks for browser
+  work", and the browser section dropped its exception for "a skill or documented repository
+  workflow that names one". Since 2026-10-26 `PREVIEW.md` says why its use is asked for: step 4
+  and the project's `verification.md` require the drive.
+- **Probe:** passed 2026-10-26 in en-escena (`/administracion/resultados`, Acciones → Descargar
+  resultados, 1440×900, demo data): the `preview_snapshot` capture, saved at 1280×800, shows the
+  dialog's `backdrop-filter: blur(4px)` as an even blur with no tiles, matching a `playwright-cli`
+  reference at 1440×900, and the dialog is legible. No capture mid-animation, no viewport drift.
+  Faults seen: a role-locator click timed out twice on a visible button ("Ingresar", "Acciones")
+  where an `aria-ref` or coordinate click worked; a background tab (`open: false`) drew no focus
+  ring; `preview_resize` reports the capture size (1280×800), not the page's.
+- **Adopting:** step one of **Would improve if**, begun 2026-10-26: `PREVIEW.md` step 4 clicks a
+  button by its ref, and en-escena's `verification.md` takes its images with `preview_snapshot`
+  (rubens' and enescena's § Evidence name no tool, so they already do), keeping the browser CLI
+  installed. The count for step two is every PR, in any of the three projects, merged after
+  2026-10-26 whose captures came from `preview_snapshot`.
+- **Watch:** pingdotgg/t3code#20899 (the blur, fixed; no issue asks to lift the size cap, and #10141,
   which tried, closed unmerged); `apps/server/src/preview/ServerBrowserPage.ts`
   (`MAX_SCREENSHOT_WIDTH`, `captureViewport`); `apps/server/src/mcp/toolkits/preview/tools.ts`;
   the trial's notes in the final reports of en-escena's and rubens' PRs
+
+## Resolved
+
+### implementer-worktrees
+
+- **Workaround:** `implement-spec` ran each implementer as a background Agent-tool worktree
+  under `.claude/worktrees/`, set up by hand, an exception to `THREADS.md`'s "never create a
+  worktree of your own".
+- **Would improve if:** a `delegate_task` child with `isolation: worktree` (a checkout of the
+  parent's local commit, with project setup done before the child starts) can commit to its own
+  named branch that the orchestrator merges. Its result has no branch field today
+  (`OrchestratorMcpDelegateTaskResult` in `packages/contracts/src/orchestratorMcp.ts`). Not tried
+  yet: needs a trial. Since pingdotgg/t3code#20213 such a call is refused when the project's repo
+  lacks the parent checkout's commit. Since 0.1.3-nightly.20261025.3669 T3 points agents at it:
+  the `delegate_task` description says "Separate checkout or PR per child:
+  `isolation:'worktree'`", and the injected instructions say "Never make a child's checkout in the
+  shell or in `task`" (pingdotgg/t3code#24850), which this workaround does in
+  `agents/implementer.md` step 2. Tried 2026-10-26 (a Sonnet child, `role: test`): the child got
+  a checkout in T3's managed folder at the parent's local commit, made and committed to a branch
+  of its own name, and that branch was a fast-forward of the parent's from the parent's worktree;
+  the result still carries no branch field, so the report names it, as an implementer's does now.
+  One catch: T3 had renamed the child's branch (`t3/<id>` to `t3/<slug>`), and a child that
+  switches away from it is one storage cleanup keeps (`storage-cleanup-renamed-branches`), so the
+  child commits on the branch T3 gave it.
+- **Met in:** 0.1.3-nightly.20261026.3717, by the trial above.
+- **Adopted:** 2026-10-26; `implement-spec` § 2 spawns each implementer with `delegate_task`
+  (`isolation: worktree`, `mode: async`), a new attempt carries its earlier branch instead of a
+  `SendMessage`, the brief dropped its setup step and commits on the branch T3 gave it, the
+  harness wrappers went, and `THREADS.md` lost its exception. Relied on since as
+  `delegate-task-worktrees`.
 
 ### pr-auto-link
 
 - **Workaround:** the session calls `link_pull_request` right after `gh pr create`.
 - **Used by:** `skills/implement/THREADS.md` ("One thread, one branch, one PR");
   `skills/implement/SKILL.md` § 7; `skills/implement-spec/SKILL.md` § 3 step 3
-- **Would improve if:** T3 links a PR opened from the thread's branch with `gh`, without a call.
-  Today the tool says to register "every pull request you open ... right after creating it",
-  which implies it does not.
-- **Watch:** `packages/contracts/src/threadPullRequest.ts` (`ThreadPullRequestLinkSource` has no
-  branch-detected value). A lead: T3 already finds a thread's PR by its branch after each turn and
-  keeps it as `branchPullRequest`, apart from the links (discovery in
-  `apps/server/src/orchestration-v2/ThreadPullRequestService.ts`; pingdotgg/t3code#20223 shows it
-  in the sidebar). Whether that association settles the thread on merge and can be watched is
-  untested: needs a trial with a PR opened by `gh` and never linked.
-
-## Ready
-
-None yet.
-
-## Resolved
+- **Met in:** 0.1.3-nightly.20261025.3669 (pingdotgg/t3code#24813). Once a shell command settles
+  that runs `gh pr create` (or `glab mr create`) at a command position and prints the PR URL on a
+  line of its own, T3 links that PR to the thread that ran it, with source `created`; a repeat
+  settlement is a no-op and never relinks a PR the user unlinked. Nothing is linked for a `for`
+  loop that creates several PRs, a `gh api` create, or output with more PR URLs than create
+  commands. The tool copy dropped "Register every pull request you open" (pingdotgg/t3code#24850).
+  Tried 2026-10-26 on this review's own PR (#28): `gh pr create`, run as the last of several
+  shell commands, was linked with source `created` before any call, and `link_pull_request`
+  afterwards returned `alreadyLinked: true`.
+- **Adopted:** 2026-10-26; `THREADS.md` ("One thread, one branch, one PR") says T3 links a PR
+  `gh pr create` opens, and keeps `link_pull_request` for a PR opened another way or missing from
+  `t3_thread_read`'s `pullRequests`; `implement` § 7, `implement-spec` § 3 step 3 and
+  `t3-update-review` step 10 point at it.
 
 ### storage-cleanup-archived-threads
 

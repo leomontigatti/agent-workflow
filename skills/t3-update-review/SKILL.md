@@ -55,7 +55,7 @@ The review writes down what it learns and proposes what to change. What it learn
    python3 -I <this-skill-dir>/scripts/changes.py <serverVersion> --mark
    ```
 
-10. **Bookkeeping PR**, when the report changes anything in the shared `t3-dependencies.md`. In a thread on the shared-workflow repo, on a `docs/t3-<serverVersion>` branch from the default branch, write the evidence, status moves and new entries the report gives for the shared file, run the lint (`python3 -I tests/lint_skills.py`), and open a PR whose body is the report. Link it to the thread with `link_pull_request`. Proposed edits to skills and projects stay in the body as proposals, never in the diff. The user's merge accepts the bookkeeping; their edits to it are final.
+10. **Bookkeeping PR**, when the report changes anything in the shared `t3-dependencies.md`. In a thread on the shared-workflow repo, on a `docs/t3-<serverVersion>` branch from the default branch, write the evidence, status moves and new entries the report gives for the shared file, run the lint (`python3 -I tests/lint_skills.py`), and open a PR whose body is the report. Check it is linked to the thread, as the `implement` skill says. Proposed edits to skills and projects stay in the body as proposals, never in the diff. The user's merge accepts the bookkeeping; their edits to it are final.
 
 ## Cadence
 

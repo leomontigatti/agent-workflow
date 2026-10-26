@@ -10,18 +10,18 @@ directory: T3's Automatically pull keeps it current only while it is clean and o
   or `git switch` in the main checkout, and never create a worktree of your own (`git worktree
   add`, Claude's `EnterWorktree`): T3 tracks only the branch and PR of the worktree it created,
   so a private worktree loses the PR badge, the settling of the thread and T3's storage cleanup. A
-  session that needs another checkout gets it from T3 (`t3_thread_launch` with a
-  `workspaceStrategy`). The one exception is `implement-spec`'s implementer subagents, each in an
-  Agent-tool worktree under `.claude/worktrees/`: their branches merge into the thread's, which
-  keeps the PR, and the skill removes them.
+  session that needs another checkout gets it from T3: `t3_thread_launch` with a
+  `workspaceStrategy`, or `delegate_task` with `isolation: "worktree"` for a child whose branch
+  merges into the thread's.
 - **Branch names.** T3 names the branch when it creates the thread and may rename it once the
   thread starts, so read it with `git branch --show-current`, never from the worktree's folder
   name. A session that renames it or creates one uses `feat/`, `fix/`, `docs/`, `chore/`,
   `refactor/`, `research/` or `prototype/`.
-- **One thread, one branch, one PR.** After `gh pr create`, register the PR with the thread
-  through the `link_pull_request` tool, so T3 shows its status and settles the thread when it
-  merges. To keep working on an existing PR, start the thread on that branch (or link the PR)
-  instead of checking it out in another worktree.
+- **One thread, one branch, one PR.** T3 links a PR that `gh pr create` opens to the thread that
+  ran it, shows its status and settles the thread when it merges. A PR opened another way (`gh
+  api`, a loop creating several) is linked with the `link_pull_request` tool, as is one missing
+  from `t3_thread_read`'s `pullRequests`. To keep working on an existing PR, start the thread on
+  that branch (or link the PR) instead of checking it out in another worktree.
 - **A launched thread reports to its own inbox.** A thread started with `t3_thread_launch`
   babysits its own PR, merges it when the merge is the agent's (the `babysit-pr` skill) and
   otherwise hands back to the user; its `unwatch_pull_request` wakes nobody else, so the launcher
