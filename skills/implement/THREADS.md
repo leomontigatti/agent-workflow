@@ -18,10 +18,11 @@ directory: T3's Automatically pull keeps it current only while it is clean and o
   thread starts, so read it with `git branch --show-current`, never from the worktree's folder
   name. A session that renames it or creates one uses `feat/`, `fix/`, `docs/`, `chore/`,
   `refactor/`, `research/` or `prototype/`.
-- **One thread, one branch, one PR.** After `gh pr create`, register the PR with the thread
-  through the `link_pull_request` tool, so T3 shows its status and settles the thread when it
-  merges. To keep working on an existing PR, start the thread on that branch (or link the PR)
-  instead of checking it out in another worktree.
+- **One thread, one branch, one PR.** T3 links a PR that `gh pr create` opens to the thread that
+  ran it, shows its status and settles the thread when it merges. A PR opened another way (`gh
+  api`, a loop creating several) is linked with the `link_pull_request` tool, as is one missing
+  from `t3_thread_read`'s `pullRequests`. To keep working on an existing PR, start the thread on
+  that branch (or link the PR) instead of checking it out in another worktree.
 - **A launched thread reports to its own inbox.** A thread started with `t3_thread_launch`
   babysits its own PR, merges it when the merge is the agent's (the `babysit-pr` skill) and
   otherwise hands back to the user; its `unwatch_pull_request` wakes nobody else, so the launcher

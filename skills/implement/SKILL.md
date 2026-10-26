@@ -152,8 +152,8 @@ in the thread: the PR carries none.
 
 When the run started from an issue or the user asked for a PR: push the branch, open it ready for
 review (never a draft; a PRD run under `implement-spec` keeps its PR a draft until the last slice
-lands) with a body written by calling the Skill tool with "pr", carrying `Closes #N`, and link it
-to the thread. An issue is the unit of work here, so a run that starts from one ends in the PR
+lands) with a body written by calling the Skill tool with "pr", carrying `Closes #N`, linked to
+the thread as [THREADS.md](THREADS.md) says. An issue is the unit of work here, so a run that starts from one ends in the PR
 that closes it unless the user says otherwise.
 Done when `gh pr view` shows it open and it is linked.
 

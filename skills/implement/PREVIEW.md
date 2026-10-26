@@ -5,6 +5,10 @@ tools, rather than a browser CLI the project installs. A project's `docs/agents/
 § Launch says what to start and § Feature map which flows to drive; this file says how to drive
 them. Outside T3 (no preview tools), § Drive's fallback applies.
 
+Driving the change is browser work the request asks for: `implement` step 4 and the project's
+`verification.md` require it, so T3's injected rule against using the preview tools on your own
+edit unasked does not apply to this loop.
+
 The preview tools are on trial (`preview-tools-verification` in the shared
 `t3-dependencies.md`). Note every place they fall short in the final report, so the trial has
 its numbers.
@@ -26,8 +30,7 @@ and open the final report with the refusal's exact text.
 3. **Capture the before**, before the first edit: `preview_snapshot` with `save: true`, its
    `screenshotPath` the evidence file, or the browser CLI when `docs/agents/verification.md`
    § Evidence names it. The preview saves every capture at most 1280 px wide, scaling a wider
-   viewport down, and at any viewport wider than 640 px draws a blurred backdrop (behind a
-   dialog or sheet) as mirrored tiles of the page: a capture artifact, not an app bug.
+   viewport down.
 4. **Drive** the flow with `preview_click`, `preview_type`, `preview_select`, `preview_press` and
    `preview_navigate`, targeting elements by the `aria-ref` refs of the latest `preview_snapshot`.
    Refresh the snapshot after a navigation. Before every capture or assertion, `preview_wait_for`
