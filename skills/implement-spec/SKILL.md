@@ -104,6 +104,11 @@ destination stays the same, the spec gets its `## Changed during the build` line
    it retired in the notes file, and close it as
    `docs/agents/issue-tracker.md` § Closing an issue says for work that will not be done. A
    ticket already merged is not retired: what the change undoes in it is a new ticket in item 2.
+   Before either forced command, check its target: the path must be a worktree in
+   `git worktree list` other than this one (`git rev-parse --show-toplevel`), and the branch must
+   be neither the integration branch nor the branch of this worktree. An implementer that found
+   itself in this checkout reports it as its own (`agents/implementer.md` step 1): skip the
+   discard for such a target, never force it.
 2. **Replace** it: draft the new tickets with the user as `to-tickets` does (its § 4 quiz, then
    § 5's publishing as sub-issues of the PRD). Comment the replacement's number on each retired
    ticket, and in the PR body's `## Sub-issues` strike each retired line
