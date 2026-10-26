@@ -97,14 +97,14 @@ When a decision is replaced mid-build (a `blocked` question's answer, or the use
 destination stays the same, the spec gets its `## Changed during the build` line (`to-spec`
 § A snapshot, not a source) and the graph changes with it:
 
-1. **Retire** each ticket the change replaces: cancel its running child with `task_cancel`, remove
-   its worktree and branch as step 3 item 4 does, close it as `docs/agents/issue-tracker.md`
-   § Closing an issue says for work that will not be done, with a comment naming its
-   replacement, and strike its line in the PR body's `## Sub-issues`
-   (`- [x] ~~#<n> <title>~~ replaced by #<m>`). A retired ticket that already merged stays
-   merged; its replacement builds on it.
+1. **Retire** each unmerged ticket the change replaces: cancel its running child with
+   `task_cancel`, remove its worktree and branch as step 3 item 4 does, and close it as
+   `docs/agents/issue-tracker.md` § Closing an issue says for work that will not be done. A
+   ticket already merged is not retired: what the change undoes in it is a new ticket in item 2.
 2. **Replace** it: draft the new tickets with the user as `to-tickets` does (its § 4 quiz, then
-   § 5's publishing as sub-issues of the PRD), and add each to the PR body's `## Sub-issues`.
+   § 5's publishing as sub-issues of the PRD). Comment the replacement's number on each retired
+   ticket, and in the PR body's `## Sub-issues` strike each retired line
+   (`- [x] ~~#<n> <title>~~ replaced by #<m>`) and add each new ticket.
 3. **Re-point the edges**: every open ticket a retired one blocked is now blocked by that
    ticket's replacements, in the tracker (`docs/agents/issue-tracker.md` § Ticket operations) and
    in the notes file, which marks the retired tickets so nothing waits on them or respawns them.
