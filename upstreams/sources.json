@@ -13,10 +13,19 @@
       "id": "mattpocock-skills",
       "repo": "mattpocock/skills",
       "branch": "main",
-      "paths": ["skills/**", "docs/**"],
+      "paths": ["skills/**"],
       "license": "MIT, Copyright (c) 2026 Matt Pocock (LICENSE)",
       "reviewed": "5beb35b040e3de97e54fa9e386d7e42d15c295c2",
       "reviewedAt": "2026-10-19"
+    },
+    {
+      "id": "mattpocock-docs",
+      "repo": "mattpocock/skills",
+      "branch": "main",
+      "paths": ["docs/**"],
+      "license": "MIT, Copyright (c) 2026 Matt Pocock (LICENSE)",
+      "reviewed": "49cec7be019bc408e87b77670f3d442f536da254",
+      "reviewedAt": null
     },
     {
       "id": "gentle-ai",
