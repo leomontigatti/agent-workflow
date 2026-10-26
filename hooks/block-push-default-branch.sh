@@ -16,6 +16,7 @@
 # at the start or after `;`, `&&`, `||`, `|`, `&` or `(`, past env assignments and wrappers
 # (`sudo`, `env -i`, `then`). A heredoc body is data. Known gap: `<<WORD` inside quoted text on a
 # line is read as a heredoc opening, so the lines after it go unchecked.
+# A configured `*` refspec counts when it matches the default branch.
 
 set -euo pipefail
 
@@ -25,7 +26,7 @@ trap 'rm -f "$input"' EXIT
 cat >"$input"
 
 python3 -I - "$input" <<'PY'
-import json, os, re, shlex, subprocess, sys
+import fnmatch, json, os, re, shlex, subprocess, sys
 
 data = json.loads(open(sys.argv[1], encoding="utf-8").read() or "{}")
 command = (data.get("tool_input") or {}).get("command") or ""
@@ -33,7 +34,7 @@ cwd = data.get("cwd") or os.getcwd()
 SEPARATORS = {";", "&&", "||", "|", "&", "(", ")", ";;", "|&"}
 PREFIXES = {"sudo", "then", "do", "else", "elif", "if", "while", "until", "!", "{", "time", "command",
             "exec", "nohup", "env"}
-HEREDOC = re.compile(r"(?<!<)<<-?(?!<)\s*(['\"]?)([^\s'\"<>;&|()]+)\1")
+HEREDOC = re.compile(r"(?<!<)<<-?(?!<)\s*(?:'([^']*)'|\"([^\"]*)\"|\\?([^\s'\"<>;&|()]+))")
 
 
 def drop_heredoc_bodies(text):
@@ -45,7 +46,7 @@ def drop_heredoc_bodies(text):
                 ends.pop(0)
             continue
         kept.append(line)
-        ends = [m.group(2) for m in HEREDOC.finditer(line)]
+        ends = [next(g for g in m.groups() if g is not None) for m in HEREDOC.finditer(line)]
     return "\n".join(kept)
 
 
@@ -109,10 +110,13 @@ def blocked(tokens):
             positional.append(arg)
     if repo:
         positional.insert(0, repo)
-    remote = positional[0] if positional else "origin"
+    current = git(where, "symbolic-ref", "--short", "HEAD")
+    # An omitted remote is the one git would pick for this branch.
+    remote = positional[0] if positional else next(
+        (r for r in (git(where, "config", f"branch.{current}.pushRemote"), git(where, "config", "remote.pushDefault"),
+                     git(where, "config", f"branch.{current}.remote")) if r), "origin")
     head = git(where, "symbolic-ref", "--short", f"refs/remotes/{remote}/HEAD")
     defaults = {head.split("/", 1)[1]} if "/" in head else {"main", "master"}
-    current = git(where, "symbolic-ref", "--short", "HEAD")
     if not positional[1:]:
         if tags:
             return None  # `--tags` alone pushes tags only
@@ -133,8 +137,9 @@ def blocked(tokens):
         if dst == "HEAD":
             dst = current
         dst = dst.removeprefix("refs/heads/")
-        if dst in defaults:
-            return f"git push to {dst}"
+        hit = [d for d in defaults if fnmatch.fnmatchcase(d, dst)]  # `*` covers the default too
+        if hit:
+            return f"git push to {hit[0]}"
     return None
 
 

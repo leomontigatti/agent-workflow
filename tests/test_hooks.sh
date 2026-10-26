@@ -83,5 +83,16 @@ git -C "$tmp/work" config remote.origin.push HEAD:main
 check blocked "git push"
 git -C "$tmp/work" config --unset remote.origin.push
 check allowed "git push"
+git -C "$tmp/work" config remote.origin.push 'refs/heads/*:refs/heads/*'
+check blocked "git push"
+git -C "$tmp/work" config --unset remote.origin.push
+git -C "$tmp/work" remote add publish "$tmp/origin.git"
+git -C "$tmp/work" config remote.pushDefault publish
+git -C "$tmp/work" config remote.publish.push HEAD:main
+check blocked "git push"
+git -C "$tmp/work" config --unset remote.pushDefault
+check allowed "git push"
+check blocked $'cat <<\\EOF > notes.md\nx\nEOF\ngit push origin HEAD:main'
+check allowed $'cat <<\'END OF FILE\' > notes.md\ngit push origin main\nEND OF FILE'
 
 exit "$fail"
