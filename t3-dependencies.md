@@ -409,6 +409,8 @@ T3 source paths below are in pingdotgg/t3code.
   resolution rules hold open.
 - **Watch:** pingdotgg/t3code discussions/23305 (open; #17703, converted 2026-10-22)
 
+## Ready
+
 ### preview-tools-verification
 
 - **Workaround:** projects drove UI verification with a browser CLI (`playwright-cli`) because
@@ -439,7 +441,7 @@ T3 source paths below are in pingdotgg/t3code.
   takes its images with `preview_snapshot`, keeping the browser CLI installed; once ten PRs
   verified that way had no lost click, each `verification.md` drops the browser CLI and its
   install, and this entry is resolved.
-- **Partly met in:** 0.1.3-nightly.20261026.3717. pingdotgg/t3code#24618 (closes #20899)
+- **Met in:** 0.1.3-nightly.20261026.3717. pingdotgg/t3code#24618 (closes #20899)
   captures at full scale and shrinks the finished PNG in the page, since Chromium "mirrors the
   top-left of the page into a `backdrop-filter` in any capture it shrinks"
   (`shrinkPng` in `ServerBrowserPage.ts`). The 1280 px cap stands (`MAX_SCREENSHOT_WIDTH`), so
@@ -449,14 +451,20 @@ T3 source paths below are in pingdotgg/t3code.
   work", and the browser section dropped its exception for "a skill or documented repository
   workflow that names one". Since 2026-10-26 `PREVIEW.md` says why its use is asked for: step 4
   and the project's `verification.md` require the drive.
+- **Probe:** passed 2026-10-26 in en-escena (`/administracion/resultados`, Acciones → Descargar
+  resultados, 1440×900, demo data): the `preview_snapshot` capture, saved at 1280×800, shows the
+  dialog's `backdrop-filter: blur(4px)` as an even blur with no tiles, matching a `playwright-cli`
+  reference at 1440×900, and the dialog is legible. No capture mid-animation, no viewport drift.
+  Faults seen: a role-locator click timed out twice on a visible button ("Ingresar", "Acciones")
+  where an `aria-ref` or coordinate click worked; a background tab (`open: false`) drew no focus
+  ring; `preview_resize` reports the capture size (1280×800), not the page's.
+- **Adopting:** step one of **Would improve if**: each project's `verification.md` § Evidence takes
+  its images with `preview_snapshot`, and § Drive drops the tiles caveat, keeping the browser CLI
+  installed; `PREVIEW.md` step 4 prefers `aria-ref` targets over role locators.
 - **Watch:** pingdotgg/t3code#20899 (the blur, fixed; no issue asks to lift the size cap, and #10141,
   which tried, closed unmerged); `apps/server/src/preview/ServerBrowserPage.ts`
   (`MAX_SCREENSHOT_WIDTH`, `captureViewport`); `apps/server/src/mcp/toolkits/preview/tools.ts`;
   the trial's notes in the final reports of en-escena's and rubens' PRs
-
-## Ready
-
-None.
 
 ## Resolved
 
