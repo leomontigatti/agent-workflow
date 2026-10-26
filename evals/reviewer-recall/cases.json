@@ -1,0 +1,212 @@
+[
+  {
+    "id": "en-escena-1753-1",
+    "repo": "en-escena",
+    "pr": 1753,
+    "base": "8c18e481ae243fea50e860afc4eee869766dacd7",
+    "before": "312a7dce3d4681e8f32afc9f934fb99c24d11f09",
+    "fix": "017052f085463bc582ef01f4567478a9c46d40c4",
+    "severity": "warning",
+    "found_by": "Opus",
+    "bug": "After a poll finds that an audit link was revoked, polling continues from the stale route page and the next response replaces the revocation message with the open-link prompt in `useLatestAuditPage`.",
+    "files": [
+      "app/features/audit/view.tsx"
+    ]
+  },
+  {
+    "id": "en-escena-1742-1",
+    "repo": "en-escena",
+    "pr": 1742,
+    "base": "2d1d1a02302d5f71bd30b4cb835d22c2f07dc049",
+    "before": "c1da067af78dc47f76fd51845e7238020890642d",
+    "fix": "7f8063b14adff69653682ec648b8aba558c03a6f",
+    "severity": "warning",
+    "found_by": "Sol",
+    "bug": "When a transparent PNG banner is exported as JPEG, the transparent pixels become black even though the editor preview shows the frame through them; `drawBanner` must paint a white background.",
+    "files": [
+      "app/lib/grand-final/banner-framing.ts"
+    ]
+  },
+  {
+    "id": "en-escena-1742-2",
+    "repo": "en-escena",
+    "pr": 1742,
+    "base": "2d1d1a02302d5f71bd30b4cb835d22c2f07dc049",
+    "before": "c1da067af78dc47f76fd51845e7238020890642d",
+    "fix": "7f8063b14adff69653682ec648b8aba558c03a6f",
+    "severity": "warning",
+    "found_by": "Sol",
+    "bug": "If an old image render completes after its edit is cancelled and a new image is selected, the old completion closes the new editor request in the banner editor component.",
+    "files": [
+      "app/features/admin/grand-final/academy/banner-editor.tsx"
+    ]
+  },
+  {
+    "id": "en-escena-1742-3",
+    "repo": "en-escena",
+    "pr": 1742,
+    "base": "2d1d1a02302d5f71bd30b4cb835d22c2f07dc049",
+    "before": "c1da067af78dc47f76fd51845e7238020890642d",
+    "fix": "7f8063b14adff69653682ec648b8aba558c03a6f",
+    "severity": "warning",
+    "found_by": "Opus",
+    "bug": "If the browser cannot encode the framed banner, the editor resolves the request as though it succeeded and closes, losing the user's opportunity to retry in the banner editor component.",
+    "files": [
+      "app/features/admin/grand-final/academy/banner-editor.tsx"
+    ]
+  },
+  {
+    "id": "en-escena-1741-1",
+    "repo": "en-escena",
+    "pr": 1741,
+    "base": "da9117b73c0629415cbc39fcec258d4df7325cad",
+    "before": "049890f2a1ab24a5f21597124def06814c4e7e5e",
+    "fix": "0fb36d28058f5610193cf8a24a9a17c2324f0dd",
+    "severity": "warning",
+    "found_by": "Opus",
+    "bug": "A finalist banner below the fold cannot be loaded after its signed URL expires because the vote page signs lazy-loaded banner URLs for only five minutes in the banner asset policy.",
+    "files": [
+      "app/lib/storage/asset-kinds.ts"
+    ]
+  },
+  {
+    "id": "en-escena-1741-2",
+    "repo": "en-escena",
+    "pr": 1741,
+    "base": "da9117b73c0629415cbc39fcec258d4df7325cad",
+    "before": "049890f2a1ab24a5f21597124def06814c4e7e5e",
+    "fix": "0fb36d28058f5610193cf8a24a9a17c2324f0dd",
+    "severity": "warning",
+    "found_by": "Opus",
+    "bug": "The carousel's clipped second banner remains lazy until it begins sliding into view, so autoplay can reveal a blank slide before the image loads in `FinalistCarousel`.",
+    "files": [
+      "app/features/vote/finalist-carousel.tsx"
+    ]
+  },
+  {
+    "id": "en-escena-1741-3",
+    "repo": "en-escena",
+    "pr": 1741,
+    "base": "da9117b73c0629415cbc39fcec258d4df7325cad",
+    "before": "0fb36d28058f5610193cf8a24a9a17c2324f0dd0",
+    "fix": "6dd373cd05097164f634204f7c05007f689d5d2e",
+    "severity": "warning",
+    "found_by": "Opus",
+    "bug": "If the first banner fails or completes before hydration, no load event reaches the carousel and its second banner stays lazy until it slides into view in `FinalistCarousel`.",
+    "files": [
+      "app/features/vote/finalist-carousel.tsx"
+    ]
+  },
+  {
+    "id": "en-escena-1737-1",
+    "repo": "en-escena",
+    "pr": 1737,
+    "base": "be14194d3807efe84ddf2ac97694ccdcff1eeebd",
+    "before": "0496aacc7ff0830fc1ac7148901b359864806e63",
+    "fix": "60704ad98a4a8350eaf20514280eef53517038e9",
+    "severity": "critical",
+    "found_by": "Opus",
+    "bug": "A choreography draft save based on a pre-withdrawal read can still write after a concurrent withdrawal commits because `writeDraft` did not re-read `withdrawnAt` under the row lock.",
+    "files": [
+      "app/features/admin/choreographies/detail/draft-save.server.ts"
+    ]
+  },
+  {
+    "id": "en-escena-1737-2",
+    "repo": "en-escena",
+    "pr": 1737,
+    "base": "be14194d3807efe84ddf2ac97694ccdcff1eeebd",
+    "before": "60704ad98a4a8350eaf20514280eef53517038e9",
+    "fix": "fccd09d713a8a558a1f538f438f30907ef712bf3",
+    "severity": "critical",
+    "found_by": "Opus",
+    "bug": "Renaming a choreography after a judge evaluates it can recompute and overwrite dancers' stored competition ages from a stale preview in `writeDraft`.",
+    "files": [
+      "app/features/admin/choreographies/detail/draft-save.server.ts"
+    ]
+  },
+  {
+    "id": "en-escena-1729-1",
+    "repo": "en-escena",
+    "pr": 1729,
+    "base": "ecbebb03b6900387da69588f24c87d529c7975b9",
+    "before": "a13c98ed8bc2848c5bb87c3058c4108b83946347",
+    "fix": "7e3d931444d1568c047be0372c70a297497b803c",
+    "severity": "warning",
+    "found_by": "Opus",
+    "bug": "The presentation order stops showing the `Seña pendiente` warning when every dancer withdraws from a choreography, even though the choreography itself remains registered, in the financial status read by presentation rows.",
+    "files": [
+      "app/lib/finances/operational-summary.server.ts"
+    ]
+  },
+  {
+    "id": "en-escena-1714-1",
+    "repo": "en-escena",
+    "pr": 1714,
+    "base": "79a95edd12b95d1869cc676f1151ccd431bdde49",
+    "before": "917a15dfae1b2223fdeb2f09d39d6a91303dfacb",
+    "fix": "ff7043098e1cd0c3d7b24f2bd8e473f3cb5a4368",
+    "severity": "critical",
+    "found_by": "Sol",
+    "bug": "A direct POST to the annul emitter can request a full credit mirror for a credit note or an already-adjusted invoice because the server checked only whether the target was already annulled in `resolveNotaCreditoChoreography`.",
+    "files": [
+      "app/lib/comprobantes/emit-nota-credito.server.ts"
+    ]
+  },
+  {
+    "id": "en-escena-1715-1",
+    "repo": "en-escena",
+    "pr": 1715,
+    "base": "1c17e54835f8d609033c46a6514e9a9d922d64c7",
+    "before": "5793622fa971f81b5af9068b8dd144d2825a484c",
+    "fix": "b927392af71be50b67fdd932525c7de9a9975a47",
+    "severity": "warning",
+    "found_by": "Sol",
+    "bug": "When a withdrawn inscription has no resolvable price, `deriveRetainedAmount` returns null and blocks the entire unit's credit note instead of retaining the amount the row holds.",
+    "files": [
+      "app/lib/finances/inscription-financial-status.ts"
+    ]
+  },
+  {
+    "id": "en-escena-1727-1",
+    "repo": "en-escena",
+    "pr": 1727,
+    "base": "ecbebb03b6900387da69588f24c87d529c7975b9",
+    "before": "0f67f818f8a958faf655fa6567a217fec5989bd1",
+    "fix": "35ccc82bf4556f5889b345f8de704c3ef9979d4d",
+    "severity": "warning",
+    "found_by": "Opus",
+    "bug": "When a halted emission is recovered, the bulk runner credits the recovered comprobante to the row that caused the halt even though the reservation may belong to another unit, incorrectly marking that row emitted in `updateBulkHalt`.",
+    "files": [
+      "app/features/admin/finances/comprobante-emission/bulk-run.ts"
+    ]
+  },
+  {
+    "id": "rubens-7-1",
+    "repo": "rubens",
+    "pr": 7,
+    "base": "81daaddd218b764b5b9ad07a7c6f8294a4fbca8e",
+    "before": "b5d078cd8e9a7a3c018251526dd4fe086c4a6fda",
+    "fix": "d9395a0d5966d3c426693d12e9791d547ef7a340",
+    "severity": "warning",
+    "found_by": "Sol",
+    "bug": "Following the documented manual first-run setup runs plain `docker compose up -d`, which can recreate the shared `rubens-postgres` container from a different worktree and disconnect other worktrees in the local-development instructions.",
+    "files": [
+      "docs/operations/local-development.md"
+    ]
+  },
+  {
+    "id": "agent-workflow-16-1",
+    "repo": "agent-workflow",
+    "pr": 16,
+    "base": "950abd890ed2621a888be4ac7d29f35d2786cb51",
+    "before": "274fc2d868198323fbf9ce09e6ddf7463c2da4a2",
+    "fix": "1310e7f61b2999d634af59dd2e94a2eed7d23dea",
+    "severity": "warning",
+    "found_by": "Sol",
+    "bug": "After `mark` writes non-ASCII source names as UTF-8, `collect` opens `sources.json` using the process default encoding and can fail to read those names on a non-UTF-8 locale in `collect`.",
+    "files": [
+      "skills/upstream-review/scripts/upstreams.py"
+    ]
+  }
+]
