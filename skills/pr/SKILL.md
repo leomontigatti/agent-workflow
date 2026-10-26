@@ -8,7 +8,12 @@ description: "Write a PR body. Use when opening a PR or rewriting its descriptio
 PRs are squash-merged: the title becomes the commit subject, and the issue is the record of why.
 The title is a Conventional Commit subject (`feat:`, `fix:`, `docs:`, `chore:`, `refactor:`,
 `test:`, with a scope when one module owns the change) in English; when
-`docs/agents/pull-requests.md` names a command that checks it, run it before `gh pr create`.
+`docs/agents/pull-requests.md` names a command that checks it, run it before `gh pr create`. When
+`gh pr create` fails because GitHub's GraphQL budget is spent (`gh api rate_limit --jq
+.resources.graphql` shows `remaining` near 0), open it through REST, which has its own budget:
+`gh api repos/{owner}/{repo}/pulls -f title=<title> -f head=<branch> -f base=<base> -F
+body=@<file>`. T3 does not link a PR opened that way: link it as the `implement` skill's
+[THREADS.md](../implement/THREADS.md) says.
 
 The body has two readers: the `review-record` check, which reads `## Review`, and the user, who
 opens a PR only now and then, and never to approve it: screens are approved in the thread before
