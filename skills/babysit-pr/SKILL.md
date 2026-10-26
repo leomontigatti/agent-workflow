@@ -124,8 +124,8 @@ whole job, ending in container cleanup: the failure sits just before the last `#
    to the user in step 5.
 
 Write every reply to a file and pass it with `-F body=@<file>` or `--body-file`, so review text
-never reaches the shell, and read the file for anything private before posting it (the `pr` skill
-§ Rules). The mutations are in [triage.md](triage.md#answering-the-round).
+never reaches the shell. Open it with the agent note, and read it for anything private before
+posting it (both in the `pr` skill § Rules). The mutations are in [triage.md](triage.md#answering-the-round).
 
 Then go back to step 2, unless:
 

@@ -76,7 +76,8 @@ its ticket retired (a report that crossed § Route change: discard its branch as
    it is not a fast-forward (another ticket merged meanwhile), send the ticket back: a new child as
    in step 2, its task adding `Earlier branch: <its branch>`, and move on.
 2. Comment `Implemented in <sha>. Part of #<PRD>.` on the sub-issue, which stays open
-   (`docs/agents/issue-tracker.md` § PRD workflow).
+   (`docs/agents/issue-tracker.md` § PRD workflow). This comment and every other one this skill
+   posts opens with the agent note of the `pr` skill § Rules.
 3. Push. After the first merge, open the PR as a **draft** with the PRD PR body of the `pr` skill
    (§ PRD PRs there), linked to the thread as the `implement` skill's
    [THREADS.md](../implement/THREADS.md) says; after that, tick the sub-issue's box in its body.
