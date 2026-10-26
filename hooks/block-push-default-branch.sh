@@ -17,13 +17,34 @@
 
 set -euo pipefail
 
-HOOK_INPUT="$(cat)" exec python3 -I - <<'PY'
-import json, os, shlex, subprocess, sys
+# The input goes through a file: a large command (a long heredoc) overflows an environment variable.
+input="$(mktemp)"
+trap 'rm -f "$input"' EXIT
+cat >"$input"
 
-data = json.loads(os.environ["HOOK_INPUT"] or "{}")
+python3 -I - "$input" <<'PY'
+import json, os, re, shlex, subprocess, sys
+
+data = json.loads(open(sys.argv[1], encoding="utf-8").read() or "{}")
 command = (data.get("tool_input") or {}).get("command") or ""
 cwd = data.get("cwd") or os.getcwd()
 SEPARATORS = {";", "&&", "||", "|", "&", "(", ")", ";;", "|&"}
+PREFIXES = {"sudo", "then", "do", "else", "elif", "if", "while", "until", "!", "{", "time", "command",
+            "exec", "nohup", "env"}
+HEREDOC = re.compile(r"<<-?\s*(['\"]?)([A-Za-z_][A-Za-z0-9_]*)\1")
+
+
+def drop_heredoc_bodies(text):
+    """A heredoc's body is data, not commands: keep its opening line and drop the rest."""
+    kept, ends = [], []
+    for line in text.split("\n"):
+        if ends:
+            if line.strip() == ends[0] or line == ends[0]:
+                ends.pop(0)
+            continue
+        kept.append(line)
+        ends = [m.group(2) for m in HEREDOC.finditer(line)]
+    return "\n".join(kept)
 
 
 def git(where, *args):
@@ -32,7 +53,9 @@ def git(where, *args):
 
 
 def segments(text):
-    lexer = shlex.shlex(text.replace("\n", ";"), posix=True, punctuation_chars=";&|()")
+    # A newline ends a command; the `;` after it keeps a `#` comment from swallowing the next line.
+    lexer = shlex.shlex(drop_heredoc_bodies(text).replace("\n", "\n;"), posix=True,
+                        punctuation_chars=";&|()")
     lexer.whitespace_split = True
     current = []
     try:
@@ -48,7 +71,7 @@ def segments(text):
 
 
 def blocked(tokens):
-    while tokens and ("=" in tokens[0] and not tokens[0].startswith("-") or tokens[0] == "sudo"):
+    while tokens and ("=" in tokens[0] and not tokens[0].startswith("-") or tokens[0] in PREFIXES):
         tokens = tokens[1:]
     if not tokens or os.path.basename(tokens[0]) != "git":
         return None
@@ -61,14 +84,16 @@ def blocked(tokens):
                 where = os.path.join(where, value)
     if not rest or rest[0] != "push":
         return None
-    positional, args = [], rest[1:]
+    positional, tags, args = [], False, rest[1:]
     while args:
         arg = args.pop(0)
         if arg in ("--all", "--branches", "--mirror"):
             return f"git push {arg}"
-        if arg in ("-d", "--delete", "--tags") or arg.startswith("--prune"):
+        if arg == "--tags":
+            tags = True
+        elif arg in ("-d", "--delete") or arg.startswith("--prune"):
             continue  # a deleted ref is a destination too: deleting the default branch is blocked
-        if arg in ("-o", "--push-option", "--repo", "--receive-pack", "--exec") and args:
+        elif arg in ("-o", "--push-option", "--repo", "--receive-pack", "--exec") and args:
             args.pop(0)
         elif not arg.startswith("-"):
             positional.append(arg)
@@ -76,7 +101,14 @@ def blocked(tokens):
     head = git(where, "symbolic-ref", "--short", f"refs/remotes/{remote}/HEAD")
     defaults = {head.split("/", 1)[1]} if "/" in head else {"main", "master"}
     current = git(where, "symbolic-ref", "--short", "HEAD")
-    for refspec in positional[1:] or ["HEAD"]:
+    if not positional[1:]:
+        if tags:
+            return None  # `--tags` alone pushes tags only
+        # Where a bare push goes follows push.default and the upstream: ask git.
+        target = git(where, "rev-parse", "--abbrev-ref", "--symbolic-full-name", "@{push}")
+        dst = target.split("/", 1)[1] if "/" in target else current
+        return f"git push to {dst}" if dst in defaults else None
+    for refspec in positional[1:]:
         dst = refspec.lstrip("+").rsplit(":", 1)[-1] or refspec
         if dst == "HEAD":
             dst = current
