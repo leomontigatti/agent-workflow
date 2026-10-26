@@ -98,8 +98,12 @@ class Record(unittest.TestCase):
 class CheckPr(unittest.TestCase):
     def test_a_pr_head_not_fetched_yet_is_checked(self):
         with tempfile.TemporaryDirectory() as tmp:
+            # No user or system git config: a signing or hooks setting there would break the fixture.
+            env = {**os.environ, "GIT_CONFIG_GLOBAL": os.devnull, "GIT_CONFIG_NOSYSTEM": "1"}
+
             def git(cwd, *args):
-                return subprocess.run(["git", "-C", cwd, *args], check=True, capture_output=True, text=True).stdout.strip()
+                return subprocess.run(["git", "-C", cwd, *args], check=True, capture_output=True, text=True,
+                                      env=env).stdout.strip()
             origin, work, local, bin_ = (os.path.join(tmp, d) for d in ("origin.git", "work", "local", "bin"))
             git(tmp, "init", "-q", "--bare", "-b", "main", origin)
             git(tmp, "clone", "-q", origin, work)
@@ -121,7 +125,7 @@ class CheckPr(unittest.TestCase):
             os.chmod(os.path.join(bin_, "gh"), 0o755)
             run = subprocess.run([sys.executable, "-I", os.path.join(ROOT, "skills/implement/scripts/review.py"),
                                   "check", "--pr", "1"], cwd=local, capture_output=True, text=True,
-                                 env={**os.environ, "PATH": bin_ + os.pathsep + os.environ["PATH"]})
+                                 env={**env, "PATH": bin_ + os.pathsep + os.environ["PATH"]})
             self.assertEqual(run.returncode, 0, run.stderr)
             self.assertIn("review record: ok", run.stdout)
 
