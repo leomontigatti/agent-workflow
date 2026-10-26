@@ -79,3 +79,19 @@ merges.
 | `gentle-ai:frozen-review-candidate`   | Freeze the candidate before a review reads it, and bind the evidence to it.                           | declined (proposed) | The `## Review` record names the reviewed commit and `review-record` fails a later change; fix rounds diff against a `git stash create` snapshot. |
 | `gentle-ai:credential-deny-list`      | Permission rules denying reads and edits of `.env`, `.ssh`, keys and secrets.                         | later (proposed) | `Read`/`Edit` rules do not stop Bash, and `.env` is legitimate local config. Only if a retro shows an agent touching credentials; then a Bash hook in `hooks/`. |
 | `engram:persistent-memory`            | A memory store shared across harnesses (SQLite, MCP, session hooks).                                 | later (proposed) | When `retro` finds context lost between Claude and Codex sessions twice; until then `mattpocock-skills:dated-commit-cited-wiki`'s reason holds. |
+
+## Weekly review (2026-10-26): pstack v0.15.32, gentle-ai 3270126, engram f15b94a
+
+Verdicts marked proposed stand until this review's PR merges. gentle-ai changed no watched path.
+
+| Id | Idea | Verdict | Where or why |
+| -- | ---- | ------- | ------------ |
+| `pstack:statechart` | A TLA+ model's state graph drawn as a Mermaid statechart in the reader's words, each broken rule a numbered path; also chart → TLA+ skeleton. | later (proposed) | Same condition as `pstack:formal-verification-skill`: a project with a TLA+ model of a costly race or state machine. |
+| `pstack:formal-verification-reads-with-statechart` | A generated formal-verification skill reads every TLA+ result through `/statechart`, by name only. | later (proposed) | Once `pstack:formal-verification-skill` and `pstack:statechart` are adopted. |
+| `pstack:model-bug-replayed-in-code` | Replay each model-found bug in the real code through reachable entry points; a test asserting a flag it set proves nothing. | declined (proposed) | `skills/tdd/SKILL.md` (public interfaces) and `skills/implement/SKILL.md` step 4; the model part rides with `pstack:statechart`. |
+| `pstack:ketchup-video` | The catch-up as a silent video of slides, the waiting calls as text. | declined (proposed) | A render per catch-up for what the thread and `implement`'s final report give in text. |
+| `pstack:sharpen-rewrite-only` | `/sharpen` rewrites the prompt deeper (expert additions, raw material, methods, outside check) and does not do the task. | declined (proposed) | A personal prompt, not a procedure; `grilling` and `implement` step 4 cover it. |
+| `pstack:reflect-no-plugin-cache` | Reflect edits a local copy of a skill, never the plugin cache, and never pushes. | declined (proposed) | `skills/retro/SKILL.md` step 10 routes shared changes to the shared-workflow repo through a PR. |
+| `engram:selective-memory` | Save only verified, durable knowledge; search before writing, update by id, never claim unconfirmed persistence. | declined (proposed) | Memory is the harness's; `engram:persistent-memory`'s condition has not held. |
+| `engram:pr-body-from-template` | The PR skill points at the repo's PR template instead of duplicating it. | declined (proposed) | `skills/pr/SKILL.md` is the one template and `review-record` parses it. |
+| `engram:local-is-not-ci` | Record checks actually run; local success is not a hosted CI pass. | declined (proposed) | `pstack:reply-evidence` and `skills/babysit-pr/SKILL.md`. |
