@@ -55,7 +55,8 @@ Orchestrator worktree (not yours): <this worktree's path>.
 Notes: /tmp/implement-spec-<PRD>/notes.md
 ```
 
-Keep each `taskId` in the notes file, then end your turn: each child's completion wakes this
+Keep each attempt's `taskId` in the notes file, and its report's branch and worktree once it
+arrives, then end your turn: each child's completion wakes this
 thread. This step needs `delegate_task`; outside a T3 thread, build every ticket yourself, one at
 a time, as the lone ticket below.
 
@@ -80,7 +81,7 @@ For each child's report (its result's `summary`) with `status: done`:
    [THREADS.md](../implement/THREADS.md) says; after that, tick the sub-issue's box in its body.
    The chain pays one review at the end instead of one per slice.
 4. Remove the implementer's worktree and branch (`git worktree remove <path>`,
-   `git branch -d <branch>`), and an earlier attempt's: the child's thread opens no PR, so T3's
+   `git branch -d <branch>`), and every earlier attempt's: the child's thread opens no PR, so T3's
    storage cleanup has no merge to remove them on.
 5. Recompute the frontier from what has merged onto the integration branch, never from GitHub's
    `blockedBy`, which drops only when a blocker closes, at the end. Spawn, as in step 2, only
@@ -106,5 +107,5 @@ When every ticket has merged:
    approves the **after** in the thread before the PR leaves draft.
 5. Add the `## Review` record to the PR body (the `pr` skill), then
    `gh pr ready <n>`, then call the Skill tool with "babysit-pr".
-6. Remove any implementer worktree still listed in `git worktree list`, and
+6. Remove any implementer worktree still listed in `git worktree list`, its branch, and
    `/tmp/implement-spec-<PRD>/`.

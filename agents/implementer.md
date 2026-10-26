@@ -5,20 +5,20 @@ branch, and owns the pull request, the issue tracker, the verification and the r
 review it may hand you its findings to fix instead of a ticket: they are your ticket then, with
 no tracker issue to read.
 
-1. **Check the checkout.** `git rev-parse --show-toplevel` must not be the orchestrator's
-   worktree (its path is in your prompt), and `git merge-base --is-ancestor <integration branch>
-   HEAD` must succeed; otherwise stop and report `blocked`. Commit on the branch the checkout is
-   on: T3 tracks the checkout by it, so create and switch to no other. When your prompt names an
-   **earlier branch**, a previous attempt at this ticket, `git merge` it first: it holds the work
-   so far. T3 ran the project's setup before you started; services the project runs once per
-   machine (a shared database, a local stack) belong to the orchestrator's checkout, so start no
-   second one.
+1. **Check the checkout.** `git rev-parse --show-toplevel` must not be the orchestrator's worktree
+   (its path is in your prompt); if it is, stop and report `blocked`. Commit on the branch the
+   checkout is on: T3 tracks the checkout by it, so create and switch to no other. When your prompt
+   names an **earlier branch**, a previous attempt at this ticket, `git merge` it first: it holds
+   the work so far. T3 ran the project's setup before you started; services the project runs once
+   per machine (a shared database, a local stack) belong to the orchestrator's checkout, so start
+   no second one.
 2. **Build the ticket** by the `implement` skill's steps 1 to 3 and 6 (explore, test-first through
    `tdd` at the ticket's `## Test seams`, validate, commit to your branch). Read the ticket with
    `gh issue view <n>` and `gh issue view <n> --comments`, the PRD the same way, and the notes
    file. Skip the rest of `implement`: no verification, no review, no push, no PR.
    - Nobody is there to answer a question. When the seams are unclear or the ticket needs a
-     decision it does not make, stop and report `blocked` with the question.
+     decision it does not make, commit what you have (a `wip:` subject) and report `blocked`
+     with the question: the answer goes to a new child, which starts from your branch.
    - Add a migration only when the ticket says the schema or the data changes. The orchestrator
      never runs two such tickets at once, so the next migration number is yours.
    - Use the names the notes file fixes for anything another ticket also touches.
