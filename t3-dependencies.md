@@ -461,7 +461,8 @@ T3 source paths below are in pingdotgg/t3code.
 - **Adopting:** step one of **Would improve if**, begun 2026-10-26: `PREVIEW.md` step 4 clicks a
   button by its ref, and en-escena's `verification.md` takes its images with `preview_snapshot`
   (rubens' and enescena's § Evidence name no tool, so they already do), keeping the browser CLI
-  installed. Count the PRs verified that way from here: at ten with no lost click, step two.
+  installed. The count for step two is every PR, in any of the three projects, merged after
+  2026-10-26 whose captures came from `preview_snapshot`.
 - **Watch:** pingdotgg/t3code#20899 (the blur, fixed; no issue asks to lift the size cap, and #10141,
   which tried, closed unmerged); `apps/server/src/preview/ServerBrowserPage.ts`
   (`MAX_SCREENSHOT_WIDTH`, `captureViewport`); `apps/server/src/mcp/toolkits/preview/tools.ts`;
