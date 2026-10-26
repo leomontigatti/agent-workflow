@@ -19,6 +19,15 @@
       "reviewedAt": "2026-10-19"
     },
     {
+      "id": "mattpocock-docs",
+      "repo": "mattpocock/skills",
+      "branch": "main",
+      "paths": ["docs/**"],
+      "license": "MIT, Copyright (c) 2026 Matt Pocock (LICENSE)",
+      "reviewed": "49cec7be019bc408e87b77670f3d442f536da254",
+      "reviewedAt": null
+    },
+    {
       "id": "gentle-ai",
       "repo": "Gentleman-Programming/gentle-ai",
       "branch": "main",
