@@ -95,3 +95,33 @@ Verdicts marked proposed stand until this review's PR merges. gentle-ai changed 
 | `engram:selective-memory` | Save only verified, durable knowledge; search before writing, update by id, never claim unconfirmed persistence. | declined (proposed) | Memory is the harness's; `engram:persistent-memory`'s condition has not held. |
 | `engram:pr-body-from-template` | The PR skill points at the repo's PR template instead of duplicating it. | declined (proposed) | `skills/pr/SKILL.md` is the one template and `review-record` parses it. |
 | `engram:local-is-not-ci` | Record checks actually run; local success is not a hosted CI pass. | declined (proposed) | `pstack:reply-evidence` and `skills/babysit-pr/SKILL.md`. |
+
+## First look: tstack 7de017b (2026-10-26)
+
+Nine skills for Claude Code and Codex that already lean on T3 (`watch_pull_request`, `delegate_task`). Two ideas were already decided under pstack names: `pstack:watch-pr-script` (its `pr-wait`) and `pstack:verification-skill`. Verdicts marked proposed stand until this review's PR merges.
+
+| Id | Idea | Verdict | Where or why |
+| -- | ---- | ------- | ------------ |
+| `tstack:watch-rate-limit` | A watch that ended because it could not read the PR: check the GraphQL budget before watching again; read through REST meanwhile. | adopted (proposed) | To do: `skills/babysit-pr/SKILL.md` § 2, and a `t3-dependencies.md` entry. |
+| `tstack:merge-base-overlap` | Before merging, a base commit since the merge base that touches the PR's files sends it back to update and wait. | adopted (proposed) | To do: `skills/babysit-pr/SKILL.md` § 4c. |
+| `tstack:review-scope-guard` | Prefer the fix that deletes or narrows code; a true finding outside the PR's goal is declined as out of scope and listed as a follow-up. | adopted (proposed) | To do: `skills/babysit-pr/triage.md` § The three verbs. |
+| `tstack:pr-title-says-why` | The PR title names the effect that matters, not the mechanism. | adopted (proposed) | To do: `skills/pr/SKILL.md` intro. |
+| `tstack:secrets-check-before-posting` | Read a PR title, body or comment, and what it quotes, for secrets and private data before posting. | adopted (proposed) | To do: `skills/pr/SKILL.md` § Rules and `skills/babysit-pr/SKILL.md` § 4. |
+| `tstack:agent-comment-attribution` | Every comment an agent posts under the user's account opens with a note naming the model and the user. | adopted (proposed) | To do: `skills/babysit-pr/triage.md` § Answering the round. The user's taste call. |
+| `tstack:modernize` | Revive a stale PR: restate its goal, read the base's changes, choose modernize / rework / close before pushing, `range-diff` after the rebase. | later (proposed) | When PRs sit open past a week; ours merge within a session. |
+| `tstack:council` | Three reviewers from three providers loop until all agree. | later (proposed) | When the two-family trial in `agents/models.md` shows a second family pays, and a third provider is reachable. |
+| `tstack:full-send` | Unattended to a merged PR; the request overrides ask-first testing rules. | declined (proposed) | `implement` with `babysit-pr` runs to the merge when it is the agent's; ask-first rules are the project's. |
+| `tstack:full-stop` | The same, stopping at ready, auto-merge disabled first. | declined (proposed) | `babysit-pr`'s merge rule stops at READY; nothing of ours enables auto-merge. |
+| `tstack:auto-merge-guard` | When the merge is the user's, turn off auto-merge or a merge-queue entry already on the PR before pushing, and check again before each push. | declined (proposed) | Auto-merge on our PRs is only ever turned on by the user, and that is their merge decision; one author per project, so no one else's setting is inherited. Reopen if `takeover` is adopted. |
+| `tstack:ask-via-question-tool` | An unattended run asks through the question tool so the thread shows it waits. | declined (proposed) | `babysit-pr` § 5 unwatches, returning the thread to the inbox, and leads with NEEDS YOU. |
+| `tstack:sol-loop` | A Sol review loop: blocker / should / nit, 3 rounds (5 for risky areas), a ledger. | declined (proposed) | `implement` step 5's cross-family review and fix round; `babysit-pr`'s three rounds. |
+| `tstack:review-scores` | Each reviewer scores out of 10 per round, tabled in the PR body. | declined (proposed) | `## Review` counts findings per axis and `review-record` reads it. |
+| `tstack:model-harness-line` | The PR body ends with the model and harness that made it. | declined (proposed) | The harness's attribution and `## Review`'s model per axis. |
+| `tstack:takeover` | Finish another's PR or thread, keeping their git credit; the handoff is context, not proof. | declined (proposed) | One author per project; `implement` proves the change itself. |
+| `tstack:comment-style` | Comments lead with the conclusion and cite code; resolve only after the reply posts. | declined (proposed) | `skills/babysit-pr/triage.md` demands the SHA or the disproof per reply. |
+| `tstack:bot-rules` | Macroscope rule files read first; CodeRabbit advisory, never waited on. | declined (proposed) | A project fact, for `docs/agents/review.md`. |
+| `tstack:silent-wake` | A wake that needs nothing ends the turn without a message. | declined (proposed) | A no-op: `babysit-pr` reports only at step 5. |
+| `tstack:only-owner-watches` | A delegated child never watches; the parent owns the PR. | declined (proposed) | `skills/babysit-pr/SKILL.md` § 2; T3 refuses it. |
+| `tstack:proof-per-fix` | Proof for each review fix before pushing it. | declined (proposed) | `skills/babysit-pr/SKILL.md` § 4. |
+| `tstack:pr-body-problem-first` | The PR body opens with the problem in the user's words, not an inventory. | declined (proposed) | `skills/pr/SKILL.md`: the why lives in the issue. |
+| `tstack:rest-fallback-pr-create` | When `gh pr create` fails because GitHub's GraphQL budget is spent, open the PR through REST (`gh api repos/{owner}/{repo}/pulls` with the body from a file). | adopted (proposed) | To do: `skills/pr/SKILL.md`, beside the `gh pr create` step; the REST reads are `tstack:watch-rate-limit`'s. |

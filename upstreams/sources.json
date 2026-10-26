@@ -35,6 +35,15 @@
       "license": "MIT, Copyright (c) 2026 Alan Buscaglia (LICENSE)",
       "reviewed": "f15b94ab039475b6f4ae73c56a9a2b1b9c6d91cc",
       "reviewedAt": "2026-10-26"
+    },
+    {
+      "id": "tstack",
+      "repo": "t3dotgg/tstack",
+      "branch": "main",
+      "paths": ["skills/**", "README.md"],
+      "license": "MIT, Copyright (c) 2026 Theo Browne (LICENSE)",
+      "reviewed": "7de017b3fc9d50c03cf3ecb98fb71e0ca65a78bd",
+      "reviewedAt": "2026-10-26"
     }
   ]
 }
