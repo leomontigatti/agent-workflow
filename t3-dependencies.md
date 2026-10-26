@@ -470,7 +470,9 @@ T3 source paths below are in pingdotgg/t3code.
   settlement is a no-op and never relinks a PR the user unlinked. Nothing is linked for a `for`
   loop that creates several PRs, a `gh api` create, or output with more PR URLs than create
   commands. The tool copy dropped "Register every pull request you open" (pingdotgg/t3code#24850).
-  Live trial pending on this review's own PR.
+  Tried 2026-10-26 on this review's own PR (#28): `gh pr create`, run as the last of several
+  shell commands, was linked with source `created` before any call, and `link_pull_request`
+  afterwards returned `alreadyLinked: true`.
 - **Adopting:** the three places stop calling `link_pull_request` after `gh pr create`, and keep
   it for a PR opened another way (`gh api`, a loop) or missing from `t3_thread_read`'s
   `pullRequests`. A repeat call is harmless (`alreadyLinked`), so the risk is one unlinked PR.
