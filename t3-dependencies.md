@@ -25,8 +25,8 @@ T3 source paths below are in pingdotgg/t3code.
   worktree (`packages/contracts/src/t3ProjectFile.ts`, `packages/shared/src/projectScripts.ts`).
   T3 runs the script only once the project imported `t3.json` (project settings → Actions →
   Import from t3.json).
-- **Used by:** `skills/implement/THREADS.md`; `agents/implementer.md` step 2 (runs the same
-  script by hand, with `T3CODE_PROJECT_ROOT` set, for a worktree T3 did not create)
+- **Used by:** `skills/implement/THREADS.md`; `agents/implementer.md` step 1 (T3 set up the
+  implementer's checkout before it started)
 - **Breaks if:** T3 stops applying `defaultThreadEnvMode` or running create-time scripts, starts
   the agent before an `async: false` script exits, or stops passing `T3CODE_PROJECT_ROOT`.
 
@@ -44,10 +44,9 @@ T3 source paths below are in pingdotgg/t3code.
   any worktree outside its managed folder alone: it neither sets one up nor removes it ("outside
   the managed worktree folder" in `apps/server/src/storageCleanup.ts`).
 - **Used by:** `skills/implement/THREADS.md` ("Work where you started");
-  `skills/implement-spec/SKILL.md` § 2, § 3 step 4 and § 4 step 6;
   `skills/housekeeping/SKILL.md` (the worktrees the sweep owns)
 - **Breaks if:** T3's cleanup starts removing worktrees outside its managed folder, which would
-  race the removal `implement-spec` and `housekeeping` do themselves.
+  race the removal `housekeeping` does itself.
 
 ### storage-cleanup-removes-thread-worktrees
 
@@ -192,6 +191,24 @@ T3 source paths below are in pingdotgg/t3code.
   deduplicating a retry, the `target` shape or live model ids change, or children stop sharing
   the parent's checkout by default.
 
+### delegate-task-worktrees
+
+- **Relies on:** a `delegate_task` child with `isolation: worktree` gets a checkout in T3's
+  managed folder at the parent's local commit, on a branch of its own, with the project's setup
+  run before it starts (uncommitted edits stay out; refused when the repo lacks that commit,
+  pingdotgg/t3code#20213). T3 may rename that branch, so the child reads it rather than assume
+  it. With `mode: async` the call returns at once with `next` ("Completion wakes this thread, so
+  end your turn"), and the child's completion wakes the parent with its `summary`
+  (`apps/server/src/mcp/toolkits/orchestrator/tools.ts`,
+  `packages/contracts/src/orchestratorMcp.ts`). The result has no branch field, so the child's
+  report names it. Tried 2026-10-26; the trial is under `implementer-worktrees`.
+- **Used by:** `skills/implement-spec/SKILL.md` § 2, § 3 and § 4 step 3; `agents/implementer.md`;
+  `agents/models.md` (Reaching each model); `skills/implement/THREADS.md` ("Work where you
+  started")
+- **Breaks if:** the checkout stops starting at the parent's local commit or skips setup, an
+  async child's completion stops waking the parent, or storage cleanup starts removing a child's
+  checkout before the orchestrator merged its branch.
+
 ### background-subagents-keep-t3-tools
 
 - **Relies on:** a Claude subagent started with the Agent tool runs in the background by default,
@@ -208,12 +225,10 @@ T3 source paths below are in pingdotgg/t3code.
   0.1.3-nightly.20261025.3669 T3's injected instructions steer away from it
   (pingdotgg/t3code#24850, `orchestrationInstructions.ts`): "Claude `Agent` always with
   `run_in_background:false`", and "Use `delegate_task` for ... a separate checkout
-  (`isolation:"worktree"`), background work". Since 2026-10-26 `implement-spec` § 2 names its
-  background implementers as the exception to that text, until `implementer-worktrees` moves
-  them to `delegate_task`; the parallel subagents in `PREVIEW.md` step 1 are those implementers.
+  (`isolation:"worktree"`), background work". `implement-spec` moved its background implementers
+  to `delegate_task` on 2026-10-26 (`implementer-worktrees`).
 - **Used by:** `skills/implement/PREVIEW.md` § The loop step 1 (parallel subagents each open their
-  own tab); `skills/implement-spec/SKILL.md` § 2 (the orchestrator ends its turn while its
-  background implementers run)
+  own tab)
 - **Breaks if:** T3 again ties a caller's tools to the parent's active run, so a background
   subagent's preview calls fail once the parent's turn ends.
 
@@ -299,9 +314,9 @@ T3 source paths below are in pingdotgg/t3code.
 ### t3json-manual-import
 
 - **Workaround:** each project's `t3.json` is imported once per T3 install (project settings →
-  Actions → Import from t3.json); until then T3 runs no setup, and `agents/implementer.md` step 2
-  is the same script by hand.
-- **Used by:** `skills/implement/THREADS.md`; `agents/implementer.md` step 2
+  Actions → Import from t3.json); until then T3 runs no setup, in a thread's worktree or an
+  implementer's checkout.
+- **Used by:** `skills/implement/THREADS.md`; `agents/implementer.md` step 1
 - **Would improve if:** T3 reads `runOnWorktreeCreate` from the checked-in `t3.json` without an
   import (`setupProjectScript` in `packages/shared/src/projectScripts.ts` sees only imported
   scripts).
@@ -441,13 +456,15 @@ T3 source paths below are in pingdotgg/t3code.
 
 ## Ready
 
+None.
+
+## Resolved
+
 ### implementer-worktrees
 
-- **Workaround:** `implement-spec` runs each implementer as an Agent-tool worktree under
-  `.claude/worktrees/`, sets it up by hand (`agents/implementer.md` step 2), and removes it itself
-  (`skills/implement-spec/SKILL.md` § 3 step 4, and § 4 step 6).
-- **Used by:** `agents/implementer.md`; `skills/implement-spec/SKILL.md`;
-  `skills/implement/THREADS.md` (the exception)
+- **Workaround:** `implement-spec` ran each implementer as a background Agent-tool worktree
+  under `.claude/worktrees/`, set up by hand, an exception to `THREADS.md`'s "never create a
+  worktree of your own".
 - **Would improve if:** a `delegate_task` child with `isolation: worktree` (a checkout of the
   parent's local commit, with project setup done before the child starts) can commit to its own
   named branch that the orchestrator merges. Its result has no branch field today
@@ -465,14 +482,11 @@ T3 source paths below are in pingdotgg/t3code.
   switches away from it is one storage cleanup keeps (`storage-cleanup-renamed-branches`), so the
   child commits on the branch T3 gave it.
 - **Met in:** 0.1.3-nightly.20261026.3717, by the trial above.
-- **Adopting:** `implement-spec` § 2 spawns each implementer with `delegate_task`
-  (`isolation: worktree`, `mode: async`, the implementer brief as `task`), the implementer
-  commits on its own branch and reports it, `agents/implementer.md` step 2 (setup by hand) and
-  § 3 step 4's removal go, and `THREADS.md` drops its exception. Then the conflict in
-  `background-subagents-keep-t3-tools` ends too.
-- **Watch:** `apps/server/src/mcp/toolkits/orchestrator/tools.ts` (`delegate_task`)
-
-## Resolved
+- **Adopted:** 2026-10-26; `implement-spec` § 2 spawns each implementer with `delegate_task`
+  (`isolation: worktree`, `mode: async`), a new attempt carries its earlier branch instead of a
+  `SendMessage`, the brief dropped its setup step and commits on the branch T3 gave it, the
+  harness wrappers went, and `THREADS.md` lost its exception. Relied on since as
+  `delegate-task-worktrees`.
 
 ### pr-auto-link
 

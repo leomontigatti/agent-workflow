@@ -10,10 +10,9 @@ directory: T3's Automatically pull keeps it current only while it is clean and o
   or `git switch` in the main checkout, and never create a worktree of your own (`git worktree
   add`, Claude's `EnterWorktree`): T3 tracks only the branch and PR of the worktree it created,
   so a private worktree loses the PR badge, the settling of the thread and T3's storage cleanup. A
-  session that needs another checkout gets it from T3 (`t3_thread_launch` with a
-  `workspaceStrategy`). The one exception is `implement-spec`'s implementer subagents, each in an
-  Agent-tool worktree under `.claude/worktrees/`: their branches merge into the thread's, which
-  keeps the PR, and the skill removes them.
+  session that needs another checkout gets it from T3: `t3_thread_launch` with a
+  `workspaceStrategy`, or `delegate_task` with `isolation: "worktree"` for a child whose branch
+  merges into the thread's.
 - **Branch names.** T3 names the branch when it creates the thread and may rename it once the
   thread starts, so read it with `git branch --show-current`, never from the worktree's folder
   name. A session that renames it or creates one uses `feat/`, `fix/`, `docs/`, `chore/`,
