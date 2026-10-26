@@ -1,8 +1,12 @@
 """Unit tests for skills/implement/scripts/review.py: tiers and the record check."""
 
 import importlib.util
+import json
 import os
 import re
+import subprocess
+import sys
+import tempfile
 import unittest
 
 ROOT = os.path.normpath(os.path.join(os.path.dirname(os.path.realpath(__file__)), ".."))
@@ -89,6 +93,37 @@ class Record(unittest.TestCase):
     def test_no_record_names_what_is_needed(self):
         v, _ = review.check_record(None, ["app/x.ts"], [], rules())
         self.assertIn("readback+correctness", v[0])
+
+
+class CheckPr(unittest.TestCase):
+    def test_a_pr_head_not_fetched_yet_is_checked(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            def git(cwd, *args):
+                return subprocess.run(["git", "-C", cwd, *args], check=True, capture_output=True, text=True).stdout.strip()
+            origin, work, local, bin_ = (os.path.join(tmp, d) for d in ("origin.git", "work", "local", "bin"))
+            git(tmp, "init", "-q", "--bare", "-b", "main", origin)
+            git(tmp, "clone", "-q", origin, work)
+            for args in (("config", "user.email", "t@t"), ("config", "user.name", "t"),
+                         ("commit", "-q", "--allow-empty", "-m", "base"), ("push", "-q", "origin", "main")):
+                git(work, *args)
+            git(tmp, "clone", "-q", origin, local)
+            with open(os.path.join(work, "a.md"), "w") as f:
+                f.write("x\n")
+            git(work, "add", "a.md")
+            git(work, "commit", "-q", "-m", "pr")
+            head = git(work, "rev-parse", "HEAD")
+            git(work, "push", "-q", "origin", "HEAD:refs/pull/1/head")
+            pr = {"body": body("readback", "- readback (luna): ok").replace("abc1234", head[:7]),
+                  "baseRefName": "main", "headRefOid": head, "author": {"login": "someone"}}
+            os.mkdir(bin_)
+            with open(os.path.join(bin_, "gh"), "w") as f:
+                f.write("#!/bin/sh\ncat <<'JSON'\n" + json.dumps(pr) + "\nJSON\n")
+            os.chmod(os.path.join(bin_, "gh"), 0o755)
+            run = subprocess.run([sys.executable, "-I", os.path.join(ROOT, "skills/implement/scripts/review.py"),
+                                  "check", "--pr", "1"], cwd=local, capture_output=True, text=True,
+                                 env={**os.environ, "PATH": bin_ + os.pathsep + os.environ["PATH"]})
+            self.assertEqual(run.returncode, 0, run.stderr)
+            self.assertIn("review record: ok", run.stdout)
 
 
 if __name__ == "__main__":

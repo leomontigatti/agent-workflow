@@ -184,7 +184,8 @@ def run_check(args, rules):
         n = args[args.index("--pr") + 1]
         pr = json.loads(subprocess.run(["gh", "pr", "view", n, "--json", "body,baseRefName,headRefOid,author"],
                                        check=True, capture_output=True, text=True).stdout)
-        git("fetch", "-q", "origin", pr["baseRefName"])
+        # The head too: a push or `gh pr update-branch` may not have reached this checkout yet.
+        git("fetch", "-q", "origin", pr["baseRefName"], f"pull/{n}/head")
         body, head, author = pr["body"], pr["headRefOid"], pr["author"]["login"]
         base = git("merge-base", f"origin/{pr['baseRefName']}", head)
     else:
