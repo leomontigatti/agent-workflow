@@ -428,7 +428,7 @@ T3 source paths below are in pingdotgg/t3code.
   captures at full scale and shrinks the finished PNG in the page, since Chromium "mirrors the
   top-left of the page into a `backdrop-filter` in any capture it shrinks"
   (`shrinkPng` in `ServerBrowserPage.ts`). The 1280 px cap stands (`MAX_SCREENSHOT_WIDTH`), so
-  the user's call on 1280 px images and en-escena's dialog probe remain. The same build's injected
+  en-escena's dialog probe remains: the user accepted images 1280 px wide on 2026-10-26. The same build's injected
   instructions add a hurdle (pingdotgg/t3code#24850): "Never use `preview_*` to verify or show
   your own edit, even a frontend edit ... Use them only when the current request asks for browser
   work", and the browser section dropped its exception for "a skill or documented repository
