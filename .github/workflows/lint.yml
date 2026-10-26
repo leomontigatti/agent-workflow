@@ -30,5 +30,7 @@ jobs:
         run: python3 -I tests/test_review.py
       - name: upstreams.py mark keeps the file's layout
         run: python3 -I tests/test_upstreams.py
+      - name: block-push-default-branch.sh blocks what it should
+        run: tests/test_hooks.sh
       - name: install.sh against a throwaway HOME
         run: tests/test_install.sh
