@@ -458,9 +458,11 @@ T3 source paths below are in pingdotgg/t3code.
   Faults seen: a role-locator click timed out twice on a visible button ("Ingresar", "Acciones")
   where an `aria-ref` or coordinate click worked; a background tab (`open: false`) drew no focus
   ring; `preview_resize` reports the capture size (1280×800), not the page's.
-- **Adopting:** step one of **Would improve if**: each project's `verification.md` § Evidence takes
-  its images with `preview_snapshot`, and § Drive drops the tiles caveat, keeping the browser CLI
-  installed; `PREVIEW.md` step 4 prefers `aria-ref` targets over role locators.
+- **Adopting:** step one of **Would improve if**, begun 2026-10-26: `PREVIEW.md` step 4 clicks a
+  button by its ref, and en-escena's `verification.md` takes its images with `preview_snapshot`
+  (rubens' and enescena's § Evidence name no tool, so they already do), keeping the browser CLI
+  installed. The count for step two is every PR, in any of the three projects, merged after
+  2026-10-26 whose captures came from `preview_snapshot`.
 - **Watch:** pingdotgg/t3code#20899 (the blur, fixed; no issue asks to lift the size cap, and #10141,
   which tried, closed unmerged); `apps/server/src/preview/ServerBrowserPage.ts`
   (`MAX_SCREENSHOT_WIDTH`, `captureViewport`); `apps/server/src/mcp/toolkits/preview/tools.ts`;
