@@ -61,7 +61,9 @@ T3 source paths below are in pingdotgg/t3code.
   Storage → Last run. A worktree other threads share is
   kept, unless every one of them is a subagent of the same parent, whose rules then decide
   (pingdotgg/t3code#19748, since 0.1.1-nightly.20261016.3203): that is what lets a thread whose
-  reviewers ran through `delegate_task` in its checkout be removed. Last run also lists folders
+  reviewers ran through `delegate_task` in its checkout be removed. Since
+  0.1.3-nightly.20261023.3592 a deleted thread still owns a worktree its remaining subagents share,
+  so `worktreeOnDelete` removes it too (pingdotgg/t3code#23900). Last run also lists folders
   in the managed folder no thread uses (pingdotgg/t3code#19749), which T3 never removes. It keeps
   the branch on purpose, runs no script on removal, and has no MCP tool to trigger or read it
   (`apps/server/src/storageCleanup.ts`; `packages/contracts/src/settings.ts`;
@@ -140,7 +142,11 @@ T3 source paths below are in pingdotgg/t3code.
   pingdotgg/t3code#23863; `packages/contracts/src/threadPullRequest.ts`). Only comments posted
   after the call wake the thread. Watching a PR again starts from the check and conflict state the last watch reported,
   so it does not repeat news the thread already got (`endedWatch`, pingdotgg/t3code#21155, since
-  0.1.1-nightly.20261018.3331). A subagent thread cannot call it. `unwatch_pull_request` ends the watch and returns the
+  0.1.1-nightly.20261018.3331). A subagent thread cannot call it: since
+  0.1.3-nightly.20261025.3669 a `delegate_task` child no longer even sees the watch tools
+  (pingdotgg/t3code#24808), and each wake says the PR stays linked and watched, so the session
+  never calls the tool again on a wake (pingdotgg/t3code#24781). A watched PR keeps the thread in
+  Working (pingdotgg/t3code#24610). `unwatch_pull_request` ends the watch and returns the
   thread to the user's inbox; it wakes no other thread. `list_thread_pull_requests` with another
   thread's `threadId` lists that thread's PRs.
 - **Used by:** `skills/babysit-pr/SKILL.md` § 2 and § 5; `skills/implement/SKILL.md` § 7;
@@ -174,7 +180,10 @@ T3 source paths below are in pingdotgg/t3code.
   omitted when it restates the id. Every id in `agents/models.md` was listed on 2026-10-23. A Claude subagent can call `delegate_task`
   too, but only while the parent's run is active: unlike the other T3 tools, it is still refused
   (`parent_not_active`) to a background subagent once the parent's turn ended
-  (pingdotgg/t3code#19751). Source: `packages/contracts/src/orchestratorMcp.ts`. Read-only review
+  (pingdotgg/t3code#19751). Since 0.1.3-nightly.20261025.3669 a result for a task still running
+  carries `next` ("Completion wakes this thread, so end your turn", pingdotgg/t3code#24782) and
+  every result carries the child's thread `link` (pingdotgg/t3code#24784).
+  Source: `packages/contracts/src/orchestratorMcp.ts`. Read-only review
   is a prompt rule (`agents/reviewer.md`), not something T3 enforces.
 - **Used by:** `agents/models.md` § Reaching each model; `skills/code-review/SKILL.md` § Spawning
   a reviewer; `agents/reviewer.md`; `agents/research.md`
@@ -195,7 +204,12 @@ T3 source paths below are in pingdotgg/t3code.
   `parent_not_active`. Still refused: `delegate_task`, `create_threads` and `request_secret`,
   and any call from a subagent that finished and was resumed by its own background task. After
   a restart, T3 now wakes a thread whose subagent's background work the restart cut
-  (pingdotgg/t3code#19750).
+  (pingdotgg/t3code#19750). The mechanism is unchanged in 0.1.3-nightly.20261026.3717, but since
+  0.1.3-nightly.20261025.3669 T3's injected instructions steer away from it
+  (pingdotgg/t3code#24850, `orchestrationInstructions.ts`): "Claude `Agent` always with
+  `run_in_background:false`", and "Use `delegate_task` for ... a separate checkout
+  (`isolation:"worktree"`), background work". Both users below contradict that text, so an agent
+  reads two opposite rules until they change or the skill names itself the exception.
 - **Used by:** `skills/implement/PREVIEW.md` § The loop step 1 (parallel subagents each open their
   own tab); `skills/implement-spec/SKILL.md` § 2 (the orchestrator ends its turn while its
   background implementers run)
@@ -355,7 +369,11 @@ T3 source paths below are in pingdotgg/t3code.
   named branch that the orchestrator merges. Its result has no branch field today
   (`OrchestratorMcpDelegateTaskResult` in `packages/contracts/src/orchestratorMcp.ts`). Not tried
   yet: needs a trial. Since pingdotgg/t3code#20213 such a call is refused when the project's repo
-  lacks the parent checkout's commit.
+  lacks the parent checkout's commit. Since 0.1.3-nightly.20261025.3669 T3 points agents at it:
+  the `delegate_task` description says "Separate checkout or PR per child:
+  `isolation:'worktree'`", and the injected instructions say "Never make a child's checkout in the
+  shell or in `task`" (pingdotgg/t3code#24850), which this workaround does in
+  `agents/implementer.md` step 2. The trial is now the way to end that conflict.
 - **Watch:** `apps/server/src/mcp/toolkits/orchestrator/tools.ts` (`delegate_task`)
 
 ### pr-watch-unreported-checks
@@ -424,29 +442,40 @@ T3 source paths below are in pingdotgg/t3code.
   takes its images with `preview_snapshot`, keeping the browser CLI installed; once ten PRs
   verified that way had no lost click, each `verification.md` drops the browser CLI and its
   install, and this entry is resolved.
-- **Watch:** pingdotgg/t3code#20899 (the blur; no issue asks to lift the size cap, and #10141,
+- **Partly met in:** 0.1.3-nightly.20261026.3717. pingdotgg/t3code#24618 (closes #20899)
+  captures at full scale and shrinks the finished PNG in the page, since Chromium "mirrors the
+  top-left of the page into a `backdrop-filter` in any capture it shrinks"
+  (`shrinkPng` in `ServerBrowserPage.ts`). The 1280 px cap stands (`MAX_SCREENSHOT_WIDTH`), so
+  the user's call on 1280 px images and en-escena's dialog probe remain. The same build's injected
+  instructions add a hurdle (pingdotgg/t3code#24850): "Never use `preview_*` to verify or show
+  your own edit, even a frontend edit ... Use them only when the current request asks for browser
+  work", and the browser section dropped its exception for "a skill or documented repository
+  workflow that names one". `PREVIEW.md` must say why its use is asked for, or a T3 agent may
+  skip step 4's drive.
+- **Watch:** pingdotgg/t3code#20899 (the blur, fixed; no issue asks to lift the size cap, and #10141,
   which tried, closed unmerged); `apps/server/src/preview/ServerBrowserPage.ts`
   (`MAX_SCREENSHOT_WIDTH`, `captureViewport`); `apps/server/src/mcp/toolkits/preview/tools.ts`;
   the trial's notes in the final reports of en-escena's and rubens' PRs
+
+## Ready
 
 ### pr-auto-link
 
 - **Workaround:** the session calls `link_pull_request` right after `gh pr create`.
 - **Used by:** `skills/implement/THREADS.md` ("One thread, one branch, one PR");
   `skills/implement/SKILL.md` § 7; `skills/implement-spec/SKILL.md` § 3 step 3
-- **Would improve if:** T3 links a PR opened from the thread's branch with `gh`, without a call.
-  Today the tool says to register "every pull request you open ... right after creating it",
-  which implies it does not.
-- **Watch:** `packages/contracts/src/threadPullRequest.ts` (`ThreadPullRequestLinkSource` has no
-  branch-detected value). A lead: T3 already finds a thread's PR by its branch after each turn and
-  keeps it as `branchPullRequest`, apart from the links (discovery in
-  `apps/server/src/orchestration-v2/ThreadPullRequestService.ts`; pingdotgg/t3code#20223 shows it
-  in the sidebar). Whether that association settles the thread on merge and can be watched is
-  untested: needs a trial with a PR opened by `gh` and never linked.
-
-## Ready
-
-None yet.
+- **Met in:** 0.1.3-nightly.20261025.3669 (pingdotgg/t3code#24813). Once a shell command settles
+  that runs `gh pr create` (or `glab mr create`) at a command position and prints the PR URL on a
+  line of its own, T3 links that PR to the thread that ran it, with source `created`; a repeat
+  settlement is a no-op and never relinks a PR the user unlinked. Nothing is linked for a `for`
+  loop that creates several PRs, a `gh api` create, or output with more PR URLs than create
+  commands. The tool copy dropped "Register every pull request you open" (pingdotgg/t3code#24850).
+  Tried 2026-10-26 on this review's own PR (#28): `gh pr create`, run as the last of several
+  shell commands, was linked with source `created` before any call, and `link_pull_request`
+  afterwards returned `alreadyLinked: true`.
+- **Adopting:** the three places stop calling `link_pull_request` after `gh pr create`, and keep
+  it for a PR opened another way (`gh api`, a loop) or missing from `t3_thread_read`'s
+  `pullRequests`. A repeat call is harmless (`alreadyLinked`), so the risk is one unlinked PR.
 
 ## Resolved
 
