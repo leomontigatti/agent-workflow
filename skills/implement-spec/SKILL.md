@@ -44,7 +44,10 @@ If the PRD alters anything a user sees, capture its **before** now, from this wo
 Spawn one Agent per frontier ticket, all in one message: `subagent_type: "implementer"`,
 `isolation: "worktree"`, `run_in_background: true`. These worktrees are the one exception to
 "never create a worktree of your own" in the `implement` skill's
-[THREADS.md](../implement/THREADS.md): the PR stays on this thread's worktree. The prompt is pointers only:
+[THREADS.md](../implement/THREADS.md): the PR stays on this thread's worktree. They are also
+this skill's exception to T3's injected rules that a Claude `Agent` runs in the foreground and
+that background work or a child's checkout goes through `delegate_task`: follow this step as
+written. The prompt is pointers only:
 
 ```
 Ticket #<n>, part of PRD #<PRD>. Integration branch: <branch>.
@@ -71,7 +74,8 @@ For each report with `status: done`:
 2. Comment `Implemented in <sha>. Part of #<PRD>.` on the sub-issue, which stays open
    (`docs/agents/issue-tracker.md` § PRD workflow).
 3. Push. After the first merge, open the PR as a **draft** with the PRD PR body of the `pr` skill
-   (§ PRD PRs there) and link it to the thread; after that, tick the sub-issue's box in its body.
+   (§ PRD PRs there), linked to the thread as the `implement` skill's
+   [THREADS.md](../implement/THREADS.md) says; after that, tick the sub-issue's box in its body.
    The chain pays one review at the end instead of one per slice.
 4. Remove the implementer's worktree and branch (`git worktree remove <path>`,
    `git branch -d <branch>`).
