@@ -69,7 +69,8 @@ send every later lone ticket to an implementer, whose fresh context keeps this s
 
 ## 3. Merge each report
 
-For each child's report (its result's `summary`) with `status: done`:
+For each child's report (its result's `summary`) with `status: done`, unless the notes file marks
+its ticket retired (a report that crossed § Route change: discard its branch as that section does):
 
 1. Check the branch builds on the tip: `git merge --ff-only <its branch>` in this worktree. When
    it is not a fast-forward (another ticket merged meanwhile), send the ticket back: a new child as
@@ -91,13 +92,39 @@ For each child's report (its result's `summary`) with `status: done`:
 A `blocked` report carries a question: answer it from the PRD if it settles it and send the ticket
 back as in step 1, with the answer in the task; otherwise bring it to the user, and keep the rest of the graph running.
 
+## Route change
+
+When a decision is replaced mid-build (a `blocked` question's answer, or the user's call) and the
+destination stays the same, the spec gets its `## Changed during the build` line (`to-spec`
+§ A snapshot, not a source) and the graph changes with it:
+
+1. **Retire** each unmerged ticket the change replaces: cancel its running child with
+   `task_cancel`, discard its work and every earlier attempt's (`git worktree remove --force
+   <path>`, `git branch -D <branch>`: unmerged by design, so step 3's safe removal refuses), mark
+   it retired in the notes file, and close it as
+   `docs/agents/issue-tracker.md` § Closing an issue says for work that will not be done. A
+   ticket already merged is not retired: what the change undoes in it is a new ticket in item 2.
+   Before either forced command, check its target: the path must be a worktree in
+   `git worktree list` other than this one (`git rev-parse --show-toplevel`), and the branch must
+   be neither the integration branch nor the branch of this worktree. An implementer that found
+   itself in this checkout reports it as its own (`agents/implementer.md` step 1): skip the
+   discard for such a target, never force it.
+2. **Replace** it: draft the new tickets with the user as `to-tickets` does (its § 4 quiz, then
+   § 5's publishing as sub-issues of the PRD). Comment the replacement's number on each retired
+   ticket, and in the PR body's `## Sub-issues` strike each retired line
+   (`- [x] ~~#<n> <title>~~ replaced by #<m>`) and add each new ticket.
+3. **Re-point the edges**: every open ticket a retired one blocked is now blocked by that
+   ticket's replacements, in the tracker (`docs/agents/issue-tracker.md` § Ticket operations) and
+   in the notes file, so nothing waits on a retired ticket or respawns it.
+4. Recompute the frontier as step 3 item 5 does.
+
 ## 4. Close out, once
 
-When every ticket has merged:
+When every ticket that is not retired has merged:
 
 1. Run `implement` step 3, the validation list, on the integration branch.
 2. Run `implement` step 5's review over the whole chain, once, since the branch point. Paste the
-   PRD and every sub-issue into the Spec axis's prompt. Reviewing earlier reads every unbuilt
+   PRD and every sub-issue that is not retired into the Spec axis's prompt. Reviewing earlier reads every unbuilt
    ticket as a finding.
 3. Send every **fix** to one `implementer`, spawned as in step 2 with the findings in place of
    the ticket number. Land it with step 3's fast-forward, push and worktree removal; there is no
