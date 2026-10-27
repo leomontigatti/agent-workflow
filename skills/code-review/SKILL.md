@@ -95,9 +95,9 @@ is named. On top of it:
   anything else, read `~/.agents/workflow/agents/reviewer.md` and follow it." and
   carries the brief. Each child shows in the T3 app under this thread; its report arrives as a
   notification, and `task_status` returns it as `summary`. A child that asks a question wakes
-  you with `hasPendingQuestion`: read it with `t3_pending_request_read`, answer what the brief
-  and the diff settle with `t3_pending_request_respond`, and pass the rest to the user. Stop a
-  stray one with `task_cancel`.
+  you with `hasPendingQuestion`: read it with `t3_pending_request` (`action: "read"`), answer
+  what the brief and the diff settle with `action: "respond"`, and pass the rest to the user.
+  Stop a stray one with `task_cancel`.
   A later round is a new `delegate_task` carrying the prior findings and your answers to them,
   never a message to the child thread. Spawning from the main session keeps one hop and leaves
   each report with the session that judges it.
