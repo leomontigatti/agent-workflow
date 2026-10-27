@@ -47,6 +47,7 @@ WATCHED_PATHS = [
     "apps/server/src/mcp/OrchestratorMcpService.ts",
     "apps/server/src/mcp/threadAccess.ts",
     "apps/server/src/scheduledTasks/ScheduledTaskService.ts",
+    "apps/server/src/scheduledTasks/Schedule.ts",
     "apps/server/src/worktreesDirectory.ts",
     "apps/web/src/components/settings/ScheduledTasksSettings.tsx",
     "packages/contracts/src/settings.ts",

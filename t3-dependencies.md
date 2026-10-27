@@ -57,7 +57,9 @@ T3 source paths below are in pingdotgg/t3code.
   branch or its last thread is deleted, archived threads included (pingdotgg/t3code#16473, since
   0.1.1-nightly.20261020.3386), keeps one with uncommitted changes, an open terminal, a running
   or queued thread or an open provider session, and reports why it kept each one under Settings →
-  Storage → Last run. A worktree other threads share is
+  Maintenance → Cleanup → Last run; its rules sit under Settings → Worktrees → Cleanup (both were
+  Settings → Storage until pingdotgg/t3code#25651, 0.1.3-nightly.20261027.3748, which redirects
+  the old page). A worktree other threads share is
   kept, unless every one of them is a subagent of the same parent, whose rules then decide
   (pingdotgg/t3code#19748, since 0.1.1-nightly.20261016.3203): that is what lets a thread whose
   reviewers ran through `delegate_task` in its checkout be removed. Since
@@ -77,6 +79,10 @@ T3 source paths below are in pingdotgg/t3code.
   recreates a missing worktree only at `<managed folder>/<repo>/<folder>`, compared by real path
   (`makeIsManagedWorktreePath` in `apps/server/src/worktreesDirectory.ts`); a thread bound to a
   folder outside it fails its turn instead, and `t3_worktree_handoff` no longer takes `path`.
+  Since pingdotgg/t3code#18359 (0.1.3-nightly.20261027.3748) a thread whose worktree and branch
+  are both gone resumes too, on a branch recreated from the project's current named branch,
+  without its old commits; before, it could never run another turn. So a live thread's branch
+  is still never deleted.
 - **Breaks if:** the settings are reset or the merge and delete rules turned off; T3 stops
   recreating a removed worktree from its branch on resume, or deletes the branch; T3 moves its managed folder, so `housekeeping` would take T3's worktrees for its
   own; T3 again keeps every worktree a subagent shares, so each reviewed thread's worktree stays;
@@ -113,7 +119,9 @@ T3 source paths below are in pingdotgg/t3code.
 
 - **Relies on:** `link_pull_request` accepts a PR URL, or repository and number; a repeat call
   returns `alreadyLinked`; the linked PR's status shows beside the thread, and the thread settles
-  when the PR merges (`apps/server/src/mcp/toolkits/pullRequests/tools.ts`).
+  when the PR merges (`apps/server/src/mcp/toolkits/pullRequests/tools.ts`). Since
+  0.1.3-nightly.20261027.3748 a delegated child's call also returns `next` ("End your reply with:
+  PR <full URL>, head <SHA>, checks and reviews <state>.", pingdotgg/t3code#25423).
 - **Used by:** `skills/implement/THREADS.md` ("One thread, one branch, one PR");
   `skills/implement/SKILL.md` § 7; `skills/implement-spec/SKILL.md` § 3 step 3
 - **Breaks if:** the tool is renamed or removed, stops taking a URL, or stops showing status or
@@ -163,8 +171,10 @@ T3 source paths below are in pingdotgg/t3code.
   the parent's checkout by default (`isolation: shared`) and inherits the parent's `runtimeMode`.
   The child's report comes back as `summary`, on the call result and on `task_status`. A child
   that asks a question wakes the parent, and the result carries `hasPendingQuestion`
-  (pingdotgg/t3code#19521, #19538); `t3_pending_request_read` and `t3_pending_request_respond`
-  answer it. Since 0.1.1-nightly.20261018.3331 `summary` is the child's newest assistant message
+  (pingdotgg/t3code#19521, #19538); `t3_pending_request` with `action: "read"`, then
+  `"respond"`, answers it (one tool since 0.1.3-nightly.20261027.3748, pingdotgg/t3code#25423;
+  `t3_pending_request_read` and `_respond` before, which `skills/code-review/SKILL.md` still
+  names). Since 0.1.1-nightly.20261018.3331 `summary` is the child's newest assistant message
   (pingdotgg/t3code#19058). `task_cancel` stops a child, and the tasks it delegated, and since
   0.1.1-nightly.20261019.3348 also cancels the task's own queued turn (pingdotgg/t3code#21487).
   Since 0.1.1-nightly.20261020.3386 the result also carries the child's `options` and a
@@ -222,7 +232,7 @@ T3 source paths below are in pingdotgg/t3code.
   `parent_not_active`. Still refused: `delegate_task`, `create_threads` and `request_secret`,
   and any call from a subagent that finished and was resumed by its own background task. After
   a restart, T3 now wakes a thread whose subagent's background work the restart cut
-  (pingdotgg/t3code#19750). The mechanism is unchanged in 0.1.3-nightly.20261026.3717, but since
+  (pingdotgg/t3code#19750). The mechanism is unchanged in 0.1.4-nightly.20261027.3770, but since
   0.1.3-nightly.20261025.3669 T3's injected instructions steer away from it
   (pingdotgg/t3code#24850, `orchestrationInstructions.ts`): "Claude `Agent` always with
   `run_in_background:false`", and "Use `delegate_task` for ... a separate checkout
@@ -257,7 +267,8 @@ T3 source paths below are in pingdotgg/t3code.
   made over MCP gets `{baseRef: "main", startFromOrigin: true}`, which is this repo's default
   branch; `scheduledTaskWorkspaceStrategy` in `apps/server/src/mcp/OrchestratorMcpService.ts`;
   `apps/server/src/scheduledTasks/ScheduledTaskService.ts`), and run a prompt
-  that points at a skill here: "Weekly upstream review" on Mondays at 09:00
+  that points at a skill here (since pingdotgg/t3code#25423, 0.1.3-nightly.20261027.3748,
+  `schedule_task` with a `scheduledTaskId` also updates a task; `update_scheduled_task` is gone): "Weekly upstream review" on Mondays at 09:00
   (`skills/upstream-review/SKILL.md`), and "T3 update review" daily at 09:00
   (`skills/t3-update-review/SKILL.md`). Each opens its bookkeeping PR from that thread.
 - **Used by:** `skills/upstream-review/SKILL.md` § Cadence; `skills/t3-update-review/SKILL.md`
@@ -353,7 +364,7 @@ T3 source paths below are in pingdotgg/t3code.
 
 - **Workaround:** `housekeeping` removes a folder in T3's managed folder that no thread uses, once
   it holds no uncommitted work and its branch's PR is merged or closed. T3 lists such folders, with
-  their sizes, under Settings → Storage → Last run (pingdotgg/t3code#19749), but never removes
+  their sizes, under Settings → Maintenance → Last run (pingdotgg/t3code#19749), but never removes
   them, and the report has no MCP tool. `t3_worktree_list` cannot find them either: it lists
   git's branch refs and the checkout each one is in, with no thread and no detached worktree
   (seen on 2026-10-17), so an orphan on a branch is listed like any other. An orphan is a folder
@@ -459,6 +470,10 @@ T3 source paths below are in pingdotgg/t3code.
   Faults seen: a role-locator click timed out twice on a visible button ("Ingresar", "Acciones")
   where an `aria-ref` or coordinate click worked; a background tab (`open: false`) drew no focus
   ring; `preview_resize` reports the capture size (1280×800), not the page's.
+- **Tools renamed:** since 0.1.3-nightly.20261027.3748 one `preview_act` tool takes `action`
+  (`click`, `type`, `hover`, `select`, `drag`, `upload`, `press`, `scroll`) and that action's
+  fields, replacing the eight tools of those names (pingdotgg/t3code#25423). `PREVIEW.md` step 4
+  still names `preview_click`, `preview_type`, `preview_select` and `preview_press`.
 - **Adopting:** step one of **Would improve if**, begun 2026-10-26: `PREVIEW.md` step 4 clicks a
   button by its ref, and en-escena's `verification.md` takes its images with `preview_snapshot`
   (rubens' and enescena's § Evidence name no tool, so they already do), keeping the browser CLI
