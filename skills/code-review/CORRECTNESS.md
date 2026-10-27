@@ -9,8 +9,8 @@ this one asks whether it is **wrong**.
    readback.
 2. Spawn **one** correctness reviewer on the model family that did not write the code, as
    [Spawning a reviewer](SKILL.md#spawning-a-reviewer) says, in the same message as the other
-   review spawns. When `docs/agents/review.md` asks for both families in the full tier, spawn one
-   of each with the same prompt. The prompt carries the diff command, the commit list, one
+   review spawns. In the full tier, spawn one of each family, Opus and Sol, with the same
+   prompt. The prompt carries the diff command, the commit list, one
    paragraph stating what the change is meant to do, the brief below, and
    `docs/agents/review.md` § Hotspots pasted in where the brief says.
 

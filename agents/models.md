@@ -25,7 +25,7 @@ the model and why, as it does for a fallback.
 | Role                  | What it does                                              | Model                                                    | Effort  | Fallback                                     |
 | --------------------- | --------------------------------------------------------- | -------------------------------------------------------- | ------- | -------------------------------------------- |
 | Standards, Spec       | `code-review`'s two axes                                  | the other family: Sol, or Opus when Codex wrote it       | medium  | `reviewer-opus` (Claude) / `reviewer` (Codex) |
-| Correctness           | the bug hunt, `code-review`'s correctness brief          | the other family: Sol, or Opus when Codex wrote it       | medium  | same-family, recorded                        |
+| Correctness           | the bug hunt, `code-review`'s correctness brief          | full tier: both, Opus and Sol; else the other family: Sol, or Opus when Codex wrote it | medium  | one family, recorded                         |
 | Readback              | restates a diff                                           | Codex `gpt-6-luna`, or Claude Sonnet when Codex wrote it | low     | same-family, recorded                        |
 | Design runners        | `codebase-design`'s design-it-twice, `prototype` variants | both families, alternating: Opus, Sol, Opus…             | high    | one family, at the same count                |
 | Research              | primary sources outside the repo (`research` agent)       | Codex `gpt-6-luna`                                       | medium  | Claude `research` on Sonnet                  |
@@ -40,15 +40,17 @@ Why each effort:
 
 - **Standards, Spec**: breadth. Every hunk is matched against a list (the documented rules, the
   spec's lines); tracing one path in depth is the correctness axis's job.
-- **Correctness**: depth on a traced path; raise it for a migration or concurrency diff.
+- **Correctness**: depth on a traced path; raise it for a migration or concurrency diff. High
+  effort elsewhere buys little: it turned 1 of 11 bugs a model missed at medium into a catch.
 - **Readback** and **Miners**: restating and sorting need little reasoning, and the light model
   spares the heavy one's quota.
 - **Design runners**: each must find a radically different design, the costliest thinking here.
 - **Research**: reading and citing sources, not reasoning across them.
 
-The two-family trial a project's `docs/agents/review.md` may turn on (correctness on both
-families in the full tier) is temporary: it gathers the numbers that will settle whether one
-family is enough, and then this table changes.
+Why correctness runs on both families in the full tier: on 15 known bugs
+([reviewer-recall](../evals/reviewer-recall/README.md), 2026-10-27), Opus caught 63% of its
+reviews' bugs and Sol 40%, each finding bugs the other missed, and the two together caught 14
+of 15. A diff outside the full tier keeps one reviewer, to spare the quota.
 
 ## Reaching each model
 

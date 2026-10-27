@@ -97,7 +97,7 @@ Tier: full, reviewed 1a2b3c4
 ```
 
 - Count every finding, the fix rounds' included. With two correctness reviewers, name how many
-  each also found of the other's: that overlap is what the two-family trial measures.
+  each also found of the other's: that overlap shows whether the second family still pays.
 - An axis that could not run says `skipped, <why>`; a role on its same-family fallback says so.
 - A commit pushed later that changes more than docs or agent configuration fails the check until
   its own review round runs and the record names the new commit. A merge from the base does not
