@@ -94,6 +94,7 @@ Tier: full, reviewed 1a2b3c4
 - standards (Sol): 1 finding, fixed
 - spec (Sol): no findings
 - correctness (Opus): 2 findings, 1 fixed, 1 declined
+- correctness (Sol): 1 finding, fixed; Opus also found it
 ```
 
 - Count every finding, the fix rounds' included. With two correctness reviewers, name how many
