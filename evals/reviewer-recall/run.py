@@ -17,6 +17,7 @@ the PR's head ref. Worktrees are made under a temporary directory and removed at
 
 import concurrent.futures
 import datetime
+import fcntl
 import hashlib
 import json
 import os
@@ -104,24 +105,27 @@ def review(args):
         sys.exit(f"--effort is one of {', '.join(EFFORTS)}")
     out = args["out"]
     os.makedirs(out, exist_ok=True)
-    # The manifest pins what this directory measures: a review on disk is reused only when its
-    # model, effort and prompt are the ones asked for now. A manifest from before effort was
-    # recorded measured medium.
-    manifest_path = os.path.join(out, "manifest.json")
-    manifest = json.load(open(manifest_path)) if os.path.exists(manifest_path) else {"models": {}, "prompts": {}, "runs": []}
-    if manifest.setdefault("effort", "medium" if manifest["runs"] else effort) != effort:
-        sys.exit(f"{out} holds reviews at {manifest['effort']} effort: use a new directory")
     prompts = {c["id"]: prompt_for(c, ensure(c)) for c in cases}
     wanted = {"models": {m: MODEL_IDS[m] for m in models},
               "prompts": {i: hashlib.sha256(p.encode()).hexdigest() for i, p in prompts.items()}}
-    for key in ("models", "prompts"):
-        clash = [k for k, v in wanted[key].items() if manifest[key].get(k, v) != v]
-        if clash:
-            sys.exit(f"{out} holds a different {key[:-1]} for {', '.join(clash)}: use a new directory")
-        manifest[key].update(wanted[key])
     asked = [f"{c['id']}.{m}.{k}" for c in cases for m in models for k in range(1, repeats + 1)]
-    manifest["runs"] = sorted(set(manifest["runs"]) | set(asked))  # only the runs someone asked for
-    json.dump(manifest, open(manifest_path, "w"), indent=2)
+    # The manifest pins what this directory measures: a review on disk is reused only when its
+    # model, effort and prompt are the ones asked for now. A manifest from before effort was
+    # recorded measured medium. The lock makes the check and the write one step, so two runs
+    # started together on one directory cannot both pass it.
+    manifest_path = os.path.join(out, "manifest.json")
+    with open(os.path.join(out, ".lock"), "w") as lock:
+        fcntl.flock(lock, fcntl.LOCK_EX)
+        manifest = json.load(open(manifest_path)) if os.path.exists(manifest_path) else {"models": {}, "prompts": {}, "runs": []}
+        if manifest.setdefault("effort", "medium" if manifest["runs"] else effort) != effort:
+            sys.exit(f"{out} holds reviews at {manifest['effort']} effort: use a new directory")
+        for key in ("models", "prompts"):
+            clash = [k for k, v in wanted[key].items() if manifest[key].get(k, v) != v]
+            if clash:
+                sys.exit(f"{out} holds a different {key[:-1]} for {', '.join(clash)}: use a new directory")
+            manifest[key].update(wanted[key])
+        manifest["runs"] = sorted(set(manifest["runs"]) | set(asked))  # only the runs someone asked for
+        json.dump(manifest, open(manifest_path, "w"), indent=2)
     tmp = tempfile.mkdtemp(prefix="reviewer-recall-")
     jobs, worktrees = [], []
     for case in cases:
