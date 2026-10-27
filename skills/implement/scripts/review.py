@@ -15,13 +15,14 @@ The tier comes from the changed paths and the project's `docs/agents/review.md`,
     full money: ^app/lib/(finances|prices)/
     full migration: ^app/db/migrations/
     quiet: ^\\.coderabbit\\.yaml$
-    both-families
     ```
 
 - `full <area>: <regex>`: a changed path that matches sends the diff to the full tier.
 - `quiet: <regex>`: a path that changes no runtime behaviour, beside the defaults below. A diff
   made only of quiet paths keeps the readback alone.
-- `both-families`: the full tier needs correctness on both model families (a temporary trial).
+
+The full tier needs correctness from both model families, Opus and Sol; `both-families`, the line
+that once turned this on, is still read and changes nothing.
 
 The record is the `pr` skill's `## Review` section: `Tier: <tier>, reviewed <sha>`, then one
 `- <axis> (<model>): <outcome>` line per reviewer. The agent writes it, so it proves nothing on its
@@ -53,7 +54,7 @@ def lines(text):
 
 def load_rules(root):
     path = os.path.join(root, "docs", "agents", "review.md")
-    rules = {"full": [], "quiet": [re.compile(p) for p in QUIET_DEFAULT], "both": False}
+    rules = {"full": [], "quiet": [re.compile(p) for p in QUIET_DEFAULT]}
     if not os.path.exists(path):
         return rules
     block = re.search(r"^```review-paths\n(.*?)^```", open(path, encoding="utf-8").read(), re.M | re.S)
@@ -64,7 +65,7 @@ def load_rules(root):
         if not line or line.startswith("#"):
             continue
         if line == "both-families":
-            rules["both"] = True
+            continue
         elif m := re.match(r"^full\s+([^:]+):\s*(.+)$", line):
             rules["full"].append((m.group(1).strip(), re.compile(m.group(2).strip(), re.I)))
         elif m := re.match(r"^quiet:\s*(.+)$", line):
@@ -90,8 +91,7 @@ def tier_of(paths, rules):
 def requirements(tier, rules):
     """Each requirement is (axis, allowed models or None)."""
     if tier == "full":
-        corr = [("correctness", {"sol"}), ("correctness", {"opus"})] if rules["both"] else [("correctness", HEAVY)]
-        return [("standards", None), ("spec", None), *corr]
+        return [("standards", None), ("spec", None), ("correctness", {"sol"}), ("correctness", {"opus"})]
     if tier == "readback+correctness":
         return [("readback", None), ("correctness", HEAVY)]
     return [("readback", None)]

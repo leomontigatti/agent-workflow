@@ -15,10 +15,9 @@ review = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(review)
 
 
-def rules(both=False):
-    r = {"full": [("money", re.compile(r"^app/finances/", re.I)), ("migration", re.compile(r"^db/migrations/"))],
-         "quiet": [re.compile(p) for p in review.QUIET_DEFAULT], "both": both}
-    return r
+def rules():
+    return {"full": [("money", re.compile(r"^app/finances/", re.I)), ("migration", re.compile(r"^db/migrations/"))],
+            "quiet": [re.compile(p) for p in review.QUIET_DEFAULT]}
 
 
 BODY = """## Summary
@@ -51,12 +50,13 @@ class Tier(unittest.TestCase):
 
 
 class Record(unittest.TestCase):
-    def check(self, text, changed, later=(), both=False):
-        return review.check_record(review.parse_record(text), changed, list(later), rules(both))
+    def check(self, text, changed, later=()):
+        return review.check_record(review.parse_record(text), changed, list(later), rules())
 
     def test_a_complete_full_record_passes(self):
         v, _ = self.check(body("full", "- standards (sol): no findings", "- spec (sol): no findings",
-                               "- correctness (opus): 1 finding, fixed"), ["app/finances/a.ts"])
+                               "- correctness (opus): 1 finding, fixed", "- correctness (sol): no findings"),
+                          ["app/finances/a.ts"])
         self.assertEqual(v, [])
 
     def test_a_lowered_tier_fails(self):
@@ -67,10 +67,17 @@ class Record(unittest.TestCase):
         v, _ = self.check(body("readback+correctness", "- readback (luna): ok", "- correctness (luna): ok"), ["app/x.ts"])
         self.assertTrue(any("correctness (Opus or Sol)" in x for x in v))
 
-    def test_the_trial_needs_both_families(self):
+    def test_the_full_tier_needs_both_families(self):
         v, _ = self.check(body("full", "- standards (sol): ok", "- spec (sol): ok", "- correctness (sol): ok"),
-                          ["app/finances/a.ts"], both=True)
+                          ["app/finances/a.ts"])
         self.assertTrue(any("correctness (Opus)" in x for x in v))
+
+    def test_the_old_trial_line_still_reads(self):
+        with tempfile.TemporaryDirectory() as root:
+            os.makedirs(os.path.join(root, "docs", "agents"))
+            with open(os.path.join(root, "docs", "agents", "review.md"), "w") as f:
+                f.write("```review-paths\nfull money: ^app/finances/\nboth-families\n```\n")
+            self.assertEqual([area for area, _ in review.load_rules(root)["full"]], ["money"])
 
     def test_a_skipped_axis_warns_but_passes(self):
         v, w = self.check(body("readback+correctness", "- readback (luna): ok",

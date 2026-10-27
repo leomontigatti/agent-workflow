@@ -1,8 +1,8 @@
 # Reviewer recall
 
 How many known bugs each correctness reviewer catches. The `## Review` records on our PRs count
-what a reviewer found and never what it missed, so they cannot settle the two-family trial in
-[`agents/models.md`](../../agents/models.md). This eval measures misses.
+what a reviewer found and never what it missed, so they cannot say which models
+[`agents/models.md`](../../agents/models.md) needs for correctness. This eval measures misses.
 
 Each case in [`cases.json`](cases.json) is a bug a correctness reviewer found on a real PR and a
 later commit fixed. `run.py` checks out the commit before the fix and hands each model the prompt
@@ -17,7 +17,7 @@ python3 -I evals/reviewer-recall/run.py grade  ~/.local/state/reviewer-recall/<d
 python3 -I evals/reviewer-recall/run.py report ~/.local/state/reviewer-recall/<date>
 ```
 
-Run it when a model in `agents/models.md` changes, or when the trial needs its numbers. Results
+Run it when a model in `agents/models.md` changes. Results
 stay outside the repo; the conclusion goes into `agents/models.md`.
 
 Reviews run at the correctness role's effort, medium. To measure another effort, pass
