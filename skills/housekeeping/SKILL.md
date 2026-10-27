@@ -6,9 +6,9 @@ description: "Clean up what finished threads leave on this machine that T3's sto
 # Housekeeping
 
 T3 Code's storage cleanup is the first line: it removes a worktree in its managed folder
-(`~/.t3/worktrees/<project>/`) on the rules set in Settings → Storage, hourly, and its "Last run"
-report names each worktree it kept and why. This skill hands T3 everything T3 can do, and sweeps
-only what T3 leaves by design:
+(`~/.t3/worktrees/<project>/`) on the rules set in Settings → Worktrees → Cleanup, hourly, and its
+"Last run" report under Settings → Maintenance names each worktree it kept and why. This skill
+hands T3 everything T3 can do, and sweeps only what T3 leaves by design:
 
 | Left behind                                   | Why T3 leaves it                                                    | Who cleans it                    |
 | --------------------------------------------- | ------------------------------------------------------------------- | -------------------------------- |

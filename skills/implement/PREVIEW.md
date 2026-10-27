@@ -31,7 +31,7 @@ and open the final report with the refusal's exact text.
    `screenshotPath` the evidence file, or the browser CLI when `docs/agents/verification.md`
    § Evidence names it. The preview saves every capture at most 1280 px wide, scaling a wider
    viewport down.
-4. **Drive** the flow with `preview_click`, `preview_type`, `preview_select`, `preview_press` and
+4. **Drive** the flow with `preview_act` (`action`: `click`, `type`, `select`, `press`) and
    `preview_navigate`, targeting elements by the `aria-ref` refs of the latest `preview_snapshot`.
    Refresh the snapshot after a navigation. Before every capture or assertion, `preview_wait_for`
    the text, locator or URL the step should produce, one only the main content shows (a

@@ -173,9 +173,8 @@ T3 source paths below are in pingdotgg/t3code.
   that asks a question wakes the parent, and the result carries `hasPendingQuestion`
   (pingdotgg/t3code#19521, #19538); `t3_pending_request` with `action: "read"`, then
   `"respond"`, answers it (one tool since 0.1.3-nightly.20261027.3748, pingdotgg/t3code#25423;
-  `t3_pending_request_read` and `_respond` before, which `skills/code-review/SKILL.md` still
-  names). Since 0.1.1-nightly.20261018.3331 `summary` is the child's newest assistant message
-  (pingdotgg/t3code#19058). `task_cancel` stops a child, and the tasks it delegated, and since
+  `t3_pending_request_read` and `_respond` before). Since 0.1.1-nightly.20261018.3331 `summary`
+  is the child's newest assistant message (pingdotgg/t3code#19058). `task_cancel` stops a child, and the tasks it delegated, and since
   0.1.1-nightly.20261019.3348 also cancels the task's own queued turn (pingdotgg/t3code#21487).
   Since 0.1.1-nightly.20261020.3386 the result also carries the child's `options` and a
   `pendingApproval`, which ends a `mode: wait` early like a question. `orchestrator_capabilities`
@@ -472,8 +471,7 @@ T3 source paths below are in pingdotgg/t3code.
   ring; `preview_resize` reports the capture size (1280×800), not the page's.
 - **Tools renamed:** since 0.1.3-nightly.20261027.3748 one `preview_act` tool takes `action`
   (`click`, `type`, `hover`, `select`, `drag`, `upload`, `press`, `scroll`) and that action's
-  fields, replacing the eight tools of those names (pingdotgg/t3code#25423). `PREVIEW.md` step 4
-  still names `preview_click`, `preview_type`, `preview_select` and `preview_press`.
+  fields, replacing the eight tools of those names (pingdotgg/t3code#25423).
 - **Adopting:** step one of **Would improve if**, begun 2026-10-26: `PREVIEW.md` step 4 clicks a
   button by its ref, and en-escena's `verification.md` takes its images with `preview_snapshot`
   (rubens' and enescena's § Evidence name no tool, so they already do), keeping the browser CLI
