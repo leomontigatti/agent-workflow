@@ -20,6 +20,12 @@ python3 -I evals/reviewer-recall/run.py report ~/.local/state/reviewer-recall/<d
 Run it when a model in `agents/models.md` changes, or when the trial needs its numbers. Results
 stay outside the repo; the conclusion goes into `agents/models.md`.
 
+Reviews run at the correctness role's effort, medium. To measure another effort, pass
+`--effort high` with a new directory: a directory holds one effort, and refuses another. To ask
+whether a change turns misses into catches, rerun only the cases each model missed
+(`--models sol --cases id,id`), one repeat first: it spares the Codex quota, which a full run at
+high effort can exhaust.
+
 ## Reading the numbers
 
 - **Every case was caught once.** A model that found a case in production found it at least once.

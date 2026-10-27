@@ -6,7 +6,7 @@ eval checks out the commit before the fix, hands each model the prompt `implemen
 correctness reviewer, and asks a judge whether the review reports that bug.
 
 Usage, from anywhere:
-  python3 -I run.py review [--models opus,sol,luna] [--repeats 2] [--cases id,id] [--jobs 4] [--out DIR]
+  python3 -I run.py review [--models opus,sol,luna] [--repeats 2] [--cases id,id] [--effort medium] [--jobs 4] [--out DIR]
   python3 -I run.py grade DIR        judge every review in DIR that has no verdict yet
   python3 -I run.py report DIR       print recall per model and per case
 
@@ -17,6 +17,7 @@ the PR's head ref. Worktrees are made under a temporary directory and removed at
 
 import concurrent.futures
 import datetime
+import fcntl
 import hashlib
 import json
 import os
@@ -31,18 +32,19 @@ PROJECTS = os.path.expanduser("~/.t3/projects")
 CACHE = os.path.expanduser("~/.cache/reviewer-recall")  # a clone for a repo with no project checkout
 TIMEOUT = 1800
 
-# The models agents/models.md names for review roles, at the correctness role's effort.
+# The models agents/models.md names for review roles. Effort defaults to the correctness role's.
+EFFORTS = ("low", "medium", "high", "xhigh")
 CLAUDE_TOOLS = "Read,Grep,Glob,Bash(git diff:*),Bash(git log:*),Bash(git show:*)"
 
 
 def claude(model):
-    return lambda prompt, wt, out: (["claude", "-p", "--model", model, "--effort", "medium",
+    return lambda prompt, wt, out, effort: (["claude", "-p", "--model", model, "--effort", effort,
                                      "--allowedTools", CLAUDE_TOOLS, "--no-session-persistence",
                                      prompt], wt, None)
 
 
 def codex(model):
-    return lambda prompt, wt, out: (["codex", "exec", "-m", model, "-c", 'model_reasoning_effort="medium"',
+    return lambda prompt, wt, out, effort: (["codex", "exec", "-m", model, "-c", f'model_reasoning_effort="{effort}"',
                                      "-s", "read-only", "--ephemeral", "-C", wt, "-o", out, prompt], wt, out)
 
 
@@ -98,23 +100,32 @@ def review(args):
     cases = load_cases(args.get("cases"))
     models = args.get("models", "opus,sol,luna").split(",")
     repeats = int(args.get("repeats", 2))
+    effort = args.get("effort", "medium")
+    if effort not in EFFORTS:
+        sys.exit(f"--effort is one of {', '.join(EFFORTS)}")
     out = args["out"]
     os.makedirs(out, exist_ok=True)
-    # The manifest pins what this directory measures: a review on disk is reused only when its
-    # model and prompt are the ones asked for now.
-    manifest_path = os.path.join(out, "manifest.json")
-    manifest = json.load(open(manifest_path)) if os.path.exists(manifest_path) else {"models": {}, "prompts": {}, "runs": []}
     prompts = {c["id"]: prompt_for(c, ensure(c)) for c in cases}
     wanted = {"models": {m: MODEL_IDS[m] for m in models},
               "prompts": {i: hashlib.sha256(p.encode()).hexdigest() for i, p in prompts.items()}}
-    for key in ("models", "prompts"):
-        clash = [k for k, v in wanted[key].items() if manifest[key].get(k, v) != v]
-        if clash:
-            sys.exit(f"{out} holds a different {key[:-1]} for {', '.join(clash)}: use a new directory")
-        manifest[key].update(wanted[key])
     asked = [f"{c['id']}.{m}.{k}" for c in cases for m in models for k in range(1, repeats + 1)]
-    manifest["runs"] = sorted(set(manifest["runs"]) | set(asked))  # only the runs someone asked for
-    json.dump(manifest, open(manifest_path, "w"), indent=2)
+    # The manifest pins what this directory measures: a review on disk is reused only when its
+    # model, effort and prompt are the ones asked for now. A manifest from before effort was
+    # recorded measured medium. The lock makes the check and the write one step, so two runs
+    # started together on one directory cannot both pass it.
+    manifest_path = os.path.join(out, "manifest.json")
+    with open(os.path.join(out, ".lock"), "w") as lock:
+        fcntl.flock(lock, fcntl.LOCK_EX)
+        manifest = json.load(open(manifest_path)) if os.path.exists(manifest_path) else {"models": {}, "prompts": {}, "runs": []}
+        if manifest.setdefault("effort", "medium" if manifest["runs"] else effort) != effort:
+            sys.exit(f"{out} holds reviews at {manifest['effort']} effort: use a new directory")
+        for key in ("models", "prompts"):
+            clash = [k for k, v in wanted[key].items() if manifest[key].get(k, v) != v]
+            if clash:
+                sys.exit(f"{out} holds a different {key[:-1]} for {', '.join(clash)}: use a new directory")
+            manifest[key].update(wanted[key])
+        manifest["runs"] = sorted(set(manifest["runs"]) | set(asked))  # only the runs someone asked for
+        json.dump(manifest, open(manifest_path, "w"), indent=2)
     tmp = tempfile.mkdtemp(prefix="reviewer-recall-")
     jobs, worktrees = [], []
     for case in cases:
@@ -129,7 +140,7 @@ def review(args):
                 if os.path.exists(path + ".err"):
                     os.remove(path + ".err")  # a failed run is retried
                 if not os.path.exists(path):
-                    jobs.append((model, prompt, wt, path))
+                    jobs.append((model, prompt, wt, path, effort))
     print(f"{len(jobs)} reviews to run", flush=True)
     try:
         with concurrent.futures.ThreadPoolExecutor(int(args.get("jobs", 4))) as pool:
@@ -140,9 +151,9 @@ def review(args):
             subprocess.run(["git", "-C", repo, "worktree", "remove", "--force", wt], capture_output=True)
 
 
-def run_one(model, prompt, wt, path):
+def run_one(model, prompt, wt, path, effort):
     tmp_out = path + ".tmp"
-    cmd, cwd, out_file = MODELS[model](prompt, wt, tmp_out)
+    cmd, cwd, out_file = MODELS[model](prompt, wt, tmp_out, effort)
     try:
         run = subprocess.run(cmd, cwd=cwd, capture_output=True, text=True, timeout=TIMEOUT,
                              stdin=subprocess.DEVNULL)
@@ -193,6 +204,7 @@ def report(args):
     out = args["out"]
     manifest = json.load(open(os.path.join(out, "manifest.json")))
     models = sorted(manifest["models"])
+    print(f"effort: {manifest.get('effort', 'medium')}\n")
     cases = {c["id"]: c for c in load_cases(None) if c["id"] in manifest["prompts"]}
     # Every run asked for is True, False, or missing (failed, timed out, or not graded yet), so a
     # model that failed half its runs shows it instead of reporting recall on the rest.
