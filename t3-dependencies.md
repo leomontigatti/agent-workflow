@@ -441,11 +441,18 @@ T3 source paths below are in pingdotgg/t3code.
   system `ffmpeg`; Playwright's bundled one reads no MP4) and is lossy, so the browser CLI stays.
   The tools need "Agent browser access" on in Settings and, on Ubuntu 23.10+, a one-time
   `sudo t3 browser setup`; both were missing until 2026-10-16, so no thread used them before.
+  Rubens' PRD #16 run on 2026-10-27 (desktop 0.1.4-nightly.20261027.3783) met three faults,
+  each worked around in `PREVIEW.md`: a tab the preview pane does not show runs no
+  `requestAnimationFrame`, so clicks time out waiting for stable frames (with `open: true` too);
+  after `preview_resize` to 1440×900 the response always said 1280x800 and the page laid out at
+  either width; and mid-session captures came out blurred on a page with no CSS filters, where
+  `playwright-cli` took the same screens sharp at 1440×900.
 - **Used by:** `skills/implement/PREVIEW.md`; `skills/implement/SKILL.md` § 4; `contract.md`
   (the `verification.md` row)
 - **Would improve if:** both hold, in the installed T3: a snapshot renders `backdrop-filter`
   correctly at a desktop viewport (pingdotgg/t3code#20899), and it saves at the viewport's size
-  or the user accepts images 1280 px wide. A fix to #20899 alone leaves this entry
+  or the user accepts images 1280 px wide; and Rubens' three faults are gone (a hidden tab draws
+  frames, `preview_resize` holds and reports the width the page gets, captures stay sharp). A fix to #20899 alone leaves this entry
   **watching** while the cap stands; ask the user about the 1280 px images. **Ready** only once
   en-escena's dialog probe passes (`/administracion/resultados`, Acciones → Descargar,
   1440×900). Adoption is then two steps: first each project's § Evidence
