@@ -24,7 +24,10 @@ T3 source paths below are in pingdotgg/t3code.
   agent until it exits. The script gets `T3CODE_PROJECT_ROOT`, and `T3CODE_WORKTREE_PATH` for a
   worktree (`packages/contracts/src/t3ProjectFile.ts`, `packages/shared/src/projectScripts.ts`).
   T3 runs the script only once the project imported `t3.json` (project settings → Actions →
-  Import from t3.json).
+  Import from t3.json). Since 0.1.4-nightly.20261027.3796 the runner skips the script
+  (`skipped-for-link`) for a thread a linked environment started under a link below full access
+  (`ProjectSetupScriptRunner.ts`); linked environments are a Labs beta, off by default
+  (`linkedEnvironmentsEnabled`), and no workflow here uses them.
 - **Used by:** `skills/implement/THREADS.md`; `agents/implementer.md` step 1 (T3 set up the
   implementer's checkout before it started)
 - **Breaks if:** T3 stops applying `defaultThreadEnvMode` or running create-time scripts, starts
@@ -97,7 +100,10 @@ T3 source paths below are in pingdotgg/t3code.
   `packages/provider-core/src/server/orchestrationInstructions.ts`). Since
   pingdotgg/t3code#21032 (0.1.1-nightly.20261020.3386) `startFromOrigin: true` fetches the base
   branch's own remote (`resolveWorktreeBaseRemote` in `ThreadLaunchService.ts`), not `origin` by
-  name; every project here tracks `origin`, so nothing changes.
+  name; every project here tracks `origin`, so nothing changes. Since pingdotgg/t3code#16654
+  (0.1.4-nightly.20261027.3796) it takes an optional `clientRequestId`: a retry with the same key
+  replays the accepted launch and returns the same thread, where before a lost reply meant
+  checking `t3_thread_list` before launching again.
 - **Used by:** `skills/implement/THREADS.md` ("Work where you started", "A launched thread
   reports to its own inbox")
 - **Breaks if:** the tool or its `workspaceStrategy` shape changes, or a launched thread stops
@@ -154,8 +160,11 @@ T3 source paths below are in pingdotgg/t3code.
   (pingdotgg/t3code#24808), and each wake says the PR stays linked and watched, so the session
   never calls the tool again on a wake (pingdotgg/t3code#24781). A watched PR keeps the thread in
   Working (pingdotgg/t3code#24610). `unwatch_pull_request` ends the watch and returns the
-  thread to the user's inbox; it wakes no other thread. `list_thread_pull_requests` with another
-  thread's `threadId` lists that thread's PRs.
+  thread to the user's inbox; it wakes no other thread. Since pingdotgg/t3code#26395
+  (0.1.4-nightly.20261028.3822) a watch whose PR is already merged no longer counts as pending
+  work, so the thread settles when the turn that merged ends, not on the watch's next 2-minute
+  sweep; a closed PR still holds the thread, since its wake is still owed.
+  `list_thread_pull_requests` with another thread's `threadId` lists that thread's PRs.
 - **Used by:** `skills/babysit-pr/SKILL.md` § 2 and § 5; `skills/implement/SKILL.md` § 7;
   `skills/implement/THREADS.md` ("A launched thread reports to its own inbox")
 - **Breaks if:** a wake event is dropped, or a wake no longer ends the turn, so the session has to
@@ -190,7 +199,13 @@ T3 source paths below are in pingdotgg/t3code.
   (`parent_not_active`) to a background subagent once the parent's turn ended
   (pingdotgg/t3code#19751). Since 0.1.3-nightly.20261025.3669 a result for a task still running
   carries `next` ("Completion wakes this thread, so end your turn", pingdotgg/t3code#24782) and
-  every result carries the child's thread `link` (pingdotgg/t3code#24784).
+  every result carries the child's thread `link` (pingdotgg/t3code#24784). Since
+  0.1.4-nightly.20261027.3796 `childThreadId` is null for a task delegated to a linked
+  environment (`target.environmentId`, then `remoteChild` names its thread there;
+  pingdotgg/t3code#16719), and a local `target.projectId` other than the parent's is refused; a
+  task in this environment still has its `childThreadId`. A child's question survives a server
+  restart (pingdotgg/t3code#19229), and no longer flags the parent as waiting on the user
+  (pingdotgg/t3code#26367).
   Source: `packages/contracts/src/orchestratorMcp.ts`. Read-only review
   is a prompt rule (`agents/reviewer.md`), not something T3 enforces.
 - **Used by:** `agents/models.md` § Reaching each model; `skills/code-review/SKILL.md` § Spawning
@@ -210,7 +225,10 @@ T3 source paths below are in pingdotgg/t3code.
   end your turn"), and the child's completion wakes the parent with its `summary`
   (`apps/server/src/mcp/toolkits/orchestrator/tools.ts`,
   `packages/contracts/src/orchestratorMcp.ts`). The result has no branch field, so the child's
-  report names it. Tried 2026-10-26; the trial is under `implementer-worktrees`.
+  report names it. Tried 2026-10-26; the trial is under `implementer-worktrees`. Since
+  pingdotgg/t3code#25700 (0.1.4-nightly.20261027.3796) several children launched at once no
+  longer race on `.git/config.lock`, which could leave a branch without its worktree or a renamed
+  branch the thread no longer matched; `implement-spec` § 2 launches them in parallel.
 - **Used by:** `skills/implement-spec/SKILL.md` § 2, § 3, § Route change (`task_cancel`, under
   `delegate-task-reviews`) and § 4 step 3; `agents/implementer.md`;
   `agents/models.md` (Reaching each model); `skills/implement/THREADS.md` ("Work where you
@@ -225,13 +243,13 @@ T3 source paths below are in pingdotgg/t3code.
   and keeps calling T3 tools (the preview tools, `html_render`, `t3_thread_send`) with its
   parent thread's credential after the parent's turn ended, for as long as T3 lists it as a
   running background subagent of the same provider instance (pingdotgg/t3code#19751, since
-  0.1.1-nightly.20261017.3238; `isLiveCallerShell` in
-  `apps/server/src/mcp/OrchestratorMcpService.ts`, `assertLiveCaller` in
-  `apps/server/src/mcp/threadAccess.ts`). Before that build, such a call failed with
-  `parent_not_active`. Still refused: `delegate_task`, `create_threads` and `request_secret`,
+  0.1.1-nightly.20261017.3238; `isLiveCallerShell` and `assertLiveCaller` in
+  `apps/server/src/mcp/threadAccess.ts`, where `isLiveCallerShell` moved from
+  `OrchestratorMcpService.ts` in 0.1.4-nightly.20261027.3796 unchanged). Before that build, such
+  a call failed with `parent_not_active`. Still refused: `delegate_task`, `create_threads` and `request_secret`,
   and any call from a subagent that finished and was resumed by its own background task. After
   a restart, T3 now wakes a thread whose subagent's background work the restart cut
-  (pingdotgg/t3code#19750). The mechanism is unchanged in 0.1.4-nightly.20261027.3770, but since
+  (pingdotgg/t3code#19750). The mechanism is unchanged in 0.1.4-nightly.20261028.3822, but since
   0.1.3-nightly.20261025.3669 T3's injected instructions steer away from it
   (pingdotgg/t3code#24850, `orchestrationInstructions.ts`): "Claude `Agent` always with
   `run_in_background:false`", and "Use `delegate_task` for ... a separate checkout
@@ -446,7 +464,10 @@ T3 source paths below are in pingdotgg/t3code.
   `requestAnimationFrame`, so clicks time out waiting for stable frames (with `open: true` too);
   after `preview_resize` to 1440×900 the response always said 1280x800 and the page laid out at
   either width; and mid-session captures came out blurred on a page with no CSS filters, where
-  `playwright-cli` took the same screens sharp at 1440×900.
+  `playwright-cli` took the same screens sharp at 1440×900. pingdotgg/t3code#22877
+  (0.1.4-nightly.20261027.3796) may explain the resize fault: when the desktop attached its page
+  more than 10 s late, the agent drove a headless page while the panel showed another; now the
+  panel streams the server's page. Re-check on the next drive whether `preview_resize` holds.
 - **Used by:** `skills/implement/PREVIEW.md`; `skills/implement/SKILL.md` § 4; `contract.md`
   (the `verification.md` row)
 - **Would improve if:** both hold, in the installed T3: a snapshot renders `backdrop-filter`
