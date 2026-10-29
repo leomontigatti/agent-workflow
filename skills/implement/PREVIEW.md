@@ -36,7 +36,8 @@ and open the final report with the refusal's exact text.
    fallback § Drive names for outside T3: the two sides of a comparison come from one tool.
 4. **Drive** the flow with `preview_act` (`action`: `click`, `type`, `select`, `press`) and
    `preview_navigate`, targeting elements by the `aria-ref` refs of the latest `preview_snapshot`
-   or by CSS selectors (`#email`, `main button[type=submit]`); role locators
+   or by CSS selectors that name one element (`#email`, `form#login button[type=submit]`): a loose
+   one (`main button`) catches whichever matches first. Role locators
    (`role=button[name=…]`) are the ones that time out. Refresh the snapshot after a navigation.
    Before every capture or assertion, `preview_wait_for` the text, locator or URL the step should
    produce, one only the main content shows (a navigation label matches before the page loads). Click a menu item by a ref from a snapshot
@@ -48,6 +49,12 @@ and open the final report with the refusal's exact text.
    snapshot. Or the tab draws no frames: a tab the preview pane does not show runs no
    `requestAnimationFrame`, `open: true` included, and a click waits for frames. Take a snapshot,
    which paints one, and click again by ref or CSS selector.
+   When the snapshot itself times out, open a fresh tab on the same URL once and carry on there;
+   a second timeout ends the drive: finish with § Drive's fallback, before and after both, and
+   note it in the final report.
+   Form fields: `type` adds to what a field holds, so pass `clear: true` on a filled one; a date
+   input takes ISO text (`2026-10-29`), whatever the page's locale shows; and `press` `Tab` moves
+   no focus, so blur a field by clicking the next one.
 5. **Diagnose from the page**: the snapshot's diagnostics for console errors, `preview_evaluate`
    for page state (a text, a value, the URL): it costs a fraction of a snapshot, which carries up
    to ~160 network entries and the console, so keep snapshots for refs and captures. The

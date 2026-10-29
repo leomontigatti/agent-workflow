@@ -472,7 +472,16 @@ T3 source paths below are in pingdotgg/t3code.
   `playwright-cli` took the same screens sharp at 1440×900. pingdotgg/t3code#22877
   (0.1.4-nightly.20261027.3796) may explain the resize fault: when the desktop attached its page
   more than 10 s late, the agent drove a headless page while the panel showed another; now the
-  panel streams the server's page. Re-check on the next drive whether `preview_resize` holds.
+  panel streams the server's page. Rubens' drives on 2026-10-27 to 2026-10-29 (PRs #20, #29, #36,
+  #43, #53) answer part of it. The 1280×800 report was the capture cap: Spec 16 later read
+  `innerWidth` 1440 the whole time. One thread still saw the layout flip ("1280 px after a resize
+  to 1440, then 1440 after a resize to 1280", #36), so `preview_resize` is still unsettled. Snapshot
+  timeouts became the blocker. "Later snapshots timed out every time" (#43), and #53 found them
+  "still timing out, even with the tab shown", which leaves the snapshot-paints-a-frame workaround
+  nothing to work with. A fresh tab cleared it once (#20). #36 and #53 took every capture with
+  `playwright-cli`. Smaller gaps, now in `PREVIEW.md` step 4: `type` appends to a filled field;
+  a date input takes only ISO text (the browser's locale is en-US); `press Tab` moves no focus; a
+  loose CSS selector (`main button`) caught the wrong button.
 - **Used by:** `skills/implement/PREVIEW.md`; `skills/implement/SKILL.md` § 4; `contract.md`
   (the `verification.md` row)
 - **Would improve if:** both hold, in the installed T3: a snapshot renders `backdrop-filter`
@@ -509,8 +518,11 @@ T3 source paths below are in pingdotgg/t3code.
   button by its ref, and en-escena's `verification.md` takes its images with `preview_snapshot`
   (rubens' and enescena's § Evidence name no tool, so they already do), keeping the browser CLI
   installed. The count for step two is every PR, in any of the three projects, merged after
-  2026-10-26 whose captures came from `preview_snapshot`.
-- **Watch:** pingdotgg/t3code#20899 (the blur, fixed; no issue asks to lift the size cap, and #10141,
+  2026-10-26 whose captures came from `preview_snapshot`: three by 2026-10-29 (rubens #20, #29,
+  #43), each with lost clicks or timed-out snapshots, so none of them counts toward step two.
+- **Watch:** pingdotgg/t3code#23936 (open: `preview_snapshot` always times out on `open: false`
+  tabs and in delegated children); #24812 (open: snapshots time out after the CDP relay
+  reconnects); #20899 (the blur, fixed; no issue asks to lift the size cap, and #10141,
   which tried, closed unmerged); `apps/server/src/preview/ServerBrowserPage.ts`
   (`MAX_SCREENSHOT_WIDTH`, `captureViewport`); `apps/server/src/mcp/toolkits/preview/tools.ts`;
   the trial's notes in the final reports of en-escena's and rubens' PRs
