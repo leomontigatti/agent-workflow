@@ -140,7 +140,10 @@ T3 source paths below are in pingdotgg/t3code.
   and `pullRequests`, every linked PR with its `url`, `source` and `state` (null until read from
   the host; pingdotgg/t3code#17454, since 0.1.1-nightly.20261018.3331). `linkedPullRequest` is the
   legacy single link and can be null meanwhile (`OrchestratorMcpThreadPullRequest` in
-  `packages/contracts/src/orchestratorMcp.ts`).
+  `packages/contracts/src/orchestratorMcp.ts`). Since pingdotgg/t3code#26442
+  (0.1.4-nightly.20261028.3824) `t3_thread_list` also takes `allProjects: true`, each item has its
+  `projectId`, and the result's top-level `projectId` is `null` for an all-projects list; a call
+  without the flag still lists the caller's project and returns `currentThreadId`.
 - **Used by:** `skills/implement/THREADS.md` ("A lost context is recovered from T3")
 - **Breaks if:** `currentThreadId` is dropped from the list result, a thread's timeline stops
   holding messages from before a compaction, or `t3_thread_read` stops returning `pullRequests`.
@@ -193,7 +196,9 @@ T3 source paths below are in pingdotgg/t3code.
   0.1.2-nightly.20261021.3486 it lists a short set (pingdotgg/t3code#22889): every current
   Codex and Claude model (`FULL_CATALOG_DRIVERS`), plus favorites, custom models and the
   caller's own; a legacy model is found with `search`, and "delegate_task accepts any catalog
-  model, listed or not". Each model's options are `{id, values, default}`, and `label` is
+  model, listed or not". Since pingdotgg/t3code#26448 (0.1.4-nightly.20261028.3824) search words
+  that name the provider are dropped before matching (`listCapabilityModels` in
+  `OrchestratorMcpService.ts`), so they no longer narrow the list to a few stale models. Each model's options are `{id, values, default}`, and `label` is
   omitted when it restates the id. Every id in `agents/models.md` was listed on 2026-10-23. A Claude subagent can call `delegate_task`
   too, but only while the parent's run is active: unlike the other T3 tools, it is still refused
   (`parent_not_active`) to a background subagent once the parent's turn ended
