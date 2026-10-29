@@ -443,6 +443,22 @@ T3 source paths below are in pingdotgg/t3code.
   resolution rules hold open.
 - **Watch:** pingdotgg/t3code discussions/23305 (open; #17703, converted 2026-10-22)
 
+### deb-update-relaunch-no-new-privs
+
+- **Workaround:** on a `.deb` install, an in-app restart (after an update, or after a setting
+  that relaunches: server exposure, Tailscale Serve, local environment, WSL) uses Electron's
+  `app.relaunch()`, which sets `no_new_privs` on the new process. Its next "Restart to install"
+  can't run `pkexec` ("pkexec must be setuid root", exit 127): no password prompt, the backends
+  restart, nothing installs. So before installing an update, quit T3 and open it from the
+  desktop. Check with `grep NoNewPrivs /proc/$(pgrep -o -x t3code)/status` (`1` = will fail).
+  Seen 2026-10-29, 0.1.4-nightly.20261028.3841 → 0.1.5-nightly.20261029.3873.
+- **Used by:** no skill; the user's update routine on the Linux machine.
+- **Would improve if:** a Linux relaunch no longer sets `no_new_privs`. Adopting means: install
+  the fixed build from a desktop-launched instance, reopen once more (the old code did that
+  restart), then check that the next update installs from the in-app restart with the flag at
+  `0`, and report the result on pingdotgg/t3code#14905.
+- **Watch:** pingdotgg/t3code#14905 (open), fixed by PR #15387 (open)
+
 ## Ready
 
 ### preview-tools-verification
