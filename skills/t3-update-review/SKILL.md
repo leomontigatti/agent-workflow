@@ -22,7 +22,7 @@ The review writes down what it learns and proposes what to change. What it learn
    - `MISSING <path>` → T3 moved a watched file; find its new location and fix `WATCHED_PATHS` in the script, and say so in the report.
    - A dependency file that cites T3 source (`apps/…`, `packages/…`, `docs/…` in pingdotgg/t3code) not in `WATCHED_PATHS` → add it to the script, so the next run diffs it.
 
-3. **Load the dependency files.** First the shared one: in the shared-workflow repo (the checkout `~/.agents/workflow` links to), `git fetch` and read `git show origin/<default>:t3-dependencies.md`. Then list projects with the T3 `t3_project_list` tool. For each one with a git repo other than the shared-workflow repo, `git fetch` and read `docs/agents/t3-dependencies.md` from the remote default branch (`git show origin/<default>:docs/agents/t3-dependencies.md`), never from the working tree, and never check anything out. When the default branch lacks it, look for it on an open PR's head branch (`git log --all -1 --format=%D -- docs/agents/t3-dependencies.md`), review against that copy, and say in the report it's pending merge on that branch. A project with the file nowhere goes in the report as "not covered".
+3. **Load the dependency files.** First the shared one: in the shared-workflow repo (the checkout `~/.agents/workflow` links to), `git fetch` and read `git show origin/<default>:t3-dependencies.md`. Then list projects with the T3 `t3_project_list` tool. For each one with a git repo other than the shared-workflow repo and a `docs/agents/` folder on its default branch (a project without that folder doesn't use the shared workflow, so the review leaves it out entirely), `git fetch` and read `docs/agents/t3-dependencies.md` from the remote default branch (`git show origin/<default>:docs/agents/t3-dependencies.md`), never from the working tree, and never check anything out. When the default branch lacks it, look for it on an open PR's head branch (`git log --all -1 --format=%D -- docs/agents/t3-dependencies.md`), review against that copy, and say in the report it's pending merge on that branch. A project with `docs/agents/` and the file nowhere goes in the report as "not covered".
 
 4. **Drift check.** For each entry, confirm every file and heading under **Used by** still exists on the default branch of its repo and still says what the entry claims. Then grep for T3-specific rules (`t3`, `worktree`, `thread`, `mcp__t3`, T3 tool names) that no entry covers: in the shared-workflow repo's `skills/`, `agents/` and `hooks/`, against the shared file; in each project's `AGENTS.md`, `docs/agents/`, `.agents/` and `t3.json`, against the shared file and the project's together. A project entry that restates a shared one is drift too. All of it goes in the report as **drift**.
 
@@ -43,7 +43,7 @@ The review writes down what it learns and proposes what to change. What it learn
    ## Fixes / ready         (a watching entry's condition is now met)
    ## Improves              (new capability we could adopt; proposed entries)
    ## Drift                 (entries out of sync with the repo; uncovered rules)
-   ## Not covered           (projects without a dependency file)
+   ## Not covered           (projects with `docs/agents/` but no dependency file)
    ## Still ready           (every ready entry not adopted yet, one line each)
    ```
 
