@@ -2,9 +2,12 @@
 
 The rules every shared skill assumes about where a session works. Local sessions run inside T3
 Code, and every thread gets its own git worktree and branch: `t3.json` sets
-`defaultThreadEnvMode` to `worktree`, and its `runOnWorktreeCreate` script prepares the worktree
-before the agent starts. The main checkout stays on the default branch and is nobody's working
-directory: T3's Automatically pull keeps it current only while it is clean and on that branch.
+`defaultThreadEnvMode` to `worktree`, and its `runOnWorktreeCreate` script prepares a new worktree
+before the agent starts. A worktree T3 rebuilt on resume, after its storage cleanup removed it,
+gets no setup: it holds the tracked files and nothing setup or first use made. New work on a
+merged thread goes in a new thread, which gets a set-up worktree. The main checkout stays on the
+default branch and is nobody's working directory: T3's Automatically pull keeps it current only
+while it is clean and on that branch.
 
 - **Work where you started.** The thread's worktree is the working directory. Never `git checkout`
   or `git switch` in the main checkout, and never create a worktree of your own (`git worktree

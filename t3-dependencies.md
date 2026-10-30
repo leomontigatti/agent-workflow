@@ -79,7 +79,8 @@ T3 source paths below are in pingdotgg/t3code.
   `skills/implement/THREADS.md` ("Leaving a worktree behind is fine")
   Since 2026-10-16 the user also runs `worktreeAfterDays: 5`, `worktreeSettledAfterDays: 5`,
   `worktreeUnchanged: true` and `browserArtifactsAfterDays: 5`. The first and third remove a
-  paused thread's worktree, and T3 recreates it from the kept branch on resume, so `housekeeping`
+  paused thread's worktree, and T3 recreates it from the kept branch on resume, tracked files only
+  (`rebuilt-worktree-no-setup`), so `housekeeping`
   judges branches and resources by the live thread (`t3_thread_list`, then `t3_thread_read` for its
   branch), not by the worktree. Since pingdotgg/t3code#20449 (0.1.1-nightly.20261017.3272) T3
   recreates a missing worktree only at `<managed folder>/<repo>/<folder>`, compared by real path
@@ -425,6 +426,30 @@ T3 source paths below are in pingdotgg/t3code.
 - **Would improve if:** `t3.json` gains a script T3 runs in or for a worktree it is about to
   remove; then each project moves its teardown there and the resources row moves to T3.
 - **Watch:** `packages/contracts/src/t3ProjectFile.ts`; no upstream issue found yet
+
+### rebuilt-worktree-no-setup
+
+- **Workaround:** nothing may assume setup ran. T3 runs `runOnWorktreeCreate` only for a new
+  worktree. Storage cleanup removes a worktree with its ignored files (on PR merge, or by
+  `worktreeAfterDays`, `worktreeUnchanged` or `worktreeSettledAfterDays`), and on the thread's next
+  turn `ProviderTurnStartService.recreateMissingWorktree` runs only `pruneWorktrees` and
+  `createWorktree`. The rebuilt worktree has the tracked files and nothing setup or first use
+  made: no linked env file, no project-local env override, usually no dependencies. So a project's
+  scripts fail clearly when a file setup would have made is missing, rather than fall back, and
+  new work on a merged thread goes in a new thread. Measured 2026-10-29 on 0.1.6-nightly (en-escena
+  thread 464976f7-a2df-41b5-9a98-0ce1e7d1ff58): `~/.t3/userdata/logs/server.trace.ndjson` holds the
+  warning "provider turn start recreating missing worktree" at 21:52:50 -03, then the
+  `recreateMissingWorktree` and `GitVcsDriver.createWorktree` spans, with no setup span and no
+  setup terminal log under `logs/terminals/`. `ProviderTurnStartService.ts` on T3's `main` has no
+  reference to a setup script (keyword search of that file only).
+- **Used by:** `skills/implement/THREADS.md` (the intro); `skills/housekeeping/SKILL.md` (a live
+  thread's resources are kept for its resume)
+- **Would improve if:** T3 runs `runOnWorktreeCreate` when it recreates a worktree.
+- **Watch:** `recreateMissingWorktree` in
+  `apps/server/src/orchestration-v2/ProviderTurnStartService.ts`. No upstream issue filed: none
+  covered this on 2026-10-30 (nearest: #26745 and PR #26758, the same recovery code; #24390, a
+  folder without `.git` is not rebuilt), and every confirmed case was a merged thread reopened,
+  which is exceptional. File one if a live thread with unfinished work resumes bare.
 
 ### pr-watch-unreported-checks
 

@@ -53,7 +53,7 @@ Nothing is removed until the user accepts a dry-run report.
    - **Would remove**: branches no worktree holds whose PR is merged or closed, or that have no
      commits of their own and no live thread; worktrees from the table's "this sweep" rows whose
      PR is merged or closed and whose tree is clean; and the resources of every worktree that is
-     gone, unless its branch has a live thread, which gets them back on resume.
+     gone, unless its branch has a live thread: the sweep keeps those for its resume.
    - **Left to T3**: the worktrees in T3's folder that its rules will remove, as a count. When its
      Last run says it kept one for an open terminal or a running thread, name the thread.
    - **Kept**: uncommitted changes, unpushed commits, an open PR, a live thread, or the main
