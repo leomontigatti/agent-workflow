@@ -67,7 +67,10 @@ T3 source paths below are in pingdotgg/t3code.
   (pingdotgg/t3code#19748, since 0.1.1-nightly.20261016.3203): that is what lets a thread whose
   reviewers ran through `delegate_task` in its checkout be removed. Since
   0.1.3-nightly.20261023.3592 a deleted thread still owns a worktree its remaining subagents share,
-  so `worktreeOnDelete` removes it too (pingdotgg/t3code#23900). Last run also lists folders
+  so `worktreeOnDelete` removes it too (pingdotgg/t3code#23900). Deleting a thread always
+  requests a sweep; since pingdotgg/t3code#26038 (0.1.6-nightly.20261029.3892) a provider session
+  stop requests one only while a deleted thread's worktree waits on it, and the other worktree
+  rules run on the hourly sweep. Last run also lists folders
   in the managed folder no thread uses (pingdotgg/t3code#19749), which T3 never removes. It keeps
   the branch on purpose, runs no script on removal, and has no MCP tool to trigger or read it
   (`apps/server/src/storageCleanup.ts`; `packages/contracts/src/settings.ts`;
@@ -127,7 +130,12 @@ T3 source paths below are in pingdotgg/t3code.
   returns `alreadyLinked`; the linked PR's status shows beside the thread, and the thread settles
   when the PR merges (`apps/server/src/mcp/toolkits/pullRequests/tools.ts`). Since
   0.1.3-nightly.20261027.3748 a delegated child's call also returns `next` ("End your reply with:
-  PR <full URL>, head <SHA>, checks and reviews <state>.", pingdotgg/t3code#25423).
+  PR <full URL>, head <SHA>, checks and reviews <state>.", pingdotgg/t3code#25423). Since
+  pingdotgg/t3code#26983 (0.1.6-nightly.20261029.3892) the one-minute PR sweep skips subagent and
+  delegate children: a child's PR is looked up only after its own run, checkpoint, metadata
+  update, unsettle or unarchive, so a merge after that doesn't reach the child. `implement-spec`
+  children open no PR, and storage cleanup asks the host itself
+  (`gitManager.branchPullRequest` in `storageCleanup.ts`).
 - **Used by:** `skills/implement/THREADS.md` ("One thread, one branch, one PR");
   `skills/implement/SKILL.md` § 7; `skills/implement-spec/SKILL.md` § 3 step 3
 - **Breaks if:** the tool is renamed or removed, stops taking a URL, or stops showing status or
@@ -210,7 +218,14 @@ T3 source paths below are in pingdotgg/t3code.
   pingdotgg/t3code#16719), and a local `target.projectId` other than the parent's is refused; a
   task in this environment still has its `childThreadId`. A child's question survives a server
   restart (pingdotgg/t3code#19229), and no longer flags the parent as waiting on the user
-  (pingdotgg/t3code#26367).
+  (pingdotgg/t3code#26367). Since pingdotgg/t3code#27222 (0.1.6-nightly.20261030.3904) a restart
+  continuation that fails before the provider took its prompt retries after 1 and 3 minutes, and
+  a child's continuation stands down when the parent's run was stopped. Since
+  pingdotgg/t3code#27252 (0.1.6-nightly.20261030.3917) a Stop is bounded at 15 s and Claude's and
+  ACP's fallbacks no longer mark a turn stopped while the agent runs on: an agent that ignores it
+  shows "Agent not responding to Stop" until the user presses Force stop, which is not an MCP
+  tool. `task_cancel` dispatches that same `thread.stop`; what `task_status` shows for such a
+  child was not checked.
   Source: `packages/contracts/src/orchestratorMcp.ts`. Read-only review
   is a prompt rule (`agents/reviewer.md`), not something T3 enforces.
 - **Used by:** `agents/models.md` § Reaching each model; `skills/code-review/SKILL.md` § Spawning
@@ -233,7 +248,11 @@ T3 source paths below are in pingdotgg/t3code.
   report names it. Tried 2026-10-26; the trial is under `implementer-worktrees`. Since
   pingdotgg/t3code#25700 (0.1.4-nightly.20261027.3796) several children launched at once no
   longer race on `.git/config.lock`, which could leave a branch without its worktree or a renamed
-  branch the thread no longer matched; `implement-spec` § 2 launches them in parallel.
+  branch the thread no longer matched; `implement-spec` § 2 launches them in parallel. Since
+  pingdotgg/t3code#27221 (0.1.6-nightly.20261030.3904) a queue held by a provider failure, a
+  restart or a Stop releases messages from agents, the server and scheduled tasks once the
+  thread's newest run completes; a user's held messages still wait for that user. By that rule a
+  child's completion held on the parent gets through (read from the PR, not tried here).
 - **Used by:** `skills/implement-spec/SKILL.md` § 2, § 3, § Route change (`task_cancel`, under
   `delegate-task-reviews`) and § 4 step 3; `agents/implementer.md`;
   `agents/models.md` (Reaching each model); `skills/implement/THREADS.md` ("Work where you
@@ -451,7 +470,8 @@ T3 source paths below are in pingdotgg/t3code.
   can't run `pkexec` ("pkexec must be setuid root", exit 127): no password prompt, the backends
   restart, nothing installs. So before installing an update, quit T3 and open it from the
   desktop. Check with `grep NoNewPrivs /proc/$(pgrep -o -x t3code)/status` (`1` = will fail).
-  Seen 2026-10-29, 0.1.4-nightly.20261028.3841 → 0.1.5-nightly.20261029.3873.
+  Seen 2026-10-29, 0.1.4-nightly.20261028.3841 → 0.1.5-nightly.20261029.3873. Still so on
+  2026-10-30: the running 0.1.6-nightly.20261030.3917 has the flag at `1`.
 - **Used by:** no skill; the user's update routine on the Linux machine.
 - **Would improve if:** a Linux relaunch no longer sets `no_new_privs`. Adopting means: install
   the fixed build from a desktop-launched instance, reopen once more (the old code did that
@@ -497,7 +517,11 @@ T3 source paths below are in pingdotgg/t3code.
   nothing to work with. A fresh tab cleared it once (#20). #36 and #53 took every capture with
   `playwright-cli`. Smaller gaps, now in `PREVIEW.md` step 4: `type` appends to a filled field;
   a date input takes only ISO text (the browser's locale is en-US); `press Tab` moves no focus; a
-  loose CSS selector (`main button`) caught the wrong button.
+  loose CSS selector (`main button`) caught the wrong button. Since 0.1.6-nightly.20261030.3904
+  the preview browser runs in an agent scope, with the agents' +800 OOM score, low CPU weight and
+  memory limits (pingdotgg/t3code#27239, #27176): "under agent memory pressure the preview
+  browser is throttled too". Whether that bears on the snapshot timeouts is untested; a preview
+  run's notes on memory pressure would settle it.
 - **Used by:** `skills/implement/PREVIEW.md`; `skills/implement/SKILL.md` § 4; `contract.md`
   (the `verification.md` row)
 - **Would improve if:** both hold, in the installed T3: a snapshot renders `backdrop-filter`
