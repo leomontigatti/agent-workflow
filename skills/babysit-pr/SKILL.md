@@ -75,8 +75,23 @@ A review-body finding is one a reviewer puts in its review's body rather than in
 outside-diff comment, a nitpick); it is unanswered until a top-level comment from someone other
 than a bot follows that review: yours, answering it in step 4.
 
-**A check still running**: wait for the rest in the background, with a timeout of 1500000 ms,
-then read the round again:
+**A check still running, in T3**: the watch does the waiting, and it stays silent in some cases,
+so take those on this wake, in this order:
+
+- a red check, an unresolved thread or an unanswered review-body finding: go to step 3 now, since
+  no wake follows when the remaining checks finish;
+- other checks finished and a required one unreported, or a wake saying the head still has no
+  checks: step 5 as BLOCKED, naming it;
+- `mergeStateStatus` `UNKNOWN` with nothing running: read the round once more, and if it still
+  says `UNKNOWN`, step 5 as BLOCKED;
+- after a `gh run rerun`, with the required checks passed and only optional ones left to finish:
+  step 5 as BLOCKED, naming them.
+
+Otherwise end your turn. A head with no checks yet counts as running: T3 wakes the thread once if
+it still has none after 15 minutes. The next wake reads the round again.
+
+**A check still running, outside T3**: wait for the rest in the background, with a timeout of
+1500000 ms, then read the round again:
 
 ```sh
 until [ "$(gh pr view <n> --json statusCheckRollup --jq '.statusCheckRollup | length')" -gt 0 ]; do sleep 10; done
@@ -85,9 +100,7 @@ gh pr checks <n> --watch
 
 The loop covers a fresh push (yours or `gh pr update-branch`): until GitHub registers its first
 check, `gh pr checks --watch` exits at once with "no checks reported", and running it again fails
-the same way. T3 wakes on the first red check while others may still run, and this wait lets one
-push answer the whole round. Anything still running after that wait is step 5 as BLOCKED,
-naming what is stuck.
+the same way. Anything still running after that wait is step 5 as BLOCKED, naming what is stuck.
 
 ## 3. Triage the round
 

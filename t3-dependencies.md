@@ -488,21 +488,25 @@ T3 source paths below are in pingdotgg/t3code.
 ### pr-watch-unreported-checks
 
 - **Workaround:** `babysit-pr` reads the round on every wake and treats a required check not
-  reported yet, a check still running or `mergeStateStatus` `UNKNOWN` as not ready, then waits on
-  a fresh push with the background `gh pr checks --watch` loop.
-  T3's runtime instructions forbid this wait: "For PR waits, no sleep, loops, gh --watch, Monitor
-  or ScheduleWakeup" (`runtimeInstructions.ts`; unscoped since pingdotgg/t3code#24850, scoped to
-  PRs by pingdotgg/t3code#26681, 0.1.6-nightly.20261031.3969). The skill and T3 disagree until the
-  user picks one (2026-11-01 review).
-- **Used by:** `skills/babysit-pr/SKILL.md` § 2 (the background wait and the state table)
+  reported yet, a check still running or `mergeStateStatus` `UNKNOWN` as not ready. In T3 it ends
+  the turn on the watch and waits on nothing else, as T3's runtime instructions require: "For PR
+  waits, no sleep, loops, gh --watch, Monitor or ScheduleWakeup" (`runtimeInstructions.ts`;
+  unscoped since pingdotgg/t3code#24850, scoped to PRs by pingdotgg/t3code#26681,
+  0.1.6-nightly.20261031.3969). Where no wake will come it acts on the wake it has: a red check
+  or an open finding goes to triage at once, so one push may not answer a whole round, and a
+  required check unreported once every other check has finished is reported as BLOCKED. One gap
+  stays: a required check that never reports while another still runs ends the turn, and no wake
+  follows, so the PR stalls until the user looks. Outside T3 the background
+  `gh pr checks --watch` loop stays. Chosen by the user on 2026-11-01.
+- **Used by:** `skills/babysit-pr/SKILL.md` § 2 (the T3 and outside-T3 waits and the state table)
 - **Would improve if:** `watch_pull_request` wakes the thread when a required check has not
   reported, and once every check has finished rather than only on a failure or on all required
-  checks passing; then the background `gh pr checks --watch` wait goes.
+  checks passing; then those two cases need no handling of their own.
 - **Partly met in:** 0.1.3-nightly.20261023.3566. T3 now wakes once the other checks finish after
   the required ones passed early (pingdotgg/t3code#23904), and once when a GitHub head has had no
   checks for 15 minutes or more (pingdotgg/t3code#23863; on time since #25437). Still no wake
   while a required check has not reported and others have, nor when the rest finish after a red
-  check woke the thread, so the background wait stays.
+  check woke the thread.
 - **Watch:** pingdotgg/t3code discussions/18047 (open); discussions/23245 (open; #16924,
   converted 2026-10-22); #17831 (closed without merging on 2026-10-14)
 
