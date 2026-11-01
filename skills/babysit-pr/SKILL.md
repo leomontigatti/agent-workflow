@@ -75,14 +75,17 @@ A review-body finding is one a reviewer puts in its review's body rather than in
 outside-diff comment, a nitpick); it is unanswered until a top-level comment from someone other
 than a bot follows that review: yours, answering it in step 4.
 
-**A check still running, in T3**: the watch does the waiting, and it stays silent in two cases,
-so take those on this wake:
+**A check still running, in T3**: the watch does the waiting, and it stays silent in some cases,
+so take those on this wake, in this order:
 
-- a red check beside the running ones: go to step 3 now, since no wake follows when the rest
-  finish;
-- other checks finished and a required one unreported, a wake saying the head still has no checks,
-  or `mergeStateStatus` `UNKNOWN` with nothing running after reading the round once more: step 5
-  as BLOCKED, naming it.
+- a red check, an unresolved thread or an unanswered review-body finding: go to step 3 now, since
+  no wake follows when the remaining checks finish;
+- other checks finished and a required one unreported, or a wake saying the head still has no
+  checks: step 5 as BLOCKED, naming it;
+- `mergeStateStatus` `UNKNOWN` with nothing running: read the round once more, and if it still
+  says `UNKNOWN`, step 5 as BLOCKED;
+- after a `gh run rerun`, with the required checks passed and only optional ones left to finish:
+  step 5 as BLOCKED, naming them.
 
 Otherwise end your turn. A head with no checks yet counts as running: T3 wakes the thread once if
 it still has none after 15 minutes. The next wake reads the round again.

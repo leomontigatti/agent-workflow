@@ -493,9 +493,11 @@ T3 source paths below are in pingdotgg/t3code.
   waits, no sleep, loops, gh --watch, Monitor or ScheduleWakeup" (`runtimeInstructions.ts`;
   unscoped since pingdotgg/t3code#24850, scoped to PRs by pingdotgg/t3code#26681,
   0.1.6-nightly.20261031.3969). Where no wake will come it acts on the wake it has: a red check
-  beside running ones goes to triage at once, so one push may not answer a whole round, and a
-  required check unreported after the others finished is reported as BLOCKED. Outside T3 the
-  background `gh pr checks --watch` loop stays. Chosen by the user on 2026-11-01.
+  or an open finding goes to triage at once, so one push may not answer a whole round, and a
+  required check unreported once every other check has finished is reported as BLOCKED. One gap
+  stays: a required check that never reports while another still runs ends the turn, and no wake
+  follows, so the PR stalls until the user looks. Outside T3 the background
+  `gh pr checks --watch` loop stays. Chosen by the user on 2026-11-01.
 - **Used by:** `skills/babysit-pr/SKILL.md` § 2 (the T3 and outside-T3 waits and the state table)
 - **Would improve if:** `watch_pull_request` wakes the thread when a required check has not
   reported, and once every check has finished rather than only on a failure or on all required
