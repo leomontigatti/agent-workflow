@@ -30,6 +30,7 @@ STATE = os.path.join(STATE_DIR, "state.json")
 WATCHED_DIRS = ["apps/server/src/mcp/toolkits"]
 WATCHED_PATHS = [
     "packages/provider-core/src/server/orchestrationInstructions.ts",
+    "packages/provider-core/src/server/runtimeInstructions.ts",
     "apps/server/src/storageCleanup.ts",
     "packages/contracts/src/worktreeSetup.ts",
     "packages/shared/src/projectScripts.ts",
@@ -37,6 +38,7 @@ WATCHED_PATHS = [
     "apps/server/src/git/linkCreatedPullRequest.ts",
     "apps/server/src/orchestration-v2/ThreadLaunchService.ts",
     "apps/server/src/orchestration-v2/ThreadPullRequestService.ts",
+    "apps/server/src/orchestration-v2/ProviderTurnStartService.ts",
     "apps/server/src/project/ProjectSetupScriptRunner.ts",
     "apps/server/src/preview/ServerBrowserPage.ts",
     "packages/contracts/src/orchestratorMcp.ts",
