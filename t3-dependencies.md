@@ -573,8 +573,6 @@ T3 source paths below are in pingdotgg/t3code.
   `0`, and report the result on pingdotgg/t3code#14905.
 - **Watch:** pingdotgg/t3code#14905 (open), fixed by PR #15387 (open)
 
-## Ready
-
 ### preview-tools-verification
 
 - **Workaround:** projects drove UI verification with a browser CLI (`playwright-cli`) because
@@ -632,7 +630,7 @@ T3 source paths below are in pingdotgg/t3code.
   takes its images with `preview_snapshot`, keeping the browser CLI installed; once ten PRs
   verified that way had no lost click, each `verification.md` drops the browser CLI and its
   install, and this entry is resolved.
-- **Met in:** 0.1.3-nightly.20261026.3717. pingdotgg/t3code#24618 (closes #20899)
+- **Partly met in:** 0.1.3-nightly.20261026.3717. pingdotgg/t3code#24618 (closes #20899)
   captures at full scale and shrinks the finished PNG in the page, since Chromium "mirrors the
   top-left of the page into a `backdrop-filter` in any capture it shrinks"
   (`shrinkPng` in `ServerBrowserPage.ts`). The 1280 px cap stands (`MAX_SCREENSHOT_WIDTH`), so
@@ -655,12 +653,21 @@ T3 source paths below are in pingdotgg/t3code.
 - **Tools renamed:** since 0.1.3-nightly.20261027.3748 one `preview_act` tool takes `action`
   (`click`, `type`, `hover`, `select`, `drag`, `upload`, `press`, `scroll`) and that action's
   fields, replacing the eight tools of those names (pingdotgg/t3code#25423).
-- **Adopting:** step one of **Would improve if**, begun 2026-10-26: `PREVIEW.md` step 4 clicks a
-  button by its ref, and en-escena's `verification.md` takes its images with `preview_snapshot`
-  (rubens' and enescena's § Evidence name no tool, so they already do), keeping the browser CLI
-  installed. The count for step two is every PR, in any of the three projects, merged after
-  2026-10-26 whose captures came from `preview_snapshot`: three by 2026-10-29 (rubens #20, #29,
-  #43), each with lost clicks or timed-out snapshots, so none of them counts toward step two.
+- **Trial result:** decided by the user on 2026-11-02: the browser CLI clicks and takes the
+  evidence, and `PREVIEW.md` covers a look at a page and a project whose § Drive names no CLI. Step
+  one of **Would improve if** ran from 2026-10-26 and is undone. Counted from T3's store for
+  2026-10-26 to 2026-11-02, every project: 28 of 125 `preview_act` clicks and 23 of 213
+  `preview_snapshot` calls failed. Eleven merged PRs in en-escena, rubens and enescena took
+  captures with `preview_snapshot`: rubens #20, #29, #43, #69, #72, #73, #74, #75, #76, #81, #83.
+  None counts toward step two: #20, #29, #43, #69, #72 and #83 lost clicks; #74 and #76 had
+  timed-out snapshots; #75 and #76 report blurred captures; #73 and #81 made no `preview_act` click.
+  From #72 on the agent clicked through `preview_evaluate` instead (61 calls with a JavaScript
+  click, a dispatched event or a `fetch`, #72 to #83), which skips what a real click checks. Clicks
+  failed 23 of 81 times in `open: false` tabs and 3 of 40 in `open: true` ones, unevenly spread
+  across threads; snapshots failed 14 of 131 and 9 of 63, so the tab's state does not explain them.
+- **Retry when:** #23936 and #24812 are fixed, or #23515 merges. Then one real drive with
+  `preview_act` clicks on the current build decides whether step one runs again. A PR counts toward
+  step two only with real `preview_act` clicks, none lost, no timed-out snapshot and sharp captures.
 - **Watch:** pingdotgg/t3code#23936 (open: `preview_snapshot` always times out on `open: false`
   tabs and in delegated children); #24812 (open: snapshots time out after the CDP relay
   reconnects); #23515 (open: a capture that never answers no longer blocks the tab); #24130 (open:
@@ -669,6 +676,10 @@ T3 source paths below are in pingdotgg/t3code.
   while the agent's image stays 1280 px wide); `apps/server/src/preview/ServerBrowserPage.ts`
   (`MAX_SCREENSHOT_WIDTH`, `captureViewport`); `apps/server/src/mcp/toolkits/preview/tools.ts`;
   the trial's notes in the final reports of en-escena's and rubens' PRs
+
+## Ready
+
+None.
 
 ## Resolved
 

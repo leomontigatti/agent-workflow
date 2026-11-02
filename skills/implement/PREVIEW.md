@@ -1,17 +1,22 @@
 # Driving a page with T3's preview tools
 
-In a T3 thread, `implement` step 4 drives what a user sees with T3's own browser, the preview
-tools, rather than a browser CLI the project installs. A project's `docs/agents/verification.md`
-§ Launch says what to start and § Feature map which flows to drive; this file says how to drive
-them. Outside T3 (no preview tools), § Drive's fallback applies.
+In a T3 thread the browser CLI that `docs/agents/verification.md` § Drive names does the clicking
+and takes the evidence, because T3's preview tools lose too many of both
+(`preview-tools-verification` in the shared `t3-dependencies.md`). This file is for the rest: a
+look at a page, and a project whose § Drive names no browser CLI, which drives with the preview
+tools. A project's § Launch says what to start and § Feature map which flows to drive; this file
+says how to drive them. Outside T3 (no preview tools), § Drive's fallback applies.
 
 Driving the change is browser work the request asks for: `implement` step 4 and the project's
 `verification.md` require it, so T3's injected rule against using the preview tools on your own
 edit unasked does not apply to this loop.
 
-The preview tools are on trial (`preview-tools-verification` in the shared
-`t3-dependencies.md`). Note every place they fall short in the final report, so the trial has
-its numbers.
+**A real click or none.** A click made through `preview_evaluate` (`element.click()`, a
+dispatched event, a `fetch`) skips what stops a user, such as a covered button or a dialog in the
+way, so it proves nothing about the path. When `preview_act` cannot make a click, finish the flow
+with the browser CLI, or report the path as not clicked.
+
+Note every place the tools fall short in the final report.
 
 When `preview_open` is refused, the machine is not set up for them: "Agent browser access" is off
 in T3's Settings, or the host blocks the browser's sandbox (the error names
@@ -20,8 +25,9 @@ and open the final report with the refusal's exact text.
 
 ## The loop
 
-1. **Open** a tab on the launched app: `preview_open` with the URL, and `open: false` unless the
-   user should watch. Keep the returned `tabId` and pass it on every call; parallel subagents
+1. **Open** a tab on the launched app: `preview_open` with the URL, with `open: true` for a drive
+   that clicks, since background tabs lose about three times as many clicks, and `open: false` for
+   a look. Keep the returned `tabId` and pass it on every call; parallel subagents
    each open their own tab (`reuseExistingTab: false`) and finish driving before they report: a
    subagent resumed later by its own background task has lost the preview tools.
 2. **Size** the viewport the screen is designed for with `preview_resize`, once: it is meant to hold
