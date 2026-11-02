@@ -6,7 +6,7 @@ mattpocock/skills
 https://github.com/mattpocock/skills
 ================================================================================
 
-Derived in part: the skills code-review, codebase-design, diagnosing-bugs, domain-modeling,
+Derived in part: agents/implementer.md (its rule on skipped tests) and the skills code-review, codebase-design, diagnosing-bugs, domain-modeling,
 grilling, handoff, implement, implement-spec, pr (template and rules), prototype,
 resolving-merge-conflicts, retro, tdd, to-spec, to-tickets, wayfinder and writing-for-agents.
 
