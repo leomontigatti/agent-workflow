@@ -152,18 +152,18 @@ Anthropic's Applied AI guide "Building agents: When to fold subagents into your 
 
 ## Weekly review (2026-11-02): pstack v0.15.36, mattpocock-skills 4ae2317, mattpocock-docs 4ae2317, gentle-ai 5b2168b, engram d33a14a, tstack 1085050
 
-Verdicts marked proposed stand until this review's PR merges. Already decided, so no row: from pstack, the Orchestrate rewrite (`pstack:orch-swarm-loop`), the cross-judge from another family (`pstack:family-diversity`), blocking only on a shown problem (`tstack:review-scope-guard`), no verifier for wording (`pstack:rereview-by-delta`), rebasing for a concurrent change (`tstack:merge-base-overlap`), the statechart rewrite (`pstack:statechart`) and the video's subtitles (`pstack:ketchup-video`); from the rest, `mattpocock-skills:dated-commit-cited-wiki`, `pstack:router-mode`, `mattpocock-skills:implement-spec-one-review`, `mattpocock-skills:deterministic-afk-loop`, `mattpocock-skills:spec-multi-session-only`, `mattpocock-skills:spec-is-snapshot` and `tstack:full-stop`.
+Verdicts marked proposed stand until this review's PR merges; the user approved the eight adopted ones on 2026-11-02. Already decided, so no row: from pstack, the Orchestrate rewrite (`pstack:orch-swarm-loop`), the cross-judge from another family (`pstack:family-diversity`), blocking only on a shown problem (`tstack:review-scope-guard`), no verifier for wording (`pstack:rereview-by-delta`), rebasing for a concurrent change (`tstack:merge-base-overlap`), the statechart rewrite (`pstack:statechart`) and the video's subtitles (`pstack:ketchup-video`); from the rest, `mattpocock-skills:dated-commit-cited-wiki`, `pstack:router-mode`, `mattpocock-skills:implement-spec-one-review`, `mattpocock-skills:deterministic-afk-loop`, `mattpocock-skills:spec-multi-session-only`, `mattpocock-skills:spec-is-snapshot` and `tstack:full-stop`.
 
 | Id | Idea | Verdict | Where or why |
 | -- | ---- | ------- | ------------ |
-| `mattpocock-docs:review-needs-committed-diff` | A three-dot diff leaves out uncommitted work, which `implement` step 5 reviews. | adopted (proposed) | To do: `skills/code-review/SKILL.md` § 1. |
-| `mattpocock-skills:fresh-context-subagents` | Every subagent starts fresh, never as a fork of the parent. | adopted (proposed) | To do: `agents/models.md` § Reaching each model. |
-| `mattpocock-docs:criteria-can-fail` | Name what would show each acceptance criterion false, and confirm it fails at the starting commit. | adopted (proposed) | To do: `skills/to-tickets/SKILL.md`. |
-| `mattpocock-docs:worktree-untracked-test-skip` | A test skipped in a worktree for want of untracked material is no pass. | adopted (proposed) | To do: `agents/implementer.md` step 2. |
-| `mattpocock-docs:grilling-ungrillable-to-prototype` | A question talk cannot settle goes to a prototype. | adopted (proposed) | To do: `skills/grilling/SKILL.md`. |
-| `mattpocock-docs:handoff-downgrade-unverified` | Mark every unchecked claim in a handoff as unverified. | adopted (proposed) | To do: `skills/handoff/SKILL.md`. |
-| `mattpocock-docs:wayfinder-notes-exemption-guard` | Only the user writes or widens the map's "carry execution" override. | adopted (proposed) | To do: `skills/wayfinder/SKILL.md` § Plan, don't do. |
-| `pstack:decide-before-measure` | Write the deciding result and the noise floor before the first run. | adopted (proposed) | To do: `skills/diagnosing-bugs/SKILL.md` § Perf branch. |
+| `mattpocock-docs:review-needs-committed-diff` | A three-dot diff leaves out uncommitted work, which `implement` step 5 reviews. | adopted | `skills/code-review/SKILL.md` § 1 and `skills/code-review/READBACK.md` (#67). |
+| `mattpocock-skills:fresh-context-subagents` | Every subagent starts fresh, never as a fork of the parent. | adopted | `agents/models.md` § Reaching each model` (#68). |
+| `mattpocock-docs:criteria-can-fail` | Name what would show each acceptance criterion false, and confirm it fails at the starting commit. | adopted | `skills/to-tickets/SKILL.md` § 4` (#69). |
+| `mattpocock-docs:worktree-untracked-test-skip` | A test skipped in a worktree for want of untracked material is no pass. | adopted | `agents/implementer.md` step 2` (#70). |
+| `mattpocock-docs:grilling-ungrillable-to-prototype` | A question talk cannot settle goes to a prototype. | adopted | `skills/grilling/SKILL.md` (#71). |
+| `mattpocock-docs:handoff-downgrade-unverified` | Mark every unchecked claim in a handoff as unverified. | adopted | `skills/handoff/SKILL.md` (#72). |
+| `mattpocock-docs:wayfinder-notes-exemption-guard` | Only the user writes or widens the map's "carry execution" override. | adopted | `skills/wayfinder/SKILL.md` § Plan, don't do` (#73). |
+| `pstack:decide-before-measure` | Write the deciding result and the noise floor before the first run. | adopted | `skills/diagnosing-bugs/SKILL.md` § Perf branch` (#74). |
 | `pstack:goal-first` | Restate the user's goal in the first message, briefs, PRs and final reports. | later (proposed) | When a retro finds a session that built the wrong thing from a misread request. |
 | `pstack:interrogate-proven-findings` | Adversaries prove each finding with a run; only what a rerun confirms survives. | later (proposed) | When a retro finds false findings costing review rounds; `implement` step 5 verifies at the caller. |
 | `pstack:pilot-unit` | Take one unit through the whole path before fanning out. | later (proposed) | A spec with about ten near-identical tickets. |
