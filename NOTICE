@@ -39,7 +39,8 @@ https://github.com/cursor/plugins/tree/main/pstack
 
 Derived in part: the correctness brief (skills/code-review/CORRECTNESS.md), the wait and stop
 rules of skills/babysit-pr and the pattern format of skills/babysit-pr/triage.md, the
-verification sections of contract.md, and the fix ladder of skills/retro.
+verification sections of contract.md, the fix ladder of skills/retro, and the measuring rule of
+skills/diagnosing-bugs.
 
 MIT License
 
