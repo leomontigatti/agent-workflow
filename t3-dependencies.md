@@ -330,8 +330,10 @@ T3 source paths below are in pingdotgg/t3code.
   desktop login session, so a line in `~/.profile` reaches the agent's shell. Since
   pingdotgg/t3code#28556 (0.1.7-nightly.20261101.4035) the desktop starts on a cached PATH merged
   with the inherited one (`shell-environment-cache.json`), probes the login shell in the
-  background and passes the result to the server, so a PATH change reaches sessions only once
-  that probe finishes (5 s timeout per shell; `apps/desktop/src/shell/DesktopShellEnvironment.ts`).
+  background and passes the result to the server, so a PATH change reaches only sessions started
+  after that probe finishes (5 s timeout per shell;
+  `apps/desktop/src/shell/DesktopShellEnvironment.ts`). A provider process started earlier keeps
+  the PATH it started with until it restarts.
 - **Used by:** `hooks/check-tool-path.sh` (the SessionStart warning)
 - **Breaks if:** T3 starts agent sessions with a shell environment of its own, so `~/.profile` no
   longer reaches them.
