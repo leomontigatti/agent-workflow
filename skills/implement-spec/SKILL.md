@@ -133,7 +133,9 @@ When every ticket that is not retired has merged:
    fix round over the fixes: no second broad review.
 4. Run `implement` step 4 now that the code is final, then step 7's screen approval: the user
    approves the **after** in the thread before the PR leaves draft.
-5. Add the `## Review` record to the PR body (the `pr` skill), then
-   `gh pr ready <n>`, then call the Skill tool with "babysit-pr".
+5. Add the `## Review` record to the PR body (the `pr` skill), then `gh pr ready <n>`, then push
+   one empty commit: a PR marked ready on the commit it was drafted on reports `BLOCKED` with every
+   required check green until a new commit lands, and the reviewed commit in the record stands.
+   Then call the Skill tool with "babysit-pr".
 6. Remove any implementer worktree still listed in `git worktree list`, its branch, and
    `/tmp/implement-spec-<PRD>/`.
