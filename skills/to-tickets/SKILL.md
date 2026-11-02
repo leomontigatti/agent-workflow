@@ -47,6 +47,8 @@ Present the proposed breakdown as a numbered list. For each ticket, show:
 - **Blocked by**: which other tickets (if any) must complete first
 - **What it delivers**: the end-to-end behaviour this ticket makes work
 
+Check each acceptance criterion first: name the observation that would show it false, and confirm from the code that it fails at the commit the implementer starts from. Rewrite one already true there, and move one only another ticket can satisfy to that ticket.
+
 Ask the user:
 
 - Does the granularity feel right? (too coarse / too fine)
