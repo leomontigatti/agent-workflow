@@ -149,3 +149,48 @@ Anthropic's Applied AI guide "Building agents: When to fold subagents into your 
 | `anthropic:eval-before-fold` | Build a small end-to-end eval (about 10 golden tasks, each run twice) before changing the harness. | later (proposed) | When a change proposes folding or splitting an agent role. Until then the `## Review` records on our PRs show what each reviewer catches. |
 | `anthropic:no-op-sweep` | Read every always-loaded line and cut what the current model does without being told. | adopted (proposed) | The no-op rule already lives in `skills/writing-for-agents/SKILL.md` § Pruning; adopted here is one sweep of every shared skill with it, in its own PR (`chore/skill-no-op-sweep`). |
 | `anthropic:shim-firing-log` | Log each time a guardrail fires; propose deleting one that has stopped firing. From a talk the video cites, not from the guide. | later | Only `hooks/` could log their firings, three of them, and the two blockers guard rare, costly mistakes, where a silent month proves nothing. When `hooks/` holds about five guardrails, or a retro finds one blocking work it should not: each appends a line to a log when it fires, and `retro` names one silent for a month. |
+
+## Weekly review (2026-11-02): pstack v0.15.36, mattpocock-skills 4ae2317, mattpocock-docs 4ae2317, gentle-ai 5b2168b, engram d33a14a, tstack 1085050
+
+Verdicts marked proposed stand until this review's PR merges. Already decided, so no row: from pstack, the Orchestrate rewrite (`pstack:orch-swarm-loop`), the cross-judge from another family (`pstack:family-diversity`), blocking only on a shown problem (`tstack:review-scope-guard`), no verifier for wording (`pstack:rereview-by-delta`), rebasing for a concurrent change (`tstack:merge-base-overlap`), the statechart rewrite (`pstack:statechart`) and the video's subtitles (`pstack:ketchup-video`); from the rest, `mattpocock-skills:dated-commit-cited-wiki`, `pstack:router-mode`, `mattpocock-skills:implement-spec-one-review`, `mattpocock-skills:deterministic-afk-loop`, `mattpocock-skills:spec-multi-session-only`, `mattpocock-skills:spec-is-snapshot` and `tstack:full-stop`.
+
+| Id | Idea | Verdict | Where or why |
+| -- | ---- | ------- | ------------ |
+| `mattpocock-docs:review-needs-committed-diff` | A three-dot diff leaves out uncommitted work, which `implement` step 5 reviews. | adopted (proposed) | To do: `skills/code-review/SKILL.md` § 1. |
+| `mattpocock-skills:fresh-context-subagents` | Every subagent starts fresh, never as a fork of the parent. | adopted (proposed) | To do: `agents/models.md` § Reaching each model. |
+| `mattpocock-docs:criteria-can-fail` | Name what would show each acceptance criterion false, and confirm it fails at the starting commit. | adopted (proposed) | To do: `skills/to-tickets/SKILL.md`. |
+| `mattpocock-docs:worktree-untracked-test-skip` | A test skipped in a worktree for want of untracked material is no pass. | adopted (proposed) | To do: `agents/implementer.md` step 2. |
+| `mattpocock-docs:grilling-ungrillable-to-prototype` | A question talk cannot settle goes to a prototype. | adopted (proposed) | To do: `skills/grilling/SKILL.md`. |
+| `mattpocock-docs:handoff-downgrade-unverified` | Mark every unchecked claim in a handoff as unverified. | adopted (proposed) | To do: `skills/handoff/SKILL.md`. |
+| `mattpocock-docs:wayfinder-notes-exemption-guard` | Only the user writes or widens the map's "carry execution" override. | adopted (proposed) | To do: `skills/wayfinder/SKILL.md` § Plan, don't do. |
+| `pstack:decide-before-measure` | Write the deciding result and the noise floor before the first run. | adopted (proposed) | To do: `skills/diagnosing-bugs/SKILL.md` § Perf branch. |
+| `pstack:goal-first` | Restate the user's goal in the first message, briefs, PRs and final reports. | later (proposed) | When a retro finds a session that built the wrong thing from a misread request. |
+| `pstack:interrogate-proven-findings` | Adversaries prove each finding with a run; only what a rerun confirms survives. | later (proposed) | When a retro finds false findings costing review rounds; `implement` step 5 verifies at the caller. |
+| `pstack:pilot-unit` | Take one unit through the whole path before fanning out. | later (proposed) | A spec with about ten near-identical tickets. |
+| `pstack:retry-by-cause` | Retry a failed worker by the failure's cause; two retries, then replan. | later (proposed) | When `implement-spec` loses a child to something other than `blocked`. |
+| `mattpocock-skills:software-factory` | A glossary and product surveys for ticket-driven runs on remote infrastructure. | later (proposed) | Same condition as `mattpocock-skills:deterministic-afk-loop`. |
+| `mattpocock-docs:spec-search-tracker` | Search the tracker for overlaps before writing a spec. | later (proposed) | When a spec turns out to duplicate a filed issue. |
+| `mattpocock-docs:wayfinder-wrong-decision-reopen` | Challenge a closed decision found wrong instead of designing around it. | later (proposed) | When a retro finds a map built around a bad decision. |
+| `gentle-ai:codex-home` | Honour a validated `CODEX_HOME` when writing Codex config. | later (proposed) | When a machine sets `CODEX_HOME`; `install.sh` writes `$HOME/.codex`. |
+| `pstack:model-slug-fallback-chain` | Walk a chain of fallbacks when a slug is rejected. | declined (proposed) | `agents/models.md` § Reaching each model fixes the table instead. |
+| `pstack:push-each-unit` | Push every finished unit, assuming the VM dies. | declined (proposed) | Our worktrees are local; the orchestrator owns the push. |
+| `pstack:background-steers` | Send steers and resumes in the background. | declined (proposed) | T3 wakes the parent; a later round is a new `delegate_task`. |
+| `mattpocock-skills:implement-spec-fresh-per-ticket` | A fresh implementer per ticket and for the fixes. | declined (proposed) | Already `skills/implement-spec/SKILL.md` steps 2 and 4. |
+| `mattpocock-skills:gh-close-comment-drops` | `gh issue close --comment` loses the comment on a closed issue. | declined (proposed) | A project fact, for `docs/agents/issue-tracker.md`. |
+| `mattpocock-skills:file-into-own-repo` | Check the target repo before the first `gh issue create`. | declined (proposed) | One author per project, no forks. |
+| `mattpocock-skills:setup-reachable-repo` | The setup skill wires up a remote and renames `CONTEXT.md`. | declined (proposed) | We have no setup skill; `contract.md` is the setup. |
+| `mattpocock-skills:retro-sampling` | A coordinator runs a retro on one session in five. | declined (proposed) | `retro` reads the whole window; we have no standing coordinator. |
+| `tstack:fix-known-before-review` | Address known issues before a council audit. | declined (proposed) | `skills/implement/SKILL.md` validates at step 3, before review at step 5. |
+| `gentle-ai:repo-scoped-pr-policy` | A repo's contribution gates apply only to that repo. | declined (proposed) | `contract.md` keeps such rules in the project. |
+| `mattpocock-docs:reviewer-no-fanout` | A reviewer spawns nothing. | declined (proposed) | The wrappers give it no spawn tool; T3 tells a child to do its own work. |
+| `mattpocock-docs:review-is-leads-not-loop` | Do not rerun a review until clean. | declined (proposed) | `skills/implement/SKILL.md` § Fix round reviews the fixes alone. |
+| `mattpocock-docs:spec-tickets-one-window` | No clear or compact between `to-spec` and `to-tickets`. | declined (proposed) | `to-tickets` reads the published issue. |
+| `mattpocock-docs:retro-no-guardrail-finding` | Report a repo with no checks as a finding. | declined (proposed) | `docs/agents/validation.md` is a required contract file. |
+| `mattpocock-docs:tdd-browser-tests-last` | Browser tests come after the behaviour works. | declined (proposed) | A project fact, for `docs/agents/tdd-*.md`. |
+| `mattpocock-docs:prototype-one-sitting` | A prototype still in progress a day later was too big. | declined (proposed) | A rule of thumb no step acts on. |
+| `mattpocock-docs:grilling-scope-too-big-split` | A very long grilling means the scope is too big. | declined (proposed) | `wayfinder` and `to-tickets` own splitting. |
+| `mattpocock-docs:handoff-report-path-not-durable` | Print the handoff's path and warn that temp is not durable. | declined (proposed) | Our sessions hand off in T3 threads, within the same machine. |
+| `mattpocock-docs:handoff-only-when-travelling` | `/compact` unless something is travelling. | declined (proposed) | `handoff` is user-invoked, so the user is already choosing. |
+| `mattpocock-docs:wayfinder-prototype-choice-is-human` | The human picks the prototype variant. | declined (proposed) | `skills/wayfinder/SKILL.md` § Ticket Types. |
+| `mattpocock-docs:wayfinder-bounded-destination` | Scope the map to an epic. | declined (proposed) | An upstream failure report with no observed case of ours. |
+| `mattpocock-docs:wayfinder-cleared-map-to-spec` | A cleared map points at `to-spec`. | declined (proposed) | A cleared map can end in a one-session change, which needs no spec. |
