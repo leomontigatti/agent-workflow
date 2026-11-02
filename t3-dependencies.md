@@ -76,7 +76,9 @@ T3 source paths below are in pingdotgg/t3code.
   in the managed folder no thread uses (pingdotgg/t3code#19749), which T3 never removes. It keeps
   the branch on purpose, runs no script on removal, and has no MCP tool to trigger or read it
   (`apps/server/src/storageCleanup.ts`; `packages/contracts/src/settings.ts`;
-  `docs/user/project-settings.md` § Storage cleanup).
+  `docs/user/project-settings.md` § Storage cleanup). Since pingdotgg/t3code#27175
+  (0.1.7-nightly.20261102.4061) a repository with no remote is judged against its checked-out
+  branch; every project here has a remote, so its path is unchanged.
 - **Used by:** `skills/housekeeping/SKILL.md` (its table, and step 1 reads the settings);
   `skills/implement/THREADS.md` ("Leaving a worktree behind is fine")
   Since 2026-10-16 the user also runs `worktreeAfterDays: 5`, `worktreeSettledAfterDays: 5`,
@@ -114,7 +116,10 @@ T3 source paths below are in pingdotgg/t3code.
   replays the accepted launch and returns the same thread, where before a lost reply meant
   checking `t3_thread_list` before launching again. Since pingdotgg/t3code#26682
   (0.1.6-nightly.20261031.3969) an inherited runtime mode steps down to one the provider offers, and an
-  explicit unsupported one is refused, as `delegate_task` already did.
+  explicit unsupported one is refused, as `delegate_task` already did. Since
+  pingdotgg/t3code#28582 (0.1.7-nightly.20261102.4061) the `startFromOrigin` fetch passes
+  `--no-tags`, so a new thread's checkout can lag the remote's tags: read a tag from the remote.
+  No project's `docs/agents/`, `.agents/`, `AGENTS.md` or `t3.json` runs `git describe`.
 - **Used by:** `skills/implement/THREADS.md` ("Work where you started", "A launched thread
   reports to its own inbox")
 - **Breaks if:** the tool or its `workspaceStrategy` shape changes, or a launched thread stops
@@ -188,7 +193,10 @@ T3 source paths below are in pingdotgg/t3code.
   thread to the user's inbox; it wakes no other thread. Since pingdotgg/t3code#26395
   (0.1.4-nightly.20261028.3822) a watch whose PR is already merged no longer counts as pending
   work, so the thread settles when the turn that merged ends, not on the watch's next 2-minute
-  sweep; a closed PR still holds the thread, since its wake is still owed.
+  sweep; a closed PR still holds the thread, since its wake is still owed. Since
+  pingdotgg/t3code#22022 (0.1.7-nightly.20261101.4048) T3 keeps a GitHub PR's last known
+  mergeability while GitHub reports `unknown` and the PR's `updatedAt` is unchanged, so T3's
+  stored state can differ from the `UNKNOWN` that `babysit-pr` reads from GitHub itself.
   `list_thread_pull_requests` with another thread's `threadId` lists that thread's PRs.
 - **Used by:** `skills/babysit-pr/SKILL.md` § 2 and § 5; `skills/implement/SKILL.md` § 7;
   `skills/implement/THREADS.md` ("A launched thread reports to its own inbox")
@@ -248,7 +256,16 @@ T3 source paths below are in pingdotgg/t3code.
   pingdotgg/t3code#22579 (same build) a queued child completion starts on the thread's current
   model instead of reverting it. Since pingdotgg/t3code#27836 (same build) a restart
   continuation tells the agent to confirm a state-changing action did not take effect before
-  repeating it.
+  repeating it. Since pingdotgg/t3code#27468 (0.1.7-nightly.20261102.4061) a background command
+  or Monitor the child left unawaited no longer holds its completion; awaited ones, background
+  subagents and opaque background tasks still do. Since pingdotgg/t3code#28520 (0.1.7-nightly.20261102.4066)
+  Stop and Force stop end a run whose provider turn had already finished, which used to stay
+  `running` and hold every later message until a restart; `task_cancel` dispatches that Stop.
+  Since pingdotgg/t3code#28516 (0.1.7-nightly.20261101.4035) a child's pending approval also shows
+  in the parent thread for the user to answer, and in Full access Claude's dangerous-removal check
+  rejects the command with its warning instead of asking; the agent uses a safe rewrite the
+  warning supplies, or goes on without the removal and reports it (`docs/user/permission-modes.md`).
+  Skills name only `git worktree remove`.
   Source: `packages/contracts/src/orchestratorMcp.ts`. Read-only review
   is a prompt rule (`agents/reviewer.md`), not something T3 enforces.
 - **Used by:** `agents/models.md` § Reaching each model; `skills/code-review/SKILL.md` § Spawning
@@ -310,7 +327,13 @@ T3 source paths below are in pingdotgg/t3code.
 ### login-shell-path
 
 - **Relies on:** T3, and the Claude Code and Codex sessions it starts, inherit PATH from the
-  desktop login session, so a line in `~/.profile` reaches the agent's shell.
+  desktop login session, so a line in `~/.profile` reaches the agent's shell. Since
+  pingdotgg/t3code#28556 (0.1.7-nightly.20261101.4035) the desktop starts on a cached PATH merged
+  with the inherited one (`shell-environment-cache.json`), probes the login shell in the
+  background and passes the result to the server, so a PATH change reaches only sessions started
+  after that probe finishes (5 s timeout per shell;
+  `apps/desktop/src/shell/DesktopShellEnvironment.ts`). A provider process started earlier keeps
+  the PATH it started with until it restarts.
 - **Used by:** `hooks/check-tool-path.sh` (the SessionStart warning)
 - **Breaks if:** T3 starts agent sessions with a shell environment of its own, so `~/.profile` no
   longer reaches them.
@@ -336,7 +359,11 @@ T3 source paths below are in pingdotgg/t3code.
   that points at a skill here (since pingdotgg/t3code#25423, 0.1.3-nightly.20261027.3748,
   `schedule_task` with a `scheduledTaskId` also updates a task; `update_scheduled_task` is gone): "Weekly upstream review" on Mondays at 09:00
   (`skills/upstream-review/SKILL.md`), and "T3 update review" daily at 09:00
-  (`skills/t3-update-review/SKILL.md`). Each opens its bookkeeping PR from that thread.
+  (`skills/t3-update-review/SKILL.md`). Each opens its bookkeeping PR from that thread. Since
+  pingdotgg/t3code#28474 (0.1.7-nightly.20261101.4035) an interrupt no longer leaves a task marked
+  busy until a restart, which made scheduled polls skip it silently. A managed policy
+  (pingdotgg/t3code#27197, `/etc/t3code/policy.json` on Linux) can block webhook tasks and cap
+  runtime modes; this machine had none on 2026-11-02.
 - **Used by:** `skills/upstream-review/SKILL.md` § Cadence; `skills/t3-update-review/SKILL.md`
   § Cadence
 - **Breaks if:** scheduled runs stop starting when no thread is open, stop getting a worktree of
@@ -475,7 +502,7 @@ T3 source paths below are in pingdotgg/t3code.
   `recreateMissingWorktree` and `GitVcsDriver.createWorktree` spans, with no setup span and no
   setup terminal log under `logs/terminals/`. `ProviderTurnStartService.ts` on T3's `main` has no
   reference to a setup script (keyword search of that file only; the same at
-  0.1.7-nightly.20261101.4016, after pingdotgg/t3code#26758 changed which ref the recovery restores).
+  0.1.7-nightly.20261102.4066, after pingdotgg/t3code#26758 changed which ref the recovery restores).
 - **Used by:** `skills/implement/THREADS.md` (the intro); `skills/housekeeping/SKILL.md` (a live
   thread's resources are kept for its resume)
 - **Would improve if:** T3 runs `runOnWorktreeCreate` when it recreates a worktree.
@@ -538,7 +565,7 @@ T3 source paths below are in pingdotgg/t3code.
   restart, nothing installs. So before installing an update, quit T3 and open it from the
   desktop. Check with `grep NoNewPrivs /proc/$(pgrep -o -x t3code)/status` (`1` = will fail).
   Seen 2026-10-29, 0.1.4-nightly.20261028.3841 → 0.1.5-nightly.20261029.3873. Still so on
-  2026-11-01: the running 0.1.7-nightly.20261101.4016 has the flag at `1`.
+  2026-11-02: the running 0.1.7-nightly.20261102.4066 has the flag at `1`.
 - **Used by:** no skill; the user's update routine on the Linux machine.
 - **Would improve if:** a Linux relaunch no longer sets `no_new_privs`. Adopting means: install
   the fixed build from a desktop-launched instance, reopen once more (the old code did that
@@ -584,7 +611,11 @@ T3 source paths below are in pingdotgg/t3code.
   nothing to work with. A fresh tab cleared it once (#20). #36 and #53 took every capture with
   `playwright-cli`. Smaller gaps, now in `PREVIEW.md` step 4: `type` appends to a filled field;
   a date input takes only ISO text (the browser's locale is en-US); `press Tab` moves no focus; a
-  loose CSS selector (`main button`) caught the wrong button. Since 0.1.6-nightly.20261030.3904
+  loose CSS selector (`main button`) caught the wrong button. Since pingdotgg/t3code#28027
+  (0.1.7-nightly.20261101.4035) `preview_open` also takes the dev-server `target`
+  of `preview_navigate`, which wins over `url`; `PREVIEW.md`'s URL still works. Through
+  0.1.7-nightly.20261102.4066 `ServerBrowserPage.ts` is unchanged, so no snapshot fault moved.
+  Since 0.1.6-nightly.20261030.3904
   the preview browser runs in an agent scope, with the agents' +800 OOM score, low CPU weight and
   memory limits (pingdotgg/t3code#27239, #27176): "under agent memory pressure the preview
   browser is throttled too". Whether that bears on the snapshot timeouts is untested; a preview

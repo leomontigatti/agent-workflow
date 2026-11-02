@@ -53,6 +53,9 @@ WATCHED_PATHS = [
     "apps/server/src/worktreesDirectory.ts",
     "apps/web/src/components/settings/ScheduledTasksSettings.tsx",
     "packages/contracts/src/settings.ts",
+    "apps/server/src/process/agentScope.ts",
+    "apps/desktop/src/shell/DesktopShellEnvironment.ts",
+    "docs/user/permission-modes.md",
 ]
 
 PR_LINE = re.compile(r"^\* (.+?) by @\S+ in (https://github\.com/\S+/pull/(\d+))\s*$")
