@@ -54,6 +54,9 @@ of 15. A diff outside the full tier keeps one reviewer, to spare the quota.
 
 ## Reaching each model
 
+Every role starts fresh, from its brief alone, never as a fork of this session: a fork inherits the
+author's reasoning, the blind spot a judging role exists to escape.
+
 - **Claude Code in a T3 thread**: the main session calls `delegate_task` once per Codex role,
   with `target: {providerInstanceId: "codex", model, options: {reasoningEffort}}` from the table.
   A Claude role is the Agent tool: `reviewer-opus` for a review, the general agent with the

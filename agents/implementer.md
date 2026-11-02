@@ -24,6 +24,9 @@ no tracker issue to read.
    - Use the names the notes file fixes for anything another ticket also touches.
    - **Speculative hardening** (the `implement` skill's step 2) stays out of the code and goes
      under `risks`, in plain words: what breaks and for whom, how likely it is, and what the fix costs.
+   - A worktree holds only what git tracks. A test that skips here for want of gitignored fixtures,
+     a local database or credentials is no pass: name it under `risks`, for the orchestrator to run
+     in its checkout.
 3. **Land on the tip.** `git merge <integration branch>` into your branch, resolving conflicts
    with the `resolving-merge-conflicts` skill, then re-run `docs/agents/validation.md` § As you go (§ Before committing when it has
    none) for what you touched when the merge brought anything in. The orchestrator fast-forwards onto
