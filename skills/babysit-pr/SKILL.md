@@ -88,7 +88,10 @@ so take those on this wake, in this order:
   step 5 as BLOCKED, naming them.
 
 Otherwise end your turn. A head with no checks yet counts as running: T3 wakes the thread once if
-it still has none after 15 minutes. The next wake reads the round again.
+it still has none after 15 minutes. The next wake reads the round again. Before ending the
+turn, call `schedule_task` with `schedule: {type: "once", runAt: <now + 20 minutes, ISO 8601>}`
+and a prompt to read PR #<n>'s round again by this skill, so a wake the watch misses costs twenty
+minutes.
 
 **A check still running, outside T3**: wait for the rest in the background, with a timeout of
 1500000 ms, then read the round again:
