@@ -523,7 +523,10 @@ T3 source paths below are in pingdotgg/t3code.
   or an open finding goes to triage at once, so one push may not answer a whole round, and a
   required check unreported once every other check has finished is reported as BLOCKED. One gap
   stays: a required check that never reports while another still runs ends the turn, and no wake
-  follows, so the PR stalls until the user looks. Outside T3 the background
+  follows. That gap, and a wake the watch misses outright (rubens #79 and en-escena #1752, seen
+  2026-11-02 and 2026-11-03: every check passed and no wake came), are covered by a one-time
+  `schedule_task` (`{type: "once", runAt}`, bound to the thread by default) that `babysit-pr` sets
+  20 minutes out before each turn it ends on the watch; its run re-reads the round. Outside T3 the background
   `gh pr checks --watch` loop stays. Chosen by the user on 2026-11-01.
 - **Used by:** `skills/babysit-pr/SKILL.md` § 2 (the T3 and outside-T3 waits and the state table)
 - **Would improve if:** `watch_pull_request` wakes the thread when a required check has not
