@@ -19,7 +19,9 @@ commit), never pasted summaries.
 ## 1. Read the graph
 
 Start current, as `implement` step 1 says. Read the PRD with `gh issue view <PRD>` and
-`--comments`, list its sub-issues with `gh issue view <PRD> --json subIssues`, and read each one
+`--comments`, list its sub-issues with
+`gh issue view <PRD> --json subIssues -q '.subIssues.nodes[] | "\(.number) \(.state) \(.title)"'`
+(the field is an object, `{nodes, totalCount}`), and read each one
 with `--json number,title,body,state,blockedBy`. A resumed run reads the PR body's
 `## Sub-issues` checkboxes and the `Implemented in <sha>` comments to learn what already merged.
 
