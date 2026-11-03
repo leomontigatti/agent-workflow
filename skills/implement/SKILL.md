@@ -144,7 +144,10 @@ user not to commit overrides this. Conventional-commit subject and body, in the 
 
 **Screens are approved before the PR.** When step 4 captured a before and after, show them to the
 user and end the turn on the question, with what step 4 launched already stopped: in a T3 thread,
-embed each image by its absolute path in the reply; elsewhere, list the paths. An adjustment the
+embed each image by its absolute path in the reply; elsewhere, list the paths. The path resolves
+on the thread's own machine: a capture taken in another environment (a child delegated with
+`target.environmentId`) is first copied to this machine, the way the user's instructions for that
+machine say, and embedded from the copy; with no way to copy it, list its path. An adjustment the
 user asks for is a change like any other: steps 2 to 6 again, then show the new after. The
 approval holds until a later commit changes what a captured screen shows; then show it again.
 Done when the user has approved every captured screen, or step 4 captured none. The images stay
