@@ -57,9 +57,10 @@ A race the change itself brings in is fixed. A race it only finds, at any severi
 
 Take the actors and their frequencies from `docs/agents/review.md` § Hotspots, measured the way it
 says. Where it names none, read them off the entry points that reach each side (which roles,
-which surfaces), and mark it a guess. A race whose hits cost less than its fix is declined: closed
-as not planned with the estimate, or parked with the condition that would raise its likelihood. A
-follow-up or an issue for a race states all three, and triage decides by
+which surfaces), and mark it a guess. The weighing ends in a recommendation, and the user rules on
+it as on speculative hardening: fix it, park it with the condition that would raise its
+likelihood, or close it as not planned when its hits cost less than its fix. A follow-up or an
+issue for a race states all three and the recommendation, and triage decides by
 `docs/agents/issue-tracker.md` § Labels.
 
 Validate as you go: run `docs/agents/validation.md` § As you go for the slice each time it goes
