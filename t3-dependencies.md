@@ -680,6 +680,22 @@ T3 source paths below are in pingdotgg/t3code.
   (`MAX_SCREENSHOT_WIDTH`, `captureViewport`); `apps/server/src/mcp/toolkits/preview/tools.ts`;
   the trial's notes in the final reports of en-escena's and rubens' PRs
 
+### remote-child-files
+
+- **Workaround:** a reply's image renders from a path on the machine the thread runs on. A child
+  delegated to a linked environment (`target.environmentId`) saves its captures on that machine,
+  so the same path shows "Image unavailable" in the parent's thread (rubens #105's browser check
+  on 2026-11-03). The parent copies each file to its own machine first, with the access the
+  user's instructions give for that machine, and lists the path when it has none. No T3 tool
+  reads or moves a file between environments (0.1.7-nightly.20261103.4138):
+  `t3_attachment_prepare_upload` uploads to the caller's own server, and
+  `t3_thread_send_attachments` sends to a thread there.
+- **Used by:** `skills/implement/SKILL.md` § 7
+- **Would improve if:** T3 renders a remote child's file in the parent's thread, or a tool fetches a
+  file from a linked environment; then the copy step goes away.
+- **Watch:** no upstream issue yet; check each update's MCP tool list for a cross-environment file
+  tool
+
 ## Ready
 
 None.
