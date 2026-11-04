@@ -44,11 +44,12 @@ how likely it is, and what the fix costs. The user rules on it. A traced `critic
 speculative, and neither is validating input where it enters from outside the system (a user, the
 network, another service).
 
-A race carries its **likelihood**, at any severity, traced or not: who the concurrent actors are
-(roles and the surfaces they act through), how wide the window is (inside one transaction, or
-between a page load and a submit), how often each side runs, and whether a hit is silent (lost or
-wrong data) or loud (an error the user sees and retries). Take the actors and their frequencies
-from `docs/agents/review.md` § Hotspots, measured the way it says, and mark a guess as one.
+A race carries its **likelihood** at any severity, a traced `critical` one included: who the
+concurrent actors are (roles and the surfaces they act through), how wide the window is (inside
+one transaction, or between a page load and a submit), how often each side runs, and whether a hit
+is silent (lost or wrong data) or loud (an error the user sees and retries). Take the actors and their frequencies
+from `docs/agents/review.md` § Hotspots, measured the way it says. Where it names none, read
+them off the entry points that reach each side (which roles, which surfaces), and mark it a guess.
 Likelihood settles how soon a race is worth fixing, never whether it is real: a follow-up or an
 issue for a race states it, so triage can rank it by `docs/agents/issue-tracker.md` § Labels.
 
