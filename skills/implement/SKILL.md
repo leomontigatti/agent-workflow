@@ -44,6 +44,14 @@ how likely it is, and what the fix costs. The user rules on it. A traced `critic
 speculative, and neither is validating input where it enters from outside the system (a user, the
 network, another service).
 
+A race carries its **likelihood**, at any severity, traced or not: who the concurrent actors are
+(roles and the surfaces they act through), how wide the window is (inside one transaction, or
+between a page load and a submit), how often each side runs, and whether a hit is silent (lost or
+wrong data) or loud (an error the user sees and retries). Take the actors and their frequencies
+from `docs/agents/review.md` § Hotspots, measured the way it says, and mark a guess as one.
+Likelihood settles how soon a race is worth fixing, never whether it is real: a follow-up or an
+issue for a race states it, so triage can rank it by `docs/agents/issue-tracker.md` § Labels.
+
 Validate as you go: run `docs/agents/validation.md` § As you go for the slice each time it goes
 green.
 
@@ -94,7 +102,8 @@ branch, running the test or the call when reading does not settle it, then give 
   code to one that adds a guard, a helper or an option.
 - **decline**: the code disproves it. Keep the disproof (a `file:line`, a test, the invariant
   that covers it) for the final report. A claim that holds but whose fix lies outside the
-  change's goal is declined too, as out of scope: the final report lists it as a follow-up.
+  change's goal is declined too, as out of scope: the final report lists it as a follow-up, with
+  its likelihood when it is a race (step 2).
 - **ask**: the call is the user's. That is every finding that touches an area in
   `docs/agents/review.md` § Always ask, a migration, a destructive data path or a `GLOSSARY.md`
   term and that you cannot settle from the issue, every finding that needs a product decision, and
