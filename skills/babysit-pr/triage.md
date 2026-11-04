@@ -13,7 +13,7 @@ on.
   disproof (a `file:line`, a test, the invariant that covers it) and resolve. "Intentional" alone
   is not a reason. A claim that holds but whose fix lies outside the PR's goal is declined too:
   reply that it is out of scope and left as a follow-up, resolve, and list it under **Declined**
-  in the report, with its likelihood when it is a race (step 2 of the `implement` skill). Review rounds grow a PR one cheap-looking fix at a time; this keeps it the size
+  in the report, with its weighing when it is a race (step 2 of the `implement` skill). Review rounds grow a PR one cheap-looking fix at a time; this keeps it the size
   its goal needs.
 - **ask**: the call is the user's. Leave the thread open and bring it to them.
 

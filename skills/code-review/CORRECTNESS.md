@@ -32,8 +32,8 @@ this one asks whether it is **wrong**.
    > security hole; `warning`: holds today and breaks under a condition you can name, and how
    > likely that condition is), the hunk (file and line), and the **path** that triggers it: the
    > input or sequence of calls, traced through the code, that makes it go wrong. A traced race,
-   > at any severity, also gets its likelihood: who the concurrent actors are, how wide the window is,
-   > how often each side runs, and whether a hit is silent or loud. A suspicion you could not trace to a path goes
+   > at any severity, also gets its likelihood (who the concurrent actors are, how wide the window
+   > is, how often each side runs), what a hit costs (silent or loud), and what its fix would add. A suspicion you could not trace to a path goes
    > under "Untraced", one line each. Style, naming and structure belong to another reviewer.
    >
    > End with one line: `Would merge: yes | after fixes | no`, and the finding that decides it.
