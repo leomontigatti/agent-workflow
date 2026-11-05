@@ -284,6 +284,8 @@ T3 source paths below are in pingdotgg/t3code.
   the check `delegate_task` already applied. Since pingdotgg/t3code#29909 (0.1.7-nightly.20261103.4119)
   a child's question steers into a busy parent's running turn when the provider steers without
   interrupting tools (Codex); a Claude parent still gets it queued behind the turn.
+  Since pingdotgg/t3code#30257 (0.1.8-nightly.20261104.4179) the tool description ends "No secrets
+  in `task`"; no skill or brief here puts one there.
   Source: `packages/contracts/src/orchestratorMcp.ts`. Read-only review
   is a prompt rule (`agents/reviewer.md`), not something T3 enforces.
 - **Used by:** `agents/models.md` § Reaching each model; `skills/code-review/SKILL.md` § Spawning
@@ -336,7 +338,10 @@ T3 source paths below are in pingdotgg/t3code.
   (pingdotgg/t3code#24850, `orchestrationInstructions.ts`), and since pingdotgg/t3code#27139
   (0.1.7-nightly.20261102.4093) they say it outright: "Claude `Agent`, `run_in_background:false`
   ... Background agent: `delegate_task`, never a background `Agent`". The mechanism is unchanged
-  in 0.1.8-nightly.20261104.4165 (`threadAccess.ts` changed only its imports). `implement-spec` moved its background implementers
+  in 0.1.8-nightly.20261104.4165 (`threadAccess.ts` changed only its imports). Since pingdotgg/t3code#30257
+  (0.1.8-nightly.20261104.4179) `request_secret` takes a pasted `value` and saves it to a file with
+  no card, but that path runs after the active-run check, so a background subagent is still
+  refused. `implement-spec` moved its background implementers
   to `delegate_task` on 2026-10-26 (`implementer-worktrees`).
 - **Used by:** `skills/implement/PREVIEW.md` § The loop step 1 (parallel subagents each open their
   own tab)
