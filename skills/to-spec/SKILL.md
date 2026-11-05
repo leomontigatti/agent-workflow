@@ -14,7 +14,7 @@ Read `docs/agents/issue-tracker.md` first: it says how this repo's tracker expre
 
 1. Explore the repo to understand the current state of the codebase, if you haven't already. Use the project's domain glossary vocabulary throughout the spec, and respect any ADRs in the area you're touching.
 
-2. Sketch out the seams at which you're going to test the feature. Existing seams should be preferred to new ones. Use the highest seam possible. If new seams are needed, propose them at the highest point you can. The fewer seams across the codebase, the better - the ideal number is one.
+2. Sketch out the seams at which you're going to test the feature. Existing seams should be preferred to new ones. Use the highest seam possible. If new seams are needed, propose them at the highest point you can. The fewer seams across the codebase, the better - the ideal number is one. Propose them as the `tdd` skill's § Seams says, with the user stories at risk as its behaviours at risk: each with the cheapest check that proves it, including the stories no test needs to cover.
 
 Check with the user that these seams match their expectations.
 
@@ -62,9 +62,9 @@ Exception: if a prototype produced a snippet that encodes a decision more precis
 
 A list of testing decisions that were made. Include:
 
-- A description of what makes a good test (only test external behavior, not implementation details)
-- Which modules will be tested
+- The agreed seams, and for each user story at risk the check that proves it (no test, a seam test, a database test, an end-to-end flow, or verification only)
 - Prior art for the tests (i.e. similar types of tests in the codebase)
+- The existing tests the new ones make redundant
 
 ## Out of Scope
 

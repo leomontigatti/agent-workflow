@@ -80,6 +80,10 @@ The end-to-end behaviour this ticket makes work, from the user's perspective, no
 - [ ] Criterion 1
 - [ ] Criterion 2
 
+## Test seams
+
+The seams from the spec's Testing Decisions that this ticket's behaviour is tested through, each with the check that proves it. The implementer tests only at these, and stops with a question when they are missing.
+
 ## Blocked by
 
 - A reference to each blocking ticket, or "None (can start immediately)". Omit this section when blockers were set as native edges.
