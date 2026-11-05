@@ -26,7 +26,15 @@ A **seam** is the public boundary you test at: the interface where you observe b
 
 **Test only at pre-agreed seams.** Before writing any test, write down the seams under test and confirm them with the user. No test is written at an unconfirmed seam. You can't test everything, so agreeing the seams up front is how testing effort lands on the critical paths and complex logic instead of every edge case.
 
-Ask: "What's the public interface, and which seams should we test?" Give each proposed seam a one-line note on what it catches and what it misses.
+Ask: "What's the public interface, and which seams should we test?" Propose from the behaviours at risk, not from the files: for each, the cheapest check that goes red on its bug (name the bug, as § Rules of the loop says), with a one-line note on what it catches and what it misses.
+
+- **No test**: the type checker, the schema or the framework proves it (§ What a good test is).
+- **A test at a seam**: domain logic, through its public interface.
+- **A database test**: a constraint, a policy or a query only the database can prove; the project's `docs/agents/tdd-db.md` says how, when it has one.
+- **An end-to-end flow**: a critical user path an unrelated change could break, when the project runs such flows in CI. Extend an existing flow before adding one: each costs run time and flakiness on every PR.
+- **Verification only**: what a person judges on the screen (layout, spacing, how a screen reads). The `implement` skill's verification step proves it, and no test does.
+
+List with the proposal the existing tests the new ones make redundant (§ Keeping the suite lean). When a behaviour is a race, a retry or a state machine whose bug is costly and no test reliably reaches it, say so in the proposal: the user decides whether it needs more than a test.
 
 When the shape of that interface is itself in question (how deep the module is, where the seam belongs, what the interface should expose), call the Skill tool with "codebase-design" for the vocabulary. It is the shared source of the module, interface, depth, seam, adapter, leverage and locality terms, and it is a reference to consult, not a session to run.
 
