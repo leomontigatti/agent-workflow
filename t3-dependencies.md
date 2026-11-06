@@ -27,7 +27,9 @@ T3 source paths below are in pingdotgg/t3code.
   Import from t3.json). Since 0.1.4-nightly.20261027.3796 the runner skips the script
   (`skipped-for-link`) for a thread a linked environment started under a link below full access
   (`ProjectSetupScriptRunner.ts`); linked environments are a Labs beta, off by default
-  (`linkedEnvironmentsEnabled`), and no workflow here uses them.
+  (`linkedEnvironmentsEnabled`), and no workflow here uses them. Since pingdotgg/t3code#31857
+  (0.1.8-nightly.20261106.4262) a script may set `stopOnSettle`, which stops its terminal and child
+  processes when the thread settles; it defaults to false and no project's `t3.json` sets it.
 - **Used by:** `skills/implement/THREADS.md`; `agents/implementer.md` step 1 (T3 set up the
   implementer's checkout before it started)
 - **Breaks if:** T3 stops applying `defaultThreadEnvMode` or running create-time scripts, starts
@@ -72,7 +74,8 @@ T3 source paths below are in pingdotgg/t3code.
   so `worktreeOnDelete` removes it too (pingdotgg/t3code#23900). Deleting a thread always
   requests a sweep; since pingdotgg/t3code#26038 (0.1.6-nightly.20261029.3892) a provider session
   stop requests one only while a deleted thread's worktree waits on it, and the other worktree
-  rules run on the hourly sweep. Last run also lists folders
+  rules run on the hourly sweep; since 0.1.8-nightly.20261106.4262 a provider session's error
+  requests one only once that session is no longer live. Last run also lists folders
   in the managed folder no thread uses (pingdotgg/t3code#19749), which T3 never removes. It keeps
   the branch on purpose, runs no script on removal, and has no MCP tool to trigger or read it
   (`apps/server/src/storageCleanup.ts`; `packages/contracts/src/settings.ts`;
@@ -129,7 +132,12 @@ T3 source paths below are in pingdotgg/t3code.
   pingdotgg/t3code#29781 (0.1.7-nightly.20261104.4151) a launch cancelled or failed before it
   records its workspace force-deletes the branch it created, renamed or not, with the worktree;
   since pingdotgg/t3code#28373 (0.1.7-nightly.20261103.4119) a failed `git worktree add` does too.
-  A branch that existed before the call is never touched.
+  A branch that existed before the call is never touched. Since pingdotgg/t3code#31819
+  (0.1.8-nightly.20261106.4262) the `workspaceStrategy` description and T3's injected
+  instructions give the base: honor a requested one, else independent work starts from the
+  default branch as `origin/<default>` with `startFromOrigin: true`, and work that needs
+  unpublished commits or depends on another branch starts from its local base with
+  `startFromOrigin: false`. `THREADS.md` names no base, so it does not conflict.
 - **Used by:** `skills/implement/THREADS.md` ("Work where you started", "A launched thread
   reports to its own inbox")
 - **Breaks if:** the tool or its `workspaceStrategy` shape changes, or a launched thread stops
@@ -142,7 +150,12 @@ T3 source paths below are in pingdotgg/t3code.
   name (`PullRequestTargetInput` in `apps/server/src/mcp/toolkits/pullRequests/tools.ts`). Only
   T3's automatic branch association follows the branch: since pingdotgg/t3code#20223
   (0.1.1-nightly.20261018.3331) a merged or closed PR it found is dropped once its head branch is
-  no longer the thread's; explicit links keep theirs (`ThreadPullRequestService.ts`).
+  no longer the thread's; explicit links keep theirs (`ThreadPullRequestService.ts`). Since
+  pingdotgg/t3code#31599 (0.1.8-nightly.20261106.4247) the thread's recorded `branch` follows its
+  worktree: when T3's VCS status cache sees the checked-out branch change, every thread on that
+  worktree, archived ones too, gets the new name (`WorktreeBranchSync.ts`, fed by
+  `VcsStatusBroadcaster.streamBranchChanges`); a detached HEAD or a root checkout keeps the old
+  one. So automatic association now follows the new branch.
 - **Used by:** `skills/implement/THREADS.md` ("Branch names")
 - **Breaks if:** T3 starts resolving a thread's PR, or its state, from the branch name recorded
   when the thread started.
@@ -210,8 +223,11 @@ T3 source paths below are in pingdotgg/t3code.
   mergeability while GitHub reports `unknown` and the PR's `updatedAt` is unchanged, so T3's
   stored state can differ from the `UNKNOWN` that `babysit-pr` reads from GitHub itself. Since
   pingdotgg/t3code#29767 (0.1.7-nightly.20261104.4151) a reported conflict belongs to one head, so
-  a push that leaves the branch conflicting wakes the thread again.
-  `list_thread_pull_requests` with another thread's `threadId` lists that thread's PRs.
+  a push that leaves the branch conflicting wakes the thread again. Since pingdotgg/t3code#30291
+  (0.1.8-nightly.20261106.4262) a slow host no longer delays other watched PRs' wakes.
+  `list_thread_pull_requests` with another thread's `threadId` lists that thread's PRs; since
+  pingdotgg/t3code#30375 (same build) the PR tools fail a missing thread with `thread_not_found`,
+  pointing a bare uuid at its `mcp:` thread.
 - **Used by:** `skills/babysit-pr/SKILL.md` § 2 and § 5; `skills/implement/SKILL.md` § 7;
   `skills/implement/THREADS.md` ("A launched thread reports to its own inbox")
 - **Breaks if:** a wake event is dropped, or a wake no longer ends the turn, so the session has to
@@ -285,7 +301,14 @@ T3 source paths below are in pingdotgg/t3code.
   a child's question steers into a busy parent's running turn when the provider steers without
   interrupting tools (Codex); a Claude parent still gets it queued behind the turn.
   Since pingdotgg/t3code#30257 (0.1.8-nightly.20261104.4179) the tool description ends "No secrets
-  in `task`"; no skill or brief here puts one there.
+  in `task`"; no skill or brief here puts one there. Since pingdotgg/t3code#27034
+  (0.1.8-nightly.20261106.4247) Ultracode is a Claude on/off option of its own, and a
+  `reasoningEffort: "ultracode"` in `target.options` reads as Extra High with it on
+  (`withLegacyUltracodeEffort`); `agents/models.md` names no Ultracode. Since
+  pingdotgg/t3code#28204 (0.1.8-nightly.20261105.4205) interrupting one child's completion wake
+  keeps its siblings' wakes, and since pingdotgg/t3code#26435 (same build) an older pending
+  question stays answerable. `t3_thread_send` takes `freshContext` (pingdotgg/t3code#30323), but
+  a re-check is a new `delegate_task`, so no skill uses it.
   Source: `packages/contracts/src/orchestratorMcp.ts`. Read-only review
   is a prompt rule (`agents/reviewer.md`), not something T3 enforces.
 - **Used by:** `agents/models.md` § Reaching each model; `skills/code-review/SKILL.md` § Spawning
@@ -387,7 +410,14 @@ T3 source paths below are in pingdotgg/t3code.
   pingdotgg/t3code#28474 (0.1.7-nightly.20261101.4035) an interrupt no longer leaves a task marked
   busy until a restart, which made scheduled polls skip it silently. A managed policy
   (pingdotgg/t3code#27197, `/etc/t3code/policy.json` on Linux) can block webhook tasks and cap
-  runtime modes; this machine had none on 2026-11-02.
+  runtime modes; this machine had none on 2026-11-02. Since pingdotgg/t3code#30326
+  (0.1.8-nightly.20261106.4247) a task has a `threadMode`: `new_thread`, `continue` or
+  `fresh_session` (`schedule_task`'s `freshSession`, also in its result). A task unbound before
+  the migration stays `new_thread`, and a save that names no mode keeps the stored one, so both
+  reviews still start a new thread per run. The one-time re-read `babysit-pr` schedules binds to
+  its thread, so it is `continue`, as before. `fresh_session` would keep every run in one thread
+  without its context, but a bound run uses that thread's checkout, never a fresh worktree from
+  `origin/main`, so the reviews stay on new threads.
 - **Used by:** `skills/upstream-review/SKILL.md` § Cadence; `skills/t3-update-review/SKILL.md`
   § Cadence
 - **Breaks if:** scheduled runs stop starting when no thread is open, stop getting a worktree of
@@ -417,7 +447,7 @@ T3 source paths below are in pingdotgg/t3code.
   after the machine wakes can fire before the network is up: workspace preparation fails on
   `git fetch` ("Git could not reach the remote", `retryable: false`) and the task still says
   `succeeded` (all three Monday runs on 2026-10-19; again the daily review on 2026-11-04, retried
-  by hand). Still so in 0.1.8-nightly.20261104.4165:
+  by hand). Still so in 0.1.8-nightly.20261106.4262:
   `lastRunStatus` is `failed` only when the launch call itself fails, and since
   pingdotgg/t3code#29889 (0.1.7-nightly.20261104.4151) `lastRunError` is a plain message without a
   stack trace. `run_scheduled_task_now`
@@ -475,6 +505,16 @@ T3 source paths below are in pingdotgg/t3code.
   pingdotgg/t3code#20079 (0.1.1-nightly.20261016.3203), which now renames the subagents' branch
   too (`apps/server/src/storageCleanup.ts`). On 2026-10-16, 28 worktrees were kept, most for one
   of these two reasons.
+- **Partly met in:** 0.1.8-nightly.20261106.4247, untried. Cleanup keeps "Repository or branch
+  changed" when the worktree's branch differs from the thread's recorded `branch`
+  (`branchChanged` in `storageCleanup.ts`), and since pingdotgg/t3code#31599 that recorded branch
+  follows the worktree once T3's VCS status cache sees the change (`renamed-branch-in-thread`).
+  So a renamed worktree may now be judged by its new branch's PR. Not settled: the sync runs only
+  when the status cache refreshes that worktree, and #17813 is still open. On 2026-11-06 this
+  review's own thread switched its worktree to a new branch mid-turn, and `t3_thread_read` still
+  gave the old branch several minutes later, before the turn ended. **Ready** once a
+  worktree whose branch was renamed after the thread started is removed after its PR merges
+  (Settings → Maintenance → Cleanup → Last run); then `housekeeping` drops its renamed-branch row.
 - **Watch:** pingdotgg/t3code#17813 (open; #16559 closed as its duplicate on 2026-10-22), fixed by
   no open PR: #22805 (run finalization updates `thread.branch` to the checked-out branch) closed
   unmerged on 2026-10-30 at a maintainer's request, as the approved direction covers only a
@@ -532,7 +572,7 @@ T3 source paths below are in pingdotgg/t3code.
   setup terminal log under `logs/terminals/`. `ProviderTurnStartService.ts` on T3's `main` has no
   reference to a setup script (keyword search of that file only; the same at
   0.1.7-nightly.20261102.4066, after pingdotgg/t3code#26758 changed which ref the recovery restores,
-  and at 0.1.8-nightly.20261104.4165).
+  and at 0.1.8-nightly.20261106.4262).
 - **Used by:** `skills/implement/THREADS.md` (the intro); `skills/housekeeping/SKILL.md` (a live
   thread's resources are kept for its resume)
 - **Would improve if:** T3 runs `runOnWorktreeCreate` when it recreates a worktree.
@@ -654,7 +694,11 @@ T3 source paths below are in pingdotgg/t3code.
   still matches (`namedTargetTimeout` in `ServerBrowserPage.ts`), so some of the trial's lost
   clicks may have been dispatched clicks whose wait timed out. A failed `preview_open` no longer
   leaves a hidden tab (pingdotgg/t3code#29865, #29885). Snapshot capture is unchanged through
-  0.1.8-nightly.20261104.4165, so no snapshot fault moved.
+  0.1.8-nightly.20261106.4262 (`ServerBrowserPage.ts` only moved its errors to a tagged class), so
+  no snapshot fault moved. Since pingdotgg/t3code#30306 (same build) the server's headless browser
+  closes after five idle minutes, and the next agent tab starts it cold (about 190 ms); since
+  pingdotgg/t3code#24186 (0.1.8-nightly.20261105.4205) idle agent tabs free a slot when the
+  32-tab limit is full.
   Since 0.1.6-nightly.20261030.3904
   the preview browser runs in an agent scope, with the agents' +800 OOM score, low CPU weight and
   memory limits (pingdotgg/t3code#27239, #27176): "under agent memory pressure the preview
