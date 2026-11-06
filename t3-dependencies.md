@@ -511,8 +511,9 @@ T3 source paths below are in pingdotgg/t3code.
   follows the worktree once T3's VCS status cache sees the change (`renamed-branch-in-thread`).
   So a renamed worktree may now be judged by its new branch's PR. Not settled: the sync runs only
   when the status cache refreshes that worktree, and #17813 is still open. On 2026-11-06 this
-  review's own thread switched its worktree to a new branch mid-turn, and `t3_thread_read` still
-  gave the old branch several minutes later, before the turn ended. **Ready** once a
+  review's own thread switched its worktree to a new branch mid-turn: `t3_thread_read` gave the
+  old branch until the turn ended, and the new one on the next turn, so the recorded branch does
+  follow a switch. Cleanup removing such a worktree is still unseen. **Ready** once a
   worktree whose branch was renamed after the thread started is removed after its PR merges
   (Settings → Maintenance → Cleanup → Last run); then `housekeeping` drops its renamed-branch row.
 - **Watch:** pingdotgg/t3code#17813 (open; #16559 closed as its duplicate on 2026-10-22), fixed by
