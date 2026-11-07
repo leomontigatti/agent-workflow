@@ -38,6 +38,7 @@ WATCHED_PATHS = [
     "apps/server/src/git/linkCreatedPullRequest.ts",
     "apps/server/src/orchestration-v2/ThreadLaunchService.ts",
     "apps/server/src/orchestration-v2/ThreadPullRequestService.ts",
+    "apps/server/src/orchestration-v2/WorktreeBranchSync.ts",
     "apps/server/src/orchestration-v2/ProviderTurnStartService.ts",
     "apps/server/src/project/ProjectSetupScriptRunner.ts",
     "apps/server/src/preview/ServerBrowserPage.ts",

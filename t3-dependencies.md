@@ -153,7 +153,8 @@ T3 source paths below are in pingdotgg/t3code.
   no longer the thread's; explicit links keep theirs (`ThreadPullRequestService.ts`). Since
   pingdotgg/t3code#31599 (0.1.8-nightly.20261106.4247) the thread's recorded `branch` follows its
   worktree: when T3's VCS status cache sees the checked-out branch change, every thread on that
-  worktree, archived ones too, gets the new name (`WorktreeBranchSync.ts`, fed by
+  worktree, archived ones too, gets the new name
+  (`apps/server/src/orchestration-v2/WorktreeBranchSync.ts`, fed by
   `VcsStatusBroadcaster.streamBranchChanges`); a detached HEAD or a root checkout keeps the old
   one. So automatic association now follows the new branch.
 - **Used by:** `skills/implement/THREADS.md` ("Branch names")
@@ -176,7 +177,9 @@ T3 source paths below are in pingdotgg/t3code.
   `unlink_pull_requests` drops every PR in the given `states` (pingdotgg/t3code#27925); no skill
   uses either. T3's runtime instructions (`packages/provider-core/src/server/runtimeInstructions.ts`)
   still say "Host tools do not link for you", beside the auto-link `pr-auto-link` records; the
-  extra call returns `alreadyLinked`. Since pingdotgg/t3code#30071 (0.1.7-nightly.20261104.4151)
+  extra call returns `alreadyLinked`. Since pingdotgg/t3code#32162 (0.1.8-nightly.20261106.4288)
+  the PR sync's git reads run as background git work, so they no longer delay git status after a
+  restart; what it links and reports is unchanged. Since pingdotgg/t3code#30071 (0.1.7-nightly.20261104.4151)
   the sync stops polling a link whose PR closed over a day ago; a requested sync or a seen state
   change still reads it, so a reopened PR is picked up.
 - **Used by:** `skills/implement/THREADS.md` ("One thread, one branch, one PR");
@@ -227,7 +230,10 @@ T3 source paths below are in pingdotgg/t3code.
   (0.1.8-nightly.20261106.4262) a slow host no longer delays other watched PRs' wakes.
   `list_thread_pull_requests` with another thread's `threadId` lists that thread's PRs; since
   pingdotgg/t3code#30375 (same build) the PR tools fail a missing thread with `thread_not_found`,
-  pointing a bare uuid at its `mcp:` thread.
+  pointing a bare uuid at its `mcp:` thread. Since pingdotgg/t3code#32325
+  (0.1.8-nightly.20261107.4314) inactivity auto-settle defaults to 7 days instead of 3; settings
+  are stored sparse, so only a user on the default moves. This machine stores
+  `sidebarAutoSettleAfterDays: null` (off), an explicit value the change keeps.
 - **Used by:** `skills/babysit-pr/SKILL.md` § 2 and § 5; `skills/implement/SKILL.md` § 7;
   `skills/implement/THREADS.md` ("A launched thread reports to its own inbox")
 - **Breaks if:** a wake event is dropped, or a wake no longer ends the turn, so the session has to
@@ -447,7 +453,7 @@ T3 source paths below are in pingdotgg/t3code.
   after the machine wakes can fire before the network is up: workspace preparation fails on
   `git fetch` ("Git could not reach the remote", `retryable: false`) and the task still says
   `succeeded` (all three Monday runs on 2026-10-19; again the daily review on 2026-11-04, retried
-  by hand). Still so in 0.1.8-nightly.20261106.4262:
+  by hand). Still so in 0.1.8-nightly.20261107.4314:
   `lastRunStatus` is `failed` only when the launch call itself fails, and since
   pingdotgg/t3code#29889 (0.1.7-nightly.20261104.4151) `lastRunError` is a plain message without a
   stack trace. `run_scheduled_task_now`
@@ -573,7 +579,7 @@ T3 source paths below are in pingdotgg/t3code.
   setup terminal log under `logs/terminals/`. `ProviderTurnStartService.ts` on T3's `main` has no
   reference to a setup script (keyword search of that file only; the same at
   0.1.7-nightly.20261102.4066, after pingdotgg/t3code#26758 changed which ref the recovery restores,
-  and at 0.1.8-nightly.20261106.4262).
+  and at 0.1.8-nightly.20261107.4314).
 - **Used by:** `skills/implement/THREADS.md` (the intro); `skills/housekeeping/SKILL.md` (a live
   thread's resources are kept for its resume)
 - **Would improve if:** T3 runs `runOnWorktreeCreate` when it recreates a worktree.
@@ -695,7 +701,7 @@ T3 source paths below are in pingdotgg/t3code.
   still matches (`namedTargetTimeout` in `ServerBrowserPage.ts`), so some of the trial's lost
   clicks may have been dispatched clicks whose wait timed out. A failed `preview_open` no longer
   leaves a hidden tab (pingdotgg/t3code#29865, #29885). Snapshot capture is unchanged through
-  0.1.8-nightly.20261106.4262 (`ServerBrowserPage.ts` only moved its errors to a tagged class), so
+  0.1.8-nightly.20261107.4314 (`ServerBrowserPage.ts` only moved its errors to a tagged class), so
   no snapshot fault moved. Since pingdotgg/t3code#30306 (same build) the server's headless browser
   closes after five idle minutes, and the next agent tab starts it cold (about 190 ms); since
   pingdotgg/t3code#24186 (0.1.8-nightly.20261105.4205) idle agent tabs free a slot when the
