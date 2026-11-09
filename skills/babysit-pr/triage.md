@@ -80,14 +80,14 @@ gh api graphql -F owner='{owner}' -F repo='{repo}' -F n=<n> -f query='
 ```
 
 Then every review with a body, and every top-level comment, oldest first: a review-body finding
-and a question asked in a comment live here, outside any thread:
+and a question asked in a comment live here, outside any thread. It reads the newest 100 of each:
 
 ```bash
 gh api graphql -F owner='{owner}' -F repo='{repo}' -F n=<n> -f query='
   query($owner: String!, $repo: String!, $n: Int!) {
     repository(owner: $owner, name: $repo) { pullRequest(number: $n) {
-      reviews(first: 100) { nodes { submittedAt author { login } state body isMinimized } }
-      comments(first: 100) { nodes { createdAt author { login } body isMinimized } }
+      reviews(last: 100) { nodes { submittedAt author { login } state body isMinimized } }
+      comments(last: 100) { nodes { createdAt author { login } body isMinimized } }
     } } }' \
   --jq '.data.repository.pullRequest
         | ([.reviews.nodes[] | select(.body != "" and (.isMinimized | not))
