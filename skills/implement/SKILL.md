@@ -68,8 +68,8 @@ green.
 
 ## 3. Validate once at the end
 
-When `docs/agents/validation.md` has a § Heavy, its commands leave the local list and run on a
-linked machine: follow [HEAVY.md](HEAVY.md) first, which also says when they run here instead.
+When `docs/agents/validation.md` has a § Heavy, its commands leave the local list and run as the
+CI job it names: follow [HEAVY.md](HEAVY.md) first, which also says when they run here instead.
 
 Run `docs/agents/validation.md` § Before committing. Fix and re-run each command until it is
 clean before moving to the next. Read a failure where the command prints it: output cut with
@@ -193,7 +193,7 @@ only at the skill's report.
 What needs the user first: every **ask**, one bullet each however many there are, with the call,
 your pick, the evidence behind it, its risk (a low one too) and its link when there is one, so the
 user can decide from the report alone; then every check you could not run and why, and every
-§ Heavy command with where it ran, its commit and its exit code ([HEAVY.md](HEAVY.md)). Then what
+§ Heavy command with where it ran, its commit and its result ([HEAVY.md](HEAVY.md)). Then what
 changed, then what was found. Label each claim about behaviour **measured** (you ran it: paste the
 failing-then-passing output), **inferred** (from reading the code: give the `file:line`) or
 **guess**.

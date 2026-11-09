@@ -31,7 +31,6 @@ the model and why, as it does for a fallback.
 | Research              | primary sources outside the repo (`research` agent)       | Codex `gpt-6-luna`                                       | medium  | Claude `research` on Sonnet                  |
 | Miners                | slices of transcripts or diffs (`retro`, `upstream-review`, `t3-update-review`) | Codex `gpt-6.1-terra`              | low     | Claude Sonnet                                |
 | Implementer           | one ticket (`implement-spec`)                             | the author's family: Opus (`claudeAgent`) in Claude Code, `gpt-6.1-sol` (`codex`) in Codex | medium in Codex | none                     |
-| Heavy runner          | a project's § Heavy commands on a linked machine (`implement`'s [HEAVY.md](../skills/implement/HEAVY.md)) | the author's family, light: Sonnet in Claude Code, Terra in Codex | low | here, recorded |
 | Codebase mapping      | a narrow read of 4+ files for the session                 | the harness's own explorer (Claude's `Explore`, Codex's default agent) | default | inline                       |
 
 Model ids: Sol is `gpt-6.1-sol`, Terra is `gpt-6.1-terra`, Luna is `gpt-6-luna` (Codex); Opus is
@@ -70,9 +69,6 @@ author's reasoning, the blind spot a judging role exists to escape.
   (`reviewer`, `reviewer-luna`, `research`).
 - **The Implementer**, from either harness, is a `delegate_task` child with
   `isolation: "worktree"`, for the checkout T3 prepares; it has no harness wrapper.
-- **The Heavy runner**, from either harness, is a `delegate_task` child with
-  `target.environmentId`, on its row's model there (`claudeAgent` for Sonnet, `codex` for
-  Terra); it has no harness wrapper.
 - **Outside T3** (no `delegate_task`): the fallback column.
 
 The table's effort goes in `target.options` under the provider's own name: `reasoningEffort` for
