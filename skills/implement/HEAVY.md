@@ -26,15 +26,20 @@ SHA. A new run can take a minute to appear: list again before falling back.
 
 **Fall back here** when the repo has no such workflow, the dispatch is refused, no run for the SHA
 appears within five minutes, or § 4 sends you here. Run the workflow's own skip rule here first,
-on the tree CI judges: fetch its base ref fresh as the workflow does, take for `HEAD` the revision
-CI checks out (on a PR its merge commit, `git fetch origin pull/<n>/merge`; before one, the pushed
-SHA), and run the rule's command exactly as the workflow writes it (every flag, such as
-`--no-renames`) through its own predicate. When it matches, CI would have skipped the commands
-too: they do not run here either, and the final report says so, with the rule and why the remote
-did not answer. Otherwise, or when that tree or the rule cannot be reproduced here (a merge ref
-GitHub has not built, a rule that reads the event, a secret or a variable only CI has), run
-§ Heavy's commands here with the rest, and the final report says they ran here and why. The
-remote never blocks the run.
+on the tree CI judges, with its base ref fetched fresh as the workflow does:
+
+- **Before the PR opens**, that tree is the pushed SHA.
+- **On a PR**, it is GitHub's merge commit: `git fetch origin pull/<n>/merge`, then
+  `git rev-parse FETCH_HEAD^2` must print the pushed SHA, or the merge is stale and the tree
+  cannot be reproduced.
+
+Run the rule's command exactly as the workflow writes it (every flag, such as `--no-renames`),
+with that tree's SHA in place of `HEAD`, through its own predicate. When it matches, CI would have
+skipped the commands too: they do not run here either, and the final report says so, with the
+rule and why the remote did not answer. Otherwise, or when the tree or the rule cannot be
+reproduced here (no merge ref, a stale one, a rule that reads the event, a secret or a variable
+only CI has), run § Heavy's commands here with the rest, and the final report says they ran here
+and why. The remote never blocks the run.
 
 ## 3. Wait for it
 
