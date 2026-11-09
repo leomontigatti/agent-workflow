@@ -57,9 +57,10 @@ its `run:` line in the workflow, and read it too.
 ## 5. Later commits
 
 Each later commit (a review fix, a merge from the base) needs the § Heavy commands green on the
-head the run ends on: the PR's CI run on that head counts, read as § 4 says.
+head the run ends on: §§ 2 to 4 again on that head, where once the PR is open its own CI run is
+the run, and § 2's fallback still holds.
 
-- **A merge from the base** always waits for that run, whatever files it brings in. They are the
+- **A merge from the base** always goes through them, whatever files it brings in. They are the
   base's, and a skip rule that reads the branch's diff against the base sees only the branch's own
   changes: a docs-only branch still skips by its rule, and a code branch runs on the merged code.
 - **A commit of your own** that changes only files the skip rule ignores (docs, in a workflow that
