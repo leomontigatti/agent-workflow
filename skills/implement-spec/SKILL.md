@@ -22,7 +22,8 @@ Start current, as `implement` step 1 says. Read the PRD with `gh issue view <PRD
 `--comments`, list its sub-issues with
 `gh issue view <PRD> --json subIssues -q '.subIssues.nodes[] | "\(.number) \(.state) \(.title)"'`
 (the field is an object, `{nodes, totalCount}`), and read each one
-with `--json number,title,body,state,blockedBy`. A resumed run reads the PR body's
+with `--json number,title,body,state,blockedBy`; `blockedBy` has the same shape, so its open
+blockers are `[.blockedBy.nodes[] | select(.state == "OPEN") | .number]`. A resumed run reads the PR body's
 `## Sub-issues` checkboxes and the `Implemented in <sha>` comments to learn what already merged.
 
 Two edges the tracker does not hold, added by you:

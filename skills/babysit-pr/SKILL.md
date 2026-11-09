@@ -75,6 +75,10 @@ A review-body finding is one a reviewer puts in its review's body rather than in
 outside-diff comment, a nitpick); it is unanswered until a top-level comment from someone other
 than a bot follows that review: yours, answering it in step 4.
 
+Editing the PR's title or body re-runs every check that listens for `edited` (a review-record or
+title gate), so a PR that was green reads as running, or `BLOCKED`, until they finish: the
+running-check row, not a new problem.
+
 **A check still running, in T3**: the watch does the waiting, and it stays silent in some cases,
 so take those on this wake, in this order:
 

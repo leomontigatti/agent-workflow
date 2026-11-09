@@ -29,12 +29,12 @@ the model and why, as it does for a fallback.
 | Readback              | restates a diff                                           | Codex `gpt-6-luna`, or Claude Sonnet when Codex wrote it | low     | same-family, recorded                        |
 | Design runners        | `codebase-design`'s design-it-twice, `prototype` variants | both families, alternating: Opus, Sol, Opus…             | high    | one family, at the same count                |
 | Research              | primary sources outside the repo (`research` agent)       | Codex `gpt-6-luna`                                       | medium  | Claude `research` on Sonnet                  |
-| Miners                | slices of transcripts or diffs (`retro`, `upstream-review`, `t3-update-review`) | Codex `gpt-6-luna`                 | low     | Claude Sonnet                                |
+| Miners                | slices of transcripts or diffs (`retro`, `upstream-review`, `t3-update-review`) | Codex `gpt-6.1-terra`              | low     | Claude Sonnet                                |
 | Implementer           | one ticket (`implement-spec`)                             | the author's family: Opus (`claudeAgent`) in Claude Code, `gpt-6.1-sol` (`codex`) in Codex | medium in Codex | none                     |
 | Codebase mapping      | a narrow read of 4+ files for the session                 | the harness's own explorer (Claude's `Explore`, Codex's default agent) | default | inline                       |
 
-Model ids: Sol is `gpt-6.1-sol`, Luna is `gpt-6-luna` (Codex); Opus is `claude-opus-5-5`, Sonnet is
-`claude-sonnet-5-5` (Claude).
+Model ids: Sol is `gpt-6.1-sol`, Terra is `gpt-6.1-terra`, Luna is `gpt-6-luna` (Codex); Opus is
+`claude-opus-5-5`, Sonnet is `claude-sonnet-5-5` (Claude).
 
 Why each effort:
 
@@ -42,8 +42,11 @@ Why each effort:
   spec's lines); tracing one path in depth is the correctness axis's job.
 - **Correctness**: depth on a traced path; raise it for a migration or concurrency diff. High
   effort elsewhere buys little: it turned 1 of 11 bugs a model missed at medium into a catch.
-- **Readback** and **Miners**: restating and sorting need little reasoning, and the light model
-  spares the heavy one's quota.
+- **Readback**: restating a diff needs little reasoning, and the light model spares the heavy
+  one's quota.
+- **Miners**: sorting needs little reasoning, but a slice is tens of kilobytes to read to the end.
+  On the same two slices (retro, 2026-11-09), Luna dropped a session and missed the main
+  friction of another, Haiku cited wrong transcript lines, and Terra matched Sonnet's blocks.
 - **Design runners**: each must find a radically different design, the costliest thinking here.
 - **Research**: reading and citing sources, not reasoning across them.
 
@@ -67,6 +70,11 @@ author's reasoning, the blind spot a judging role exists to escape.
 - **The Implementer**, from either harness, is a `delegate_task` child with
   `isolation: "worktree"`, for the checkout T3 prepares; it has no harness wrapper.
 - **Outside T3** (no `delegate_task`): the fallback column.
+
+The table's effort goes in `target.options` under the provider's own name: `reasoningEffort` for
+Codex, `effort` for Claude. `delegate_task` runs a child in this thread's project, or on a linked
+machine with `target.environmentId`; work in another project on this machine is a
+`t3_thread_launch` in that project.
 
 When a call refuses a model id, `orchestrator_capabilities` lists the live ones; fix the table
 and the wrappers together.
