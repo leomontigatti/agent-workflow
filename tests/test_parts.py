@@ -95,6 +95,29 @@ class Split(unittest.TestCase):
     def test_index_says_when_there_is_nothing(self):
         self.assertIn("Nothing to read", slurp(self.p.write_index()))
 
+    def test_a_line_too_long_for_one_part_is_cut_into_lines(self):
+        line = "+" + "y" * 100_000 + "\n"
+        names = self.p.add("watched", "diff", [("min.js", "--- a/min.js\n+++ b/min.js\n@@ -0,0 +1 @@\n" + line)])
+        self.assertGreater(len(names), 1)
+        self.assert_all_fit(names)
+        body = "".join(self.read(n).split("+++ b/min.js\n", 1)[1] for n in names)
+        self.assertEqual(body.replace("\n", ""), "@@ -0,0 +1 @@" + line.replace("\n", ""))
+        self.assertTrue(all(len(l) <= parts.MAX_LINE for l in body.splitlines()))
+
+    def test_an_index_too_big_for_one_read_is_cut_into_parts(self):
+        sections = [("p/" + "d" * 170 + f"/{i}.md", diff(f"{i}.md", 1, 1)) for i in range(400)]
+        self.p.add("src", "diff", sections)
+        index = slurp(self.p.write_index())
+        self.assertTrue(parts.fits(index))
+        pages = sorted(n for n in os.listdir(self.out) if n.startswith("index.") and n != "index.md")
+        self.assertGreater(len(pages), 1)
+        for n in pages:
+            self.assertIn(f"`{n}`", index)
+            self.assertTrue(parts.fits(self.read(n)), n)
+        listed = "".join(self.read(n) for n in pages)
+        for path, _ in sections:
+            self.assertIn(f"`{path}`", listed)
+
     def test_non_ascii_round_trips(self):
         text = "--- a/x\n+++ b/x\n@@ -1 +1 @@\n+José ñ 日本\n"
         names = self.p.add("src", "diff", [("x", text)])
