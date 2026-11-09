@@ -9,9 +9,12 @@ The sources and their watermarks are `upstreams/sources.json` in the shared-work
 from this script's real path. `collect` resolves each source's branch head, diffs the watched
 paths between the watermark and that head, and writes, under --out:
 
-  <id>.commits.md   the commits in the range, oldest first
-  <id>.diff         the unified diff of the watched files
-  heads.json        the head each source was diffed against, for `mark`
+  <id>.commits.<n>.md   the commits in the range, oldest first
+  <id>.<n>.diff         the unified diff of the watched files
+  index.md              every part above, with what it covers and its size
+  heads.json            the head each source was diffed against, for `mark`
+
+Each output is cut into parts that each fit one Read.
 
 It changes nothing else. `mark` sets each source's `reviewed` to the head `collect` recorded, in
 the repo's working tree, and refuses unless the report file exists: the watermark moves only once
@@ -27,6 +30,9 @@ import os
 import subprocess
 import sys
 from datetime import date
+
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.realpath(__file__)), "..", "..", "..", "lib"))
+import parts  # noqa: E402
 
 ROOT = os.path.normpath(os.path.join(os.path.dirname(os.path.realpath(__file__)), "..", "..", ".."))
 SOURCES = os.path.join(ROOT, "upstreams", "sources.json")
@@ -59,7 +65,7 @@ def collect(out):
     for name in os.listdir(out):
         os.remove(os.path.join(out, name))
 
-    heads = {}
+    heads, written = {}, parts.Parts(out)
     for s in sources:
         sid, repo, base = s["id"], s["repo"], s["reviewed"]
         head = gh_json(f"repos/{repo}/commits/{s['branch']}")["sha"]
@@ -73,26 +79,26 @@ def collect(out):
         files = [f for f in cmp.get("files", []) if watched(f["filename"], s["paths"])
                  or watched(f.get("previous_filename", ""), s["paths"])]
 
-        with open(os.path.join(out, f"{sid}.commits.md"), "w") as f:
-            for c in commits:
-                subject = c["commit"]["message"].splitlines()[0]
-                f.write(f"- {c['sha'][:7]} {c['commit']['committer']['date'][:10]} {subject}\n")
+        written.add(f"{sid}.commits", "md", [
+            ("", f"- {c['sha'][:7]} {c['commit']['committer']['date'][:10]} {c['commit']['message'].splitlines()[0]}\n")
+            for c in commits])
 
-        with open(os.path.join(out, f"{sid}.diff"), "w") as f:
-            for fl in files:
-                name = fl["filename"]
-                if fl.get("patch"):
-                    f.write(f"--- a/{fl.get('previous_filename', name)}@{base[:7]}\n+++ b/{name}@{head[:7]}\n")
-                    f.write(fl["patch"] + "\n")
-                    continue
-                old = content(repo, fl.get("previous_filename", name), base) if fl["status"] != "added" else ""
-                new = content(repo, name, head) if fl["status"] != "removed" else ""
-                f.writelines(difflib.unified_diff(old.splitlines(True), new.splitlines(True),
-                                                  f"a/{name}@{base[:7]}", f"b/{name}@{head[:7]}"))
+        diffs = []
+        for fl in files:
+            name = fl["filename"]
+            if fl.get("patch"):
+                diffs.append((name, f"--- a/{fl.get('previous_filename', name)}@{base[:7]}\n+++ b/{name}@{head[:7]}\n"
+                                    + fl["patch"] + "\n"))
+                continue
+            old = content(repo, fl.get("previous_filename", name), base) if fl["status"] != "added" else ""
+            new = content(repo, name, head) if fl["status"] != "removed" else ""
+            diffs.append((name, "".join(difflib.unified_diff(old.splitlines(True), new.splitlines(True),
+                                                             f"a/{name}@{base[:7]}", f"b/{name}@{head[:7]}"))))
+        written.add(sid, "diff", diffs)
 
         truncated = len(cmp.get("files", [])) >= 300 or cmp.get("total_commits", 0) > len(commits)
         print(f"{sid}: {base[:7]} -> {head[:7]}, {cmp.get('total_commits', len(commits))} commits, "
-              f"{len(files)} watched files changed -> {out}/{sid}.diff")
+              f"{len(files)} watched files changed")
         for fl in files:
             print(f"  {fl['status'].upper()} {fl['filename']}")
         if truncated:
@@ -101,6 +107,7 @@ def collect(out):
 
     with open(os.path.join(out, "heads.json"), "w") as f:
         json.dump(heads, f, indent=2)
+    print(f"PARTS: {len(written.rows)}, listed in {written.write_index()}")
 
 
 def mark(out, report):
