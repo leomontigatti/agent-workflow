@@ -39,15 +39,18 @@ then the watch in the foreground.
 
 ## 4. Read the result
 
-Read the named job's conclusion, not the run's: `gh run view <run-id> --json jobs`.
+Read the named job, not the run: `gh run view <run-id> --json jobs` gives the job's `conclusion`
+and its `steps[]`, each with a `name` and a `conclusion`. A workflow can skip a command at step
+level while its job still succeeds, so find the step that runs each § Heavy command, by its name or
+its `run:` line in the workflow, and read it too.
 
-- **success**: green on that SHA.
+- **success**, with each command's step `success`: green on that SHA.
 - **failure** or **timed_out**: red here too. Read its log uncut with
   `gh run view --job <job-id> --log-failed`, fix it here, commit, push, and start again from § 2
   on the new SHA.
-- **skipped**: when a job it `needs` failed, that job's failure is red as above. When the
-  workflow's own skip rule matches the diff, the commands did not run: the final report says so,
-  with the rule. Otherwise run § Heavy here.
+- **skipped**, the job or a command's step: when a job it `needs` failed, that job's failure is
+  red as above. When the workflow's own skip rule (a job's or a step's `if:`) matches the diff,
+  the commands did not run: the final report says so, with the rule. Otherwise run § Heavy here.
 - any other conclusion (**cancelled**, **startup_failure**, **action_required**), or the run never
   finishes: a remote that did not answer. Run § Heavy here, and the final report quotes why.
 
