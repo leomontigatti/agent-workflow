@@ -237,11 +237,11 @@ def description(path):
         if out is None:
             if line.startswith("description:"):
                 out = [line[len("description:"):].strip()]
-        elif line[:1] in (" ", "\t"):
-            out.append(line.strip())
+        elif line[:1] in (" ", "\t") or not line.strip():
+            out.append(line.strip())  # a folded line, or a blank line inside the scalar
         else:
             break
-    return "\n".join(out or [])
+    return "\n".join(out or []).rstrip("\n")
 
 
 def context_loads():
@@ -282,9 +282,11 @@ def check_budget(loads):
 
 
 def write_budget(loads):
-    with open(BUDGET, "w", encoding="utf-8") as f:
+    tmp = BUDGET + ".tmp"  # written whole, then swapped in: an interrupted run keeps the old file
+    with open(tmp, "w", encoding="utf-8") as f:
         json.dump(loads, f, indent=2, sort_keys=True)
         f.write("\n")
+    os.replace(tmp, BUDGET)
     for kind, sizes in loads.items():
         print(f"{kind}: {sum(sizes.values())} bytes over {len(sizes)} files")
 

@@ -91,6 +91,10 @@ expect_tree() {
 expect_tree "new skill with no budget" "always skills/new/SKILL.md: .* no budget" \
   'mkdir skills/new && printf -- "---\nname: new\ndescription: New.\n---\n" >skills/new/SKILL.md'
 expect_tree "budget for a deleted skill" "budget for a file that is gone" 'rm -r skills/grilling'
+expect_tree "a folded description grows past a blank line" "always context grew past its budget" \
+  'sed -i "s/^description: .*/description: >\\n  First.\\n\\n  Second./" agents/claude/research.md &&
+   python3 -I tests/lint_skills.py --update-budget >/dev/null &&
+   sed -i "s/^  Second\\./  Second, and much longer now./" agents/claude/research.md'
 expect_tree "a shrink passes" "" "sed -i '\$d' skills/tdd/SKILL.md"
 expect_tree "update-budget accepts growth" "" \
   'echo more >>skills/tdd/SKILL.md && python3 -I tests/lint_skills.py --update-budget >/dev/null'
