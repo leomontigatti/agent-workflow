@@ -368,21 +368,14 @@ T3 source paths below are in pingdotgg/t3code.
   async child's completion stops waking the parent, or storage cleanup starts removing a child's
   checkout before the orchestrator merged its branch.
 
-### delegate-task-linked-environment
+### background-command-wait
 
-- **Relies on:** `t3_environment_links` lists the linked machines and whether each answers now.
-  A `delegate_task` child with `target.environmentId` runs on that machine, in its registered
-  checkout of the project (`isolation: worktree` is refused there, so several children share
-  one checkout), on a model and provider instance that machine offers. Its `childThreadId` is
-  null and `remoteChild` names its thread there (pingdotgg/t3code#16719, under
-  `delegate-task-reviews`). With `mode: async` its completion wakes the parent here with its
-  `summary`, as a local child's does. A call to a link that does not answer fails with "did not
-  answer" rather than queuing (the host doc of the user's linked machine; the tool descriptions on
-  0.1.8-nightly.20261109.4399).
-- **Used by:** `skills/implement/HEAVY.md`; `agents/models.md` (Heavy runner)
-- **Breaks if:** the child stops running in the machine's project checkout or its result stops
-  returning to the parent; `t3_environment_links` stops reporting whether a link answers, so
-  the fallback can no longer tell; or a call to a silent link starts waiting instead of failing.
+- **Relies on:** a Bash command started with `run_in_background: true` keeps running across
+  turns, and `t3_background_wait` with its task ID holds the turn until it exits; T3's injected
+  instructions name it the way to wait for a background command (0.1.8-nightly.20261109.4399).
+- **Used by:** `skills/implement/HEAVY.md` § 3 (`gh run watch` on the § Heavy CI run)
+- **Breaks if:** `t3_background_wait` goes away or stops returning when the command exits, so the
+  session has to poll the run.
 
 ### background-subagents-keep-t3-tools
 

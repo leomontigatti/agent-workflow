@@ -1,60 +1,60 @@
-# Heavy commands on a linked machine
+# Heavy commands in CI
 
 A project's `docs/agents/validation.md` § Heavy names the commands of § Before committing that
-are worth sending to a linked machine (a browser suite, the full CI job), the install a stale
-checkout needs before them, and optionally the link to use. Step 3 of `implement` runs those
-there and the rest of § Before committing here. The rules for the machine itself (how to wake it,
-how long to wait, how files cross) live in the user's instructions and the host doc they point
-to; read them first.
+its CI runs instead of the session (a browser suite, a long integration job), and the workflow
+and job that run them. Step 3 of `implement` reads their result from that job and runs the rest
+of § Before committing here. A CI job gives a clean machine and the command's real exit code.
 
-## 1. Pick the machine
+## 1. Push the exact commit
 
-`t3_environment_links` lists the linked machines and whether each answers. Take the link § Heavy
-names, else the one the user's instructions send heavy validation to. When it does not answer,
-wake it and wait for its link the way those instructions say.
+CI sees only what is pushed, so this commit comes before step 6: commit the work so far, with
+step 6's message rules, push the branch, and note the commit's full SHA. Later fixes, and step 6,
+add commits on top. A run where step 6 will not commit runs § Heavy here.
 
-**Fall back here** when there is no T3 (no `t3_environment_links`), no link is listed, or the
-link still does not answer at the end of that wait: run § Heavy's commands here with the rest,
-and the final report says they ran here and why. The remote never blocks the run.
+## 2. Start the run
 
-## 2. Push the exact commit
+Once the PR is open, its own CI run on that head counts: skip the dispatch and find it as below.
+Before then, dispatch the workflow § Heavy names on the pushed branch:
 
-The machine has only what is pushed, so this commit comes before step 6: commit the work so far,
-with step 6's message rules, push the branch, and note the commit's full SHA. Later fixes, and
-step 6, add commits on top. A run where step 6 will not commit runs § Heavy here.
+```sh
+gh workflow run <workflow> --ref <branch>
+gh run list --workflow <workflow> --commit <sha> --json databaseId,headSha,status
+```
 
-## 3. Delegate one runner
+A dispatch runs the branch head, so the run that counts is the one whose `headSha` is the pushed
+SHA. A new run can take a minute to appear: list again before falling back.
 
-Call `delegate_task` with `target.environmentId` set to the link's, the **Heavy runner** of
-`agents/models.md` for the model, `role: "test"` and `mode: "async"`, and a task that carries:
+**Fall back here** when the repo has no such workflow, the dispatch is refused, or no run for the
+SHA appears within five minutes: run § Heavy's commands here with the rest, and the final report
+says they ran here and why. The remote never blocks the run.
 
-- the repo, the branch, the full SHA, § Heavy's install and its commands, in order;
-- the shared checkout's rules: the child works in that machine's checkout of the project, which
-  other tasks use too and is usually stale. It runs one task there at a time, starts from a
-  clean tree (when `git status --porcelain` prints anything, it stops and reports the output
-  rather than discarding it), notes the branch or commit it found, fetches, checks out the SHA
-  detached, runs the install, then each command in the foreground, and checks out what it noted
-  when done, the tree clean again;
-- that it fixes nothing and edits no tracked file: it reports;
-- the report: per command, the command, the SHA it ran on, the exit code, and on a non-zero exit
-  the failing output verbatim (the failure's own lines, uncut), then that the checkout was
-  restored.
+## 3. Wait for it
 
-Run the rest of § Before committing here meanwhile. When those are clean and the runner has not
-reported, end the turn: its completion wakes the thread.
+Run `gh run watch <run-id> --exit-status` with Bash `run_in_background: true`, then run the rest
+of § Before committing here. When those are clean, call `t3_background_wait` with the watch's
+task ID (outside T3, the background command's completion wakes the session).
 
 ## 4. Read the result
 
-A red result there is red here: fix it here, commit, push, and send § Heavy again on the new SHA.
-Any other outcome without an exit code for every command is a remote that did not answer: the
-call refused, the link dropped, the runner cancelled or stopped on a dirty checkout, the install
-or the checkout failed. Run § Heavy here, and the final report quotes why. When the runner did
-not report the checkout restored, the final report also names the machine and the checkout left
-to restore.
+Read the named job's conclusion, not the run's: `gh run view <run-id> --json jobs`.
 
-Each later pass through step 3 (after review fixes) sends § Heavy again on its new SHA.
+- **success**: green on that SHA.
+- **failure**: red here too. Read its log uncut with `gh run view --job <job-id> --log-failed`,
+  fix it here, commit, push, and start again from § 2 on the new SHA.
+- **skipped**: the workflow's own rule skipped the job (a docs-only diff, say), so the commands did
+  not run: the final report says so.
+- **cancelled**, or the run never finishes: a remote that did not answer. Run § Heavy here, and
+  the final report quotes why.
 
-Done when every § Heavy command exits 0 on the commit the run ends on, there or here.
+## 5. Later commits
 
-The final report shows, for each § Heavy command: where it ran (the link's name, or here and
-why), the SHA and the exit code.
+Each later commit (a review fix, a merge from the base) needs a green job on the head the run ends
+on: the PR's CI run on that head counts. A commit that touches only docs, or only files the
+workflow's own skip rule ignores, needs none, since CI skips it too; the report names the SHA that
+last ran green.
+
+Done when every § Heavy command is green on the commit the run ends on, in CI or here, or the
+report says why it was not run.
+
+The final report shows, for each § Heavy command: where it ran (the workflow, job and run URL, or
+here and why), the SHA and the result.
