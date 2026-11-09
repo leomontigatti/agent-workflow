@@ -56,10 +56,15 @@ its `run:` line in the workflow, and read it too.
 
 ## 5. Later commits
 
-Each later commit (a review fix, a merge from the base) needs a green job on the head the run ends
-on: the PR's CI run on that head counts. A commit that touches only files the workflow's own skip
-rule ignores (docs, in a workflow that skips them) needs none, since CI skips it too; the report
-names the SHA that last ran green.
+Each later commit (a review fix, a merge from the base) needs the § Heavy commands green on the
+head the run ends on: the PR's CI run on that head counts, read as § 4 says.
+
+- **A merge from the base** always waits for that run, whatever files it brings in. They are the
+  base's, and a skip rule that reads the branch's diff against the base sees only the branch's own
+  changes: a docs-only branch still skips by its rule, and a code branch runs on the merged code.
+- **A commit of your own** that changes only files the skip rule ignores (docs, in a workflow that
+  skips them) cannot change the commands' result, so the green on the head before it stands; the
+  report names that SHA.
 
 Done when every § Heavy command is green on the commit the run ends on, in CI or here, or the
 report says why it was not run.
