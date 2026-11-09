@@ -18,7 +18,7 @@ You propose; you change nothing. The user picks what to act on, and that work go
    python3 -I <this-skill-dir>/scripts/sessions.py
    ```
 
-   It prints the repo, the window (since the last retro's `retro-window:` line, else 14 days) and one row per session with friction counters (errors, interrupts, oversized outputs, compactions). The user's own scope wins: pass `--since DATE` or `--days N`, or, when they name a single session ("this session"), read that one directly and skip step 3. State the scope back in one line (repo, window and where it came from, sessions found, noise skipped) and continue.
+   It prints the repo, the window (since the last retro's `retro-window:` line, in a session of the repo or in a retro record under `~/.local/state/retro/`, else 14 days) and one row per session with friction counters (errors, interrupts, oversized outputs, compactions). For a pass over several repos, or one run from outside the repo, repeat the flag, `--repo PATH --repo PATH`: it prints one table per repo. The user's own scope wins: pass `--since DATE` or `--days N`, or, when they name a single session ("this session"), read that one directly and skip step 3. State the scope back in one line per repo (repo, window and where it came from, sessions found, noise skipped) and continue.
 
 3. **Fan out.** Hand the sessions to parallel subagents in the **Miners** role of `~/.agents/workflow/agents/models.md`, each with [`MINING.md`](MINING.md) as its brief, the path to `scripts/sessions.py`, and its slice: about 4 sessions or 10 MB of transcript each, one subagent per session over 10 MB, at most 8 subagents. When the window holds more than that, take the sessions with the most user turns and errors and say how many went unread. The transcripts stay with the subagents; you work from their returns. Done when every session in scope has a returned block.
 
@@ -32,11 +32,13 @@ You propose; you change nothing. The user picks what to act on, and that work go
 
 8. **Sweep** the always-loaded files for **no-ops** (instructions the current model already follows without being told), stale lines, and meaning duplicated across files. Everything there costs context on every turn. A line is a no-op when a session that broke it is nowhere in the window: propose cutting it, and say which sessions you checked.
 
-9. **Report** to the contract below and stop.
+9. **Report** to the contract below, write it to a new **retro record** `~/.local/state/retro/<YYYY-MM-DD>.md`, one per retro whatever repos it covered (when that file exists, from an earlier retro the same day, name it `<YYYY-MM-DD>-2.md`, `-3`, and so on), and stop. The record's `retro-window:` lines are how the next retro of each repo finds its start, wherever this one ran.
 
 10. **On approval**, route each finding the user accepts by where its fix lives and how big it is:
     - A change to a shared skill, brief, hook or the contract goes to the shared-workflow repo (the checkout `~/.agents/workflow` links to), since it reaches every project; a project fact, check or doc goes to that project.
     - A trivial edit (a sharper line, a deletion) is made in this session, on a branch of the repo it belongs to, one PR per repo. A substantive one (a new check, a new skill section, a script) becomes one issue there, with the finding's evidence pasted in as its spec, for `implement` to build.
+
+    Done when the retro record's `## Outcomes` section gives every finding what it became: its PR or issue link, or declined.
 
 ## Categories
 
@@ -69,7 +71,7 @@ A proposed check names the past mistake it would have caught (the session or PR,
 ## Report contract
 
 ```
-# Retro: <repo> · <from>..<to>
+# Retro <YYYY-MM-DD>: <repo>[, <repo>...]
 Sessions: <N read> of <N found> (<M noise skipped>, <K unread>) · sources: transcripts[, PR record]
 
 ## Findings
@@ -92,7 +94,10 @@ Proof: <for a check: the past mistake it must fail on>
 ## One-offs
 - <one line each, no proposal>
 
-retro-window: <from>..<to>
+## Outcomes
+- <finding #> · <PR or issue link> | declined | pending
+
+retro-window: <repo> <from>..<to>
 ```
 
-The Enforcers table lists every rule a finding touched; a "none" row whose rule broke in the window is the strongest proposal there is. Up to 10 findings; the rest go to one-offs as single lines. Leave a section out when it is empty. Use the exact ISO timestamps from step 2 in the final line: the next retro starts its window from it.
+The Enforcers table lists every rule a finding touched; a "none" row whose rule broke in the window is the strongest proposal there is. Up to 10 findings; the rest go to one-offs as single lines. Leave a section out when it is empty. End on one `retro-window:` line per repo, named by the last part of the `repo` path step 2 prints and the exact ISO timestamps of its window: the next retro of that repo starts its window from it. `## Outcomes` reads `pending` for every finding until step 10 fills it in.

@@ -1,15 +1,18 @@
 #!/usr/bin/env python3
 """List the agent sessions that worked in a repo, with friction counters.
 
-Usage: sessions.py [--repo PATH] [--since ISO-DATE | --days N]
+Usage: sessions.py [--repo PATH]... [--since ISO-DATE | --days N]
        sessions.py --skeleton TRANSCRIPT
 
 
 Matches Claude Code transcripts (~/.claude/projects/*/*.jsonl) and Codex
 rollouts (~/.codex/sessions/**/rollout-*.jsonl) to the repo by their cwd:
 the main checkout, any live worktree, or a deleted sibling of one. Without
---since/--days the window starts at the end of the last retro, found by its
-`retro-window: FROM..TO` line, else 14 days ago.
+--since/--days the window starts at the end of the last retro, else 14 days
+ago. A retro is found by its `retro-window: [REPO] FROM..TO` line, in a session
+of the repo or in a retro record (~/.local/state/retro/*.md); REPO is the main
+checkout's directory name, and a line without one, in a session, means that
+session's repo. --repo may repeat: one table per repo.
 
 --skeleton prints one transcript as a numbered timeline (user turns in full,
 assistant text, tool calls and failing or oversized results clipped), so a
@@ -28,7 +31,8 @@ from pathlib import Path
 HOME = Path.home()
 CLAUDE_DIR = HOME / ".claude" / "projects"
 CODEX_DIR = HOME / ".codex" / "sessions"
-MARKER = re.compile(r"retro-window: (\d{4}-\d\d-\d\dT[\d:.]+Z?)\.\.(\d{4}-\d\d-\d\dT[\d:.]+Z?)")
+STATE_DIR = HOME / ".local" / "state" / "retro"
+MARKER = re.compile(r"retro-window: (?:(\S+) )?(\d{4}-\d\d-\d\dT[\d:.]+Z?)\.\.(\d{4}-\d\d-\d\dT[\d:.]+Z?)")
 BIG_OUTPUT = 20_000  # characters in one tool result
 
 
@@ -96,8 +100,7 @@ def scan_claude(path):
             content = msg.get("content")
             if r.get("type") == "assistant" and isinstance(content, list):
                 s["tools"] += sum(1 for c in content if c.get("type") == "tool_use")
-                for m in MARKER.finditer(text_of(content)):
-                    s["markers"].append(m.group(2))
+                s["markers"] += [m.group(1, 3) for m in MARKER.finditer(text_of(content))]
             elif r.get("type") == "user" and not r.get("isMeta"):
                 if isinstance(content, list) and any(c.get("type") == "tool_result" for c in content):
                     for c in content:
@@ -149,7 +152,7 @@ def scan_codex(path):
                         s["user"] += 1
                         s["retro_cmd"] |= bool(re.match(r"\s*[$/]retro\b", t))
                     elif p.get("role") == "assistant":
-                        s["markers"] += [m.group(2) for m in MARKER.finditer(t)]
+                        s["markers"] += [m.group(1, 3) for m in MARKER.finditer(t)]
             elif r.get("type") == "compacted":
                 s["compacts"] += 1
             elif r.get("type") == "event_msg" and p.get("type") == "turn_aborted":
@@ -218,41 +221,36 @@ def skeleton(path):
                     print(f"{n} {ts} USER {clip(t, 1500)}")
 
 
-def main():
-    ap = argparse.ArgumentParser()
-    ap.add_argument("--repo", default=os.getcwd())
-    ap.add_argument("--since")
-    ap.add_argument("--days", type=int)
-    ap.add_argument("--skeleton", type=Path)
-    a = ap.parse_args()
-    if a.skeleton:
-        return skeleton(a.skeleton)
+def recorded_markers():
+    """(repo, end, file name) for each named retro-window line in the retro records."""
+    return [(m.group(1), m.group(3), f.name) for f in sorted(STATE_DIR.glob("*.md"))
+            for m in MARKER.finditer(f.read_text(errors="replace")) if m.group(1)]
 
-    main_root, trees, siblings = repo_paths(a.repo)
-    now = dt.datetime.now(dt.timezone.utc)
-    files = [(p, scan_claude) for p in CLAUDE_DIR.glob("*/*.jsonl")] + [(p, scan_codex) for p in CODEX_DIR.glob("**/rollout-*.jsonl")]
 
+def report(repo, scanned, recorded, a, now):
+    main_root, trees, siblings = repo_paths(repo)
+    name = main_root.name
     sessions, noise = [], 0
-    for path, scan in files:
-        s = scan(path)
-        s["where"] = matches(s["cwd"], main_root, trees, siblings)
-        if not s["where"] or not s["end"]:
+    for s in scanned:
+        where = matches(s["cwd"], main_root, trees, siblings)
+        if not where or not s["end"]:
             continue
         if s["tools"] <= 1 and s["user"] <= 1:
             noise += 1  # title and branch-name generators (one structured reply), aborted starts
             continue
-        sessions.append(s)
+        sessions.append(dict(s, where=where))
 
     if a.since:
         since, source = parse_ts(a.since if "T" in a.since else a.since + "T00:00:00Z"), "--since"
     elif a.days:
         since, source = now - dt.timedelta(days=a.days), f"--days {a.days}"
     else:
-        last = max(((m, s["id"]) for s in sessions for m in s["markers"]), default=None)
-        cmd = max(((s["end"], s["id"]) for s in sessions if s["retro_cmd"] and not s["markers"]), default=None)
-        best = max(filter(None, [last, cmd]), default=None)
-        if best:
-            since, source = parse_ts(best[0]), f"last retro (session {best[1]})"
+        found = [(parse_ts(end), f"session {s['id']}") for s in sessions for r, end in s["markers"] if r in (None, name)]
+        found += [(parse_ts(s["end"]), f"session {s['id']}") for s in sessions if s["retro_cmd"] and not s["markers"]]
+        found += [(parse_ts(end), f) for r, end, f in recorded if r == name]
+        if found:
+            since, where = max(found)
+            source = f"last retro ({where})"
         else:
             since, source = now - dt.timedelta(days=14), "default 14 days (no earlier retro found)"
 
@@ -267,6 +265,25 @@ def main():
         s["mb"] = f"{os.path.getsize(s['path']) / 1e6:.1f}"
         s["start"], s["end"] = s["start"][:16], s["end"][:16]
         print("\t".join(str(s[c]) for c in cols))
+
+
+def main():
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--repo", action="append")
+    ap.add_argument("--since")
+    ap.add_argument("--days", type=int)
+    ap.add_argument("--skeleton", type=Path)
+    a = ap.parse_args()
+    if a.skeleton:
+        return skeleton(a.skeleton)
+
+    now = dt.datetime.now(dt.timezone.utc)
+    scanned = [scan_claude(p) for p in CLAUDE_DIR.glob("*/*.jsonl")] + [scan_codex(p) for p in CODEX_DIR.glob("**/rollout-*.jsonl")]
+    recorded = recorded_markers()
+    for n, repo in enumerate(a.repo or [os.getcwd()]):
+        if n:
+            print()
+        report(repo, scanned, recorded, a, now)
 
 
 if __name__ == "__main__":
