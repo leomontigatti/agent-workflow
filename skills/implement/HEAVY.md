@@ -30,11 +30,12 @@ says they ran here and why. The remote never blocks the run.
 
 ## 3. Wait for it
 
-In Claude Code, run `gh run watch <run-id> --exit-status` with Bash `run_in_background: true`,
-then run the rest of § Before committing here; when those are clean, call `t3_background_wait`
-with the watch's task ID (outside T3, the background command's completion wakes the session).
-A harness with no background command (Codex) runs the rest first, then the same watch in the
-foreground.
+The watch is `timeout 1800 gh run watch <run-id> --exit-status`: 30 minutes, after which the run
+counts as one that never finishes (§ 4). In Claude Code, start it with Bash
+`run_in_background: true`, then run the rest of § Before committing here; when those are clean,
+call `t3_background_wait` with the watch's task ID (outside T3, the background command's
+completion wakes the session). A harness with no background command (Codex) runs the rest first,
+then the watch in the foreground.
 
 ## 4. Read the result
 
