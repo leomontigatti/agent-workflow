@@ -816,6 +816,10 @@ T3 source paths below are in pingdotgg/t3code.
 
 ## Ready
 
+None.
+
+## Resolved
+
 ### browser-setup-sudo-secret
 
 - **Workaround:** when `preview_open` is refused because the host blocks the browser's sandbox
@@ -828,14 +832,13 @@ T3 source paths below are in pingdotgg/t3code.
   say: "A login, token, PIN, pairing code or sudo password only the user can give: call
   `request_secret` ... Sudo: if `sudo -n <cmd>` says a password is required, use
   `delivery: "file"` and run `sudo -S -p '' <cmd> < "$file"`" (`orchestrationInstructions.ts`).
-  So an agent following those instructions may already ask for it, against `PREVIEW.md`'s
-  "the user's to fix". Adopting means: `PREVIEW.md` keeps "Agent browser access" as the user's
-  setting, and for the sandbox refusal runs `t3 browser setup` through `request_secret` once,
-  then retries `preview_open`; declining means `PREVIEW.md` says to report the refusal without
-  asking for the password. The user decides; the setup is one-time per machine and done here
-  since 2026-10-16, so it bears mainly on a new machine.
-
-## Resolved
+  The setup is one-time per machine, done here since 2026-10-16, so it bears mainly on a new
+  machine.
+- **Adopted:** 2026-11-09, by the user's call; `PREVIEW.md` keeps "Agent browser access" as the
+  user's setting, and for the sandbox refusal runs `t3 browser setup` through `request_secret`
+  (`delivery: "file"`) once, then retries `preview_open`. A background subagent, which
+  `request_secret` refuses (`background-subagents-keep-t3-tools`), hands the refusal to its
+  parent.
 
 ### implementer-worktrees
 
