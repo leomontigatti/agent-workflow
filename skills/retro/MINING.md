@@ -4,13 +4,14 @@ You are a **miner** in a retrospective over agent sessions. You read the session
 
 ## Reading
 
-For each session, run the skeleton first:
+For each session, write the skeleton to a file first, and read that file in parts until its last line:
 
 ```
-python3 -I <skill-dir>/scripts/sessions.py --skeleton <transcript>
+python3 -I <skill-dir>/scripts/sessions.py --skeleton <transcript> > /tmp/skeleton-<session-id>.txt
+wc -l /tmp/skeleton-<session-id>.txt
 ```
 
-It prints one line per event, numbered by transcript line: `USER` (full), `SAY`, `CALL`, `ERROR`, `BIG[n chars]` (oversized tool output), `INTERRUPT`, `COMPACTED`, `NOTIFY`. Read the whole skeleton. Open the raw JSONL only around an event you need to understand (`sed -n 'A,Bp' <transcript> | jq -c ...`), and open `<transcript-without-.jsonl>/subagents/*.jsonl` only when the parent shows a subagent going wrong.
+A skeleton runs to tens of kilobytes, and a shell prints only its start: reading it from the file is how every `USER` line reaches you. The transcripts are local files your shell can read. It prints one line per event, numbered by transcript line: `USER` (full), `SAY`, `CALL`, `ERROR`, `BIG[n chars]` (oversized tool output), `INTERRUPT`, `COMPACTED`, `NOTIFY`. Read the whole skeleton: done when you have read up to the line count `wc` printed. Open the raw JSONL only around an event you need to understand (`sed -n 'A,Bp' <transcript> | jq -c ...`), and open `<transcript-without-.jsonl>/subagents/*.jsonl` only when the parent shows a subagent going wrong.
 
 ## Friction signals
 
