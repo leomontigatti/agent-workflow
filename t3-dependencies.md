@@ -246,8 +246,8 @@ T3 source paths below are in pingdotgg/t3code.
   `sidebarAutoSettleAfterDays: null` (off), an explicit value the change keeps. Since
   pingdotgg/t3code#33134 (0.1.8-nightly.20261109.4392) T3 leaves out GitHub comments, reviews and
   inline comments a maintainer hid (`isMinimized`), so a hidden one wakes no watch and a hidden
-  review no longer sets the review state; `babysit-pr` reads the round from GitHub itself and
-  still sees them. Since pingdotgg/t3code#32395 (0.1.8-nightly.20261107.4327) T3's review state
+  review no longer sets the review state; `babysit-pr` reads the round from GitHub itself and,
+  since 2026-11-09, leaves them out too (`triage.md` § Reading the round). Since pingdotgg/t3code#32395 (0.1.8-nightly.20261107.4327) T3's review state
   follows GitHub's `reviewDecision` when GitHub gives one.
 - **Used by:** `skills/babysit-pr/SKILL.md` § 2 and § 5; `skills/implement/SKILL.md` § 7;
   `skills/implement/THREADS.md` ("A launched thread reports to its own inbox")

@@ -63,7 +63,9 @@ findings. Format:
 
 ## Reading the round
 
-The PR's state, then every unresolved thread with its id:
+The PR's state, then every unresolved thread with its id. A comment or review a maintainer hid on
+GitHub (`isMinimized`) is left out, as T3's PR watch leaves it out, and a thread whose every
+comment is hidden with it:
 
 ```bash
 gh pr view <n> --json state,isDraft,headRefOid,mergeable,mergeStateStatus,reviewDecision,statusCheckRollup
@@ -71,18 +73,27 @@ gh api graphql -F owner='{owner}' -F repo='{repo}' -F n=<n> -f query='
   query($owner: String!, $repo: String!, $n: Int!) {
     repository(owner: $owner, name: $repo) { pullRequest(number: $n) {
       reviewThreads(first: 100) { nodes { id isResolved isOutdated path line
-        comments(first: 20) { nodes { author { login } body url } } } }
+        comments(first: 20) { nodes { author { login } body url isMinimized } } } }
     } } }' \
-  --jq '.data.repository.pullRequest.reviewThreads.nodes[] | select(.isResolved | not)'
+  --jq '.data.repository.pullRequest.reviewThreads.nodes[] | select(.isResolved | not)
+        | .comments.nodes |= map(select(.isMinimized | not)) | select(.comments.nodes != [])'
 ```
 
 Then every review with a body, and every top-level comment, oldest first: a review-body finding
 and a question asked in a comment live here, outside any thread:
 
 ```bash
-gh pr view <n> --json reviews,comments \
-  --jq '([.reviews[] | select(.body != "") | {at: .submittedAt, who: .author.login, state, body}]
-         + [.comments[] | {at: .createdAt, who: .author.login, body}]) | sort_by(.at)[]'
+gh api graphql -F owner='{owner}' -F repo='{repo}' -F n=<n> -f query='
+  query($owner: String!, $repo: String!, $n: Int!) {
+    repository(owner: $owner, name: $repo) { pullRequest(number: $n) {
+      reviews(first: 100) { nodes { submittedAt author { login } state body isMinimized } }
+      comments(first: 100) { nodes { createdAt author { login } body isMinimized } }
+    } } }' \
+  --jq '.data.repository.pullRequest
+        | ([.reviews.nodes[] | select(.body != "" and (.isMinimized | not))
+            | {at: .submittedAt, who: .author.login, state, body}]
+           + [.comments.nodes[] | select(.isMinimized | not) | {at: .createdAt, who: .author.login, body}])
+        | sort_by(.at)[]'
 ```
 
 ## Answering the round
