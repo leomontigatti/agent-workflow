@@ -39,6 +39,10 @@ moment it merges, so each change goes through a PR and nothing is committed to `
 - **Run the lint**: `python3 -I tests/lint_skills.py`. CI runs it with `tests/test_lint.sh` and
   `tests/test_install.sh`. Run `install.sh` only when the user asks; the install test uses a
   throwaway `HOME`.
+- **Context is budgeted.** The lint fails when a skill or wrapper description, a `SKILL.md` or a
+  brief outgrows its size in `tests/context-budget.json`; descriptions load in every session of
+  every project. When the growth earns its load, run `python3 -I tests/lint_skills.py
+  --update-budget` and say in the PR what the added bytes buy.
 
 ## Changing a shared skill
 

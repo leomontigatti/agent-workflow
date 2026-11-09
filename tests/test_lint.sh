@@ -45,6 +45,8 @@ expect_name() {
   rm -rf "$work/.git"
   sed -i "$script" "$work/skills/tdd/SKILL.md"
   if [[ -z "$want" ]]; then
+    # A pass case may grow the file: the budget is not what it tests.
+    python3 -I "$work/tests/lint_skills.py" --update-budget >/dev/null
     if python3 -I "$work/tests/lint_skills.py" >/dev/null; then echo "ok   $name"
     else echo "FAIL $name: the lint failed"; fail=1; fi
   elif out="$(python3 -I "$work/tests/lint_skills.py" 2>&1)"; then
@@ -62,6 +64,36 @@ expect_name "skill name only in the body" 's/^name: tdd$/title: tdd/; $a name: t
 expect_name "quoted skill name with a comment" 's/^name: tdd$/name: "tdd" # the folder/' ""
 expect_name "a hash inside a bare name" 's/^name: tdd$/name: tdd#other/' 'skill name "tdd#other"'
 expect_name "unclosed frontmatter" '0,/^---$/!{0,/^---$/s/^---$/title: open/}' "no name: line in its frontmatter"
+
+expect_name "description grows past its budget" 's/^description: Test-driven/description: Strict test-driven/' "always context grew past its budget"
+expect_failure "skill body grows past its budget" skills/tdd/SKILL.md 'One more line.' "on-load context grew past its budget"
+
+# expect_tree <name> <want> <command>: run a command in a copy of the repo, then lint it.
+expect_tree() {
+  local name="$1" want="$2" cmd="$3" work
+  work="$(mktemp -d)"
+  cp -r "$repo/." "$work"
+  rm -rf "$work/.git"
+  (cd "$work" && eval "$cmd")
+  if [[ -z "$want" ]]; then
+    if python3 -I "$work/tests/lint_skills.py" >/dev/null; then echo "ok   $name"
+    else echo "FAIL $name: the lint failed"; fail=1; fi
+  elif out="$(python3 -I "$work/tests/lint_skills.py" 2>&1)"; then
+    echo "FAIL $name: the lint passed"; fail=1
+  elif ! grep -q -- "$want" <<<"$out"; then
+    echo "FAIL $name: expected '$want' in:"; echo "$out"; fail=1
+  else
+    echo "ok   $name"
+  fi
+  rm -rf "$work"
+}
+
+expect_tree "new skill with no budget" "always skills/new/SKILL.md: .* no budget" \
+  'mkdir skills/new && printf -- "---\nname: new\ndescription: New.\n---\n" >skills/new/SKILL.md'
+expect_tree "budget for a deleted skill" "budget for a file that is gone" 'rm -r skills/grilling'
+expect_tree "a shrink passes" "" "sed -i '\$d' skills/tdd/SKILL.md"
+expect_tree "update-budget accepts growth" "" \
+  'echo more >>skills/tdd/SKILL.md && python3 -I tests/lint_skills.py --update-budget >/dev/null'
 
 if python3 -I "$repo/tests/lint_skills.py" >/dev/null; then echo "ok   the repo itself passes"; else echo "FAIL the repo itself"; fail=1; fi
 exit "$fail"
