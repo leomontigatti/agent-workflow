@@ -24,12 +24,14 @@ gh run list --workflow <workflow> --commit <sha> --json databaseId,headSha,statu
 A dispatch runs the branch head, so the run that counts is the one whose `headSha` is the pushed
 SHA. A new run can take a minute to appear: list again before falling back.
 
-**Fall back here** when the repo has no such workflow, the dispatch is refused, or no run for the
-SHA appears within five minutes. Read the workflow's own skip rule against the diff it judges (for
-a rule on the branch's diff, `git diff --name-only <base>...<sha>`). When it matches, CI would have
-skipped the commands too: they do not run here either, and the final report says so, with the rule
-and why the remote did not answer. Otherwise run § Heavy's commands here with the rest, and the
-final report says they ran here and why. The remote never blocks the run.
+**Fall back here** when the repo has no such workflow, the dispatch is refused, no run for the SHA
+appears within five minutes, or § 4 sends you here. Run the workflow's own skip rule here first:
+its command exactly as the workflow writes it (every flag, such as `--no-renames`, and its base
+ref), with the pushed SHA for `HEAD`, through its own predicate. When it matches, CI would have
+skipped the commands too: they do not run here either, and the final report says so, with the
+rule and why the remote did not answer. Otherwise, or when the rule cannot be run here (it reads
+the event, a secret or a variable only CI has), run § Heavy's commands here with the rest, and
+the final report says they ran here and why. The remote never blocks the run.
 
 ## 3. Wait for it
 
