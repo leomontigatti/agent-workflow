@@ -25,8 +25,11 @@ A dispatch runs the branch head, so the run that counts is the one whose `headSh
 SHA. A new run can take a minute to appear: list again before falling back.
 
 **Fall back here** when the repo has no such workflow, the dispatch is refused, or no run for the
-SHA appears within five minutes: run § Heavy's commands here with the rest, and the final report
-says they ran here and why. The remote never blocks the run.
+SHA appears within five minutes. Read the workflow's own skip rule against the diff it judges (for
+a rule on the branch's diff, `git diff --name-only <base>...<sha>`). When it matches, CI would have
+skipped the commands too: they do not run here either, and the final report says so, with the rule
+and why the remote did not answer. Otherwise run § Heavy's commands here with the rest, and the
+final report says they ran here and why. The remote never blocks the run.
 
 ## 3. Wait for it
 
@@ -50,9 +53,10 @@ its `run:` line in the workflow, and read it too.
   on the new SHA.
 - **skipped**, the job or a command's step: when a job it `needs` failed, that job's failure is
   red as above. When the workflow's own skip rule (a job's or a step's `if:`) matches the diff,
-  the commands did not run: the final report says so, with the rule. Otherwise run § Heavy here.
-- any other conclusion (**cancelled**, **startup_failure**, **action_required**), or the run never
-  finishes: a remote that did not answer. Run § Heavy here, and the final report quotes why.
+  the commands did not run: the final report says so, with the rule. Otherwise fall back (§ 2).
+- any other conclusion (**cancelled**, **startup_failure**, **action_required**), the named job
+  missing from the run, or the run never finishes: a remote that did not answer. Fall back
+  (§ 2), and the final report quotes why.
 
 ## 5. Later commits
 
