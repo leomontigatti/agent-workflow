@@ -24,9 +24,22 @@ gh run list --workflow <workflow> --commit <sha> --json databaseId,headSha,statu
 A dispatch runs the branch head, so the run that counts is the one whose `headSha` is the pushed
 SHA. A new run can take a minute to appear: list again before falling back.
 
-**Fall back here** when the repo has no such workflow, the dispatch is refused, or no run for the
-SHA appears within five minutes: run § Heavy's commands here with the rest, and the final report
-says they ran here and why. The remote never blocks the run.
+**Fall back here** when the repo has no such workflow, the dispatch is refused, no run for the SHA
+appears within five minutes, or § 4 sends you here. Run the workflow's own skip rule here first,
+on the tree CI judges, with its base ref fetched fresh as the workflow does:
+
+- **Before the PR opens**, that tree is the pushed SHA.
+- **On a PR**, it is GitHub's merge commit: `git fetch origin pull/<n>/merge`, then
+  `git rev-parse FETCH_HEAD^2` must print the pushed SHA, or the merge is stale and the tree
+  cannot be reproduced.
+
+Run the rule's command exactly as the workflow writes it (every flag, such as `--no-renames`),
+with that tree's SHA in place of `HEAD`, through its own predicate. When it matches, CI would have
+skipped the commands too: they do not run here either, and the final report says so, with the
+rule and why the remote did not answer. Otherwise, or when the tree or the rule cannot be
+reproduced here (no merge ref, a stale one, a rule that reads the event, a secret or a variable
+only CI has), run § Heavy's commands here with the rest, and the final report says they ran here
+and why. The remote never blocks the run.
 
 ## 3. Wait for it
 
@@ -50,9 +63,10 @@ its `run:` line in the workflow, and read it too.
   on the new SHA.
 - **skipped**, the job or a command's step: when a job it `needs` failed, that job's failure is
   red as above. When the workflow's own skip rule (a job's or a step's `if:`) matches the diff,
-  the commands did not run: the final report says so, with the rule. Otherwise run § Heavy here.
-- any other conclusion (**cancelled**, **startup_failure**, **action_required**), or the run never
-  finishes: a remote that did not answer. Run § Heavy here, and the final report quotes why.
+  the commands did not run: the final report says so, with the rule. Otherwise fall back (§ 2).
+- any other conclusion (**cancelled**, **startup_failure**, **action_required**), the named job
+  missing from the run, or the run never finishes: a remote that did not answer. Fall back
+  (§ 2), and the final report quotes why.
 
 ## 5. Later commits
 
