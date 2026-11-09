@@ -104,6 +104,12 @@ class Split(unittest.TestCase):
         self.assertEqual(body.replace("\n", ""), "@@ -0,0 +1 @@" + line.replace("\n", ""))
         self.assertTrue(all(len(l) <= parts.MAX_LINE for l in body.splitlines()))
 
+    def test_a_line_that_fits_only_without_its_header_is_cut_too(self):
+        line = "+" + "x" * (parts.MAX_CHARS - parts.PREFIX - 2) + "\n"
+        self.assertTrue(parts.fits(line))
+        names = self.p.add("watched", "diff", [("x", "--- a/x\n+++ b/x\n@@ -0,0 +1 @@\n" + line)])
+        self.assert_all_fit(names)
+
     def test_an_index_too_big_for_one_read_is_cut_into_parts(self):
         sections = [("p/" + "d" * 170 + f"/{i}.md", diff(f"{i}.md", 1, 1)) for i in range(400)]
         self.p.add("src", "diff", sections)

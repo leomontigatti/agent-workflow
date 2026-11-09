@@ -32,7 +32,7 @@ def fits(text):
 def _cut_lines(head, body):
     """Cut `body` between lines so each piece, with `head` before it, fits."""
     pieces, cur = [], ""
-    for line in _short_lines(body):
+    for line in _short_lines(head, body):
         if cur and not fits(head + cur + line):
             pieces.append(head + cur)
             cur = ""
@@ -42,9 +42,10 @@ def _cut_lines(head, body):
     return pieces
 
 
-def _short_lines(text):
+def _short_lines(head, text):
+    """The lines of `text`, a line that cannot fit one part after `head` cut into shorter ones."""
     for line in text.splitlines(True):
-        if fits(line):
+        if fits(head + line):
             yield line
             continue
         bare = line.rstrip("\n")
