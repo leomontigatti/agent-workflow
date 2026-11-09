@@ -6,8 +6,9 @@ Usage: python3 -I changes.py <installed-version> [--since <version>] [--out DIR]
 Reads the last reviewed version from STATE (unless --since is given), lists the
 releases in between (same channel as the installed one), gathers their
 "What's Changed" items, and diffs the T3 source files our workflows depend on
-(WATCHED_PATHS) between the two commits. Writes everything under --out and
-prints a short summary. Changes nothing else; `--mark` records the installed
+(WATCHED_PATHS) between the two commits. Writes everything under --out, cut
+into parts that each fit one Read (`release-items.<n>.md`, `watched.<n>.diff`)
+and listed in `index.md`, and prints a short summary. Changes nothing else; `--mark` records the installed
 version as reviewed.
 """
 
@@ -20,6 +21,9 @@ import re
 import subprocess
 import sys
 from datetime import datetime, timezone
+
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.realpath(__file__)), "..", "..", "..", "lib"))
+import parts  # noqa: E402
 
 REPO = "pingdotgg/t3code"
 STATE_DIR = os.path.expanduser("~/.local/state/t3-update-review")
@@ -144,32 +148,34 @@ def main():
             if m and m.group(3) not in seen:
                 seen.add(m.group(3))
                 items.append(f"- #{m.group(3)} {m.group(1)} ({r['tagName']})")
-    with open(os.path.join(a.out, "release-items.md"), "w") as f:
-        f.write("\n".join(items) + "\n")
+    out = parts.Parts(a.out)
+    out.add("release-items", "md", [("", item + "\n") for item in items])
 
     old_sha, new_sha = sha_of(since), sha_of(installed)
     old_tree, new_tree = tree(old_sha), tree(new_sha)
     paths = set(WATCHED_PATHS)
     for d in WATCHED_DIRS:
         paths |= {p for p in old_tree | new_tree if p.startswith(d + "/") and ".test." not in p}
-    changed = []
-    with open(os.path.join(a.out, "watched.diff"), "w") as f:
-        for p in sorted(paths):
-            if p not in old_tree and p not in new_tree:
-                changed.append(f"MISSING {p} (watched path no longer exists; update WATCHED_PATHS)")
-                continue
-            old = content(p, old_sha) if p in old_tree else ""
-            new = content(p, new_sha) if p in new_tree else ""
-            if old == new:
-                continue
-            kind = "ADDED" if p not in old_tree else "REMOVED" if p not in new_tree else "CHANGED"
-            changed.append(f"{kind} {p}")
-            f.writelines(difflib.unified_diff(old.splitlines(True), new.splitlines(True),
-                                              f"a/{p}@{old_sha}", f"b/{p}@{new_sha}"))
+    changed, diffs = [], []
+    for p in sorted(paths):
+        if p not in old_tree and p not in new_tree:
+            changed.append(f"MISSING {p} (watched path no longer exists; update WATCHED_PATHS)")
+            continue
+        old = content(p, old_sha) if p in old_tree else ""
+        new = content(p, new_sha) if p in new_tree else ""
+        if old == new:
+            continue
+        kind = "ADDED" if p not in old_tree else "REMOVED" if p not in new_tree else "CHANGED"
+        changed.append(f"{kind} {p}")
+        diffs.append((p, "".join(difflib.unified_diff(old.splitlines(True), new.splitlines(True),
+                                                      f"a/{p}@{old_sha}", f"b/{p}@{new_sha}"))))
+    out.add("watched", "diff", diffs)
+    index = out.write_index()
 
     print(f"RANGE: {since} ({old_sha}) -> {installed} ({new_sha}), {len(span)} {ch} releases")
-    print(f"RELEASE ITEMS: {len(items)} -> {a.out}/release-items.md")
-    print(f"WATCHED SOURCE: {len(changed)} changed -> {a.out}/watched.diff")
+    print(f"RELEASE ITEMS: {len(items)}")
+    print(f"WATCHED SOURCE: {len(changed)} changed")
+    print(f"PARTS: {len(out.rows)}, listed in {index}")
     for c in changed:
         print("  " + c)
 

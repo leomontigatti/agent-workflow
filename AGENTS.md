@@ -14,6 +14,8 @@ moment it merges, so each change goes through a PR and nothing is committed to `
   the one table of which model each role runs on. `agents/claude/` and `agents/codex/` are the
   thin harness wrappers.
 - `hooks/`: the hooks that depend on no project.
+- `lib/`: Python modules more than one skill's script imports, by its real path:
+  [`parts.py`](lib/parts.py) cuts a review script's output into parts that each fit one Read.
 - [`t3-dependencies.md`](t3-dependencies.md): what the shared files assume about T3 Code.
 - `upstreams/`: the watched upstream repos, their watermarks, and every verdict on an idea from
   them ([`decisions.md`](upstreams/decisions.md)). Upstream URLs live there and in `NOTICE`
