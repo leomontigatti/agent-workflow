@@ -32,6 +32,7 @@ import json
 import os
 import re
 import sys
+import tempfile
 import tomllib
 
 ROOT = os.path.normpath(os.path.join(os.path.dirname(os.path.realpath(__file__)), ".."))
@@ -282,11 +283,18 @@ def check_budget(loads):
 
 
 def write_budget(loads):
-    tmp = BUDGET + ".tmp"  # written whole, then swapped in: an interrupted run keeps the old file
-    with open(tmp, "w", encoding="utf-8") as f:
-        json.dump(loads, f, indent=2, sort_keys=True)
-        f.write("\n")
-    os.replace(tmp, BUDGET)
+    # Written whole to this run's own file, then swapped in: an interrupted or concurrent run
+    # leaves the old budget or a whole new one, never a partial file.
+    fd, tmp = tempfile.mkstemp(dir=os.path.dirname(BUDGET), prefix=".context-budget.")
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as f:
+            json.dump(loads, f, indent=2, sort_keys=True)
+            f.write("\n")
+        os.chmod(tmp, 0o644)
+        os.replace(tmp, BUDGET)
+    except BaseException:
+        os.unlink(tmp)
+        raise
     for kind, sizes in loads.items():
         print(f"{kind}: {sum(sizes.values())} bytes over {len(sizes)} files")
 
