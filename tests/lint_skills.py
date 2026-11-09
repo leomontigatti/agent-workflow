@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Lint the shared skills and agent briefs against the rules a shared file must keep.
 
-Usage: python3 -I tests/lint_skills.py
+Usage: python3 -I tests/lint_skills.py [--update-budget]
 
 Fails (exit 1) when:
 
@@ -10,7 +10,18 @@ Fails (exit 1) when:
 - a relative Markdown link, or its anchor, does not resolve, anywhere in the repo;
 - a skill's frontmatter `name:` is not its folder name, which the Skill tool calls it by;
 - a shared file mentions an upstream repo (`upstreams/sources.json`, plus the former sources
-  listed below).
+  listed below);
+- a context load grows past its budget in `tests/context-budget.json`, or has no budget there.
+
+A context load is text an agent's window carries. Two kinds are budgeted, in bytes:
+
+- `always`: a skill's or agent wrapper's description, which every session of every project
+  loads whether or not it fires;
+- `on-load`: a whole `SKILL.md` or agent brief, loaded each time it is invoked.
+
+Growth is a decision, so it shows in the PR: `--update-budget` rewrites the budgets to the
+current sizes, and the diff of `tests/context-budget.json` is the growth a reviewer weighs.
+Shrinking never fails; run `--update-budget` to lower the ceiling.
 
 "Shared file" means everything under `skills/` and `agents/`. Paths are checked in inline code and
 link targets; commands in inline code and fenced blocks, and the unambiguous ones in prose too.
@@ -21,8 +32,11 @@ import json
 import os
 import re
 import sys
+import tempfile
+import tomllib
 
 ROOT = os.path.normpath(os.path.join(os.path.dirname(os.path.realpath(__file__)), ".."))
+BUDGET = os.path.join(ROOT, "tests", "context-budget.json")
 SHARED_DIRS = ["skills", "agents"]
 INSTALL_ROOT = "~/.agents/workflow/"
 
@@ -191,16 +205,20 @@ def check_upstreams(path, text, names):
 FRONT_NAME = re.compile(r"""^name:\s*(?:"([^"]*)"|'([^']*)'|(\S*?))\s*(?:\s#.*)?$""")
 
 
+def frontmatter(path):
+    """The frontmatter lines of a Markdown file, numbered from its second line, or []."""
+    lines = open(path, encoding="utf-8").read().splitlines()
+    if lines and lines[0] == "---" and "---" in lines[1:]:
+        return list(enumerate(lines[1:lines.index("---", 1)], 2))
+    return []
+
+
 def check_skill_names():
     for d in sorted(os.listdir(os.path.join(ROOT, "skills"))):
         path = os.path.join(ROOT, "skills", d, "SKILL.md")
         if not os.path.isfile(path):
             continue
-        lines = open(path, encoding="utf-8").read().splitlines()
-        front = []
-        if lines and lines[0] == "---" and "---" in lines[1:]:
-            front = lines[1:lines.index("---", 1)]
-        for n, line in enumerate(front, 2):
+        for n, line in frontmatter(path):
             m = FRONT_NAME.match(line)
             if m:
                 name = next(g for g in m.groups() if g is not None)
@@ -209,6 +227,76 @@ def check_skill_names():
                 break
         else:
             report(path, 1, "skill has no name: line in its frontmatter")
+
+
+def description(path):
+    """The description as written: a TOML string, or a frontmatter value with its folded lines."""
+    if path.endswith(".toml"):
+        return tomllib.load(open(path, "rb")).get("description", "")
+    out = None
+    for _, line in frontmatter(path):
+        if out is None:
+            if line.startswith("description:"):
+                out = [line[len("description:"):].strip()]
+        elif line[:1] in (" ", "\t") or not line.strip():
+            out.append(line.strip())  # a folded line, or a blank line inside the scalar
+        else:
+            break
+    return "\n".join(out or []).rstrip("\n")
+
+
+def context_loads():
+    """{"always": {path: bytes}, "on-load": {path: bytes}} for every budgeted file."""
+    loads = {"always": {}, "on-load": {}}
+    rel = lambda p: os.path.relpath(p, ROOT)
+    skills = sorted(os.path.join(ROOT, "skills", d, "SKILL.md")
+                    for d in os.listdir(os.path.join(ROOT, "skills")))
+    for path in [p for p in skills if os.path.isfile(p)]:
+        loads["always"][rel(path)] = len(description(path).encode())
+        loads["on-load"][rel(path)] = os.path.getsize(path)
+    for harness, ext in (("claude", ".md"), ("codex", ".toml")):
+        for path in walk([os.path.join("agents", harness)], (ext,)):
+            loads["always"][rel(path)] = len(description(path).encode())
+    for name in sorted(os.listdir(os.path.join(ROOT, "agents"))):
+        path = os.path.join(ROOT, "agents", name)
+        if name.endswith(".md") and os.path.isfile(path):
+            loads["on-load"][rel(path)] = os.path.getsize(path)
+    return loads
+
+
+def check_budget(loads):
+    try:
+        budget = json.load(open(BUDGET, encoding="utf-8"))
+    except FileNotFoundError:
+        budget = {}
+    fix = "if the growth is meant, run tests/lint_skills.py --update-budget and commit the diff"
+    for kind, sizes in loads.items():
+        allowed = budget.get(kind, {})
+        for path, size in sizes.items():
+            if path not in allowed:
+                report(BUDGET, 1, f"{kind} {path}: {size} bytes and no budget; {fix}")
+            elif size > allowed[path]:
+                report(os.path.join(ROOT, path), 1,
+                       f"{kind} context grew past its budget, {allowed[path]} to {size} bytes; {fix}")
+        for path in sorted(set(allowed) - set(sizes)):
+            report(BUDGET, 1, f"{kind} {path}: budget for a file that is gone; run --update-budget")
+
+
+def write_budget(loads):
+    # Written whole to this run's own file, then swapped in: an interrupted or concurrent run
+    # leaves the old budget or a whole new one, never a partial file.
+    fd, tmp = tempfile.mkstemp(dir=os.path.dirname(BUDGET), prefix=".context-budget.")
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as f:
+            json.dump(loads, f, indent=2, sort_keys=True)
+            f.write("\n")
+        os.chmod(tmp, 0o644)
+        os.replace(tmp, BUDGET)
+    except BaseException:
+        os.unlink(tmp)
+        raise
+    for kind, sizes in loads.items():
+        print(f"{kind}: {sum(sizes.values())} bytes over {len(sizes)} files")
 
 
 def walk(dirs, exts):
@@ -221,6 +309,13 @@ def walk(dirs, exts):
 
 
 def main():
+    if sys.argv[1:] == ["--update-budget"]:
+        write_budget(context_loads())
+        return 0
+    if sys.argv[1:]:
+        print("usage: lint_skills.py [--update-budget]", file=sys.stderr)
+        return 64
+
     contract = contract_entries()
     names = upstream_names()
 
@@ -238,6 +333,7 @@ def main():
             check_commands(path, lines)
 
     check_skill_names()
+    check_budget(context_loads())
 
     for p in problems:
         print(p)
