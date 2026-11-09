@@ -6,8 +6,8 @@
       "branch": "main",
       "paths": ["pstack/**"],
       "license": "MIT, Copyright (c) 2026 Lauren Tan (pstack/LICENSE)",
-      "reviewed": "ae5650febf4320793844c12c4adaa937f417f8da",
-      "reviewedAt": "2026-11-02"
+      "reviewed": "6b0300214a09fd6029cfb7077043125758cd1fd2",
+      "reviewedAt": "2026-11-09"
     },
     {
       "id": "mattpocock-skills",
@@ -33,8 +33,8 @@
       "branch": "main",
       "paths": ["skills/**", "docs/trigger-rules.md", "docs/usage.md", "docs/review-integration.md"],
       "license": "MIT, Copyright (c) 2025 Gentleman Programming (LICENSE)",
-      "reviewed": "5b2168b5ee1191c70f3658482159500e5d9dde58",
-      "reviewedAt": "2026-11-02"
+      "reviewed": "3108ef03fd81d96518eab3b3e469ed69d4e0f52d",
+      "reviewedAt": "2026-11-09"
     },
     {
       "id": "engram",
@@ -42,8 +42,8 @@
       "branch": "main",
       "paths": ["skills/**", "docs/AGENT-SETUP.md"],
       "license": "MIT, Copyright (c) 2026 Alan Buscaglia (LICENSE)",
-      "reviewed": "d33a14a2ed822784752e5678b1673289ee1c0de4",
-      "reviewedAt": "2026-11-02"
+      "reviewed": "b53422f45c57c1003cc9c063c5a4e1fe1c694f27",
+      "reviewedAt": "2026-11-09"
     },
     {
       "id": "tstack",
