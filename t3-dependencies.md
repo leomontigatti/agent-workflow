@@ -729,12 +729,12 @@ T3 source paths below are in pingdotgg/t3code.
   clicks may have been dispatched clicks whose wait timed out. A failed `preview_open` no longer
   leaves a hidden tab (pingdotgg/t3code#29865, #29885). Snapshot capture is unchanged through
   0.1.8-nightly.20261107.4314 (`ServerBrowserPage.ts` only moved its errors to a tagged class), so
-  no snapshot fault moved. Since pingdotgg/t3code#28255 (0.1.8-nightly.20261108.4353)
-  `preview_snapshot` with `save: true` also keeps the uncapped capture and writes that to disk;
-  the agent's image stays 1280 px wide, and capture and timing are unchanged. Since pingdotgg/t3code#30306 (same build) the server's headless browser
+  no snapshot fault moved. Since pingdotgg/t3code#30306 (same build) the server's headless browser
   closes after five idle minutes, and the next agent tab starts it cold (about 190 ms); since
   pingdotgg/t3code#24186 (0.1.8-nightly.20261105.4205) idle agent tabs free a slot when the
-  32-tab limit is full.
+  32-tab limit is full. Since pingdotgg/t3code#28255 (0.1.8-nightly.20261108.4353)
+  `preview_snapshot` with `save: true` also keeps the uncapped capture and writes that to disk;
+  the agent's image stays 1280 px wide, and capture and timing are unchanged.
   Since 0.1.6-nightly.20261030.3904
   the preview browser runs in an agent scope, with the agents' +800 OOM score, low CPU weight and
   memory limits (pingdotgg/t3code#27239, #27176): "under agent memory pressure the preview
