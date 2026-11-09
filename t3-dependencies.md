@@ -87,7 +87,11 @@ T3 source paths below are in pingdotgg/t3code.
   the nearest settled ancestor through subagent lineage, every ancestor on the way idle and
   rechecked before removal (`worktreeSettlementChain`); a pinned or explicitly active thread stops
   the chain. Before, such a worktree was kept forever. `implement-spec` § 4 still removes each
-  implementer's worktree itself, so this catches only what it misses.
+  implementer's worktree itself, so this catches only what it misses. Since
+  pingdotgg/t3code#32933 (0.1.8-nightly.20261109.4392) a sweep checks age before any Git read and
+  measures a worktree's size outside its checkout lease, then rechecks path, activity, branch,
+  commit, changes and settings inside the lease before removing; with `worktreeOnMerge` on, as
+  here, every worktree still gets the Git checks, and the keep reasons read as before.
 - **Used by:** `skills/housekeeping/SKILL.md` (its table, and step 1 reads the settings);
   `skills/implement/THREADS.md` ("Leaving a worktree behind is fine")
   Since 2026-10-16 the user also runs `worktreeAfterDays: 5`, `worktreeSettledAfterDays: 5`,
@@ -137,7 +141,13 @@ T3 source paths below are in pingdotgg/t3code.
   instructions give the base: honor a requested one, else independent work starts from the
   default branch as `origin/<default>` with `startFromOrigin: true`, and work that needs
   unpublished commits or depends on another branch starts from its local base with
-  `startFromOrigin: false`. `THREADS.md` names no base, so it does not conflict.
+  `startFromOrigin: false`. `THREADS.md` names no base, so it does not conflict. Since
+  pingdotgg/t3code#32934 (0.1.8-nightly.20261109.4392) a generated worktree folder is a bounded
+  prefix of the branch plus a digest of the shared git directory and branch (this review's own:
+  `~/.t3/worktrees/agent-workflow/t3-b9f99963-6a1fe677a1bd3922`), still under
+  `<managed folder>/<repo>/`; existing and explicit paths keep theirs. Folder names stay unique
+  and keep their name on a branch rename, which rubens' and enescena's
+  `worktree-folder-names-unique` rely on.
 - **Used by:** `skills/implement/THREADS.md` ("Work where you started", "A launched thread
   reports to its own inbox")
 - **Breaks if:** the tool or its `workspaceStrategy` shape changes, or a launched thread stops
@@ -233,7 +243,12 @@ T3 source paths below are in pingdotgg/t3code.
   pointing a bare uuid at its `mcp:` thread. Since pingdotgg/t3code#32325
   (0.1.8-nightly.20261107.4314) inactivity auto-settle defaults to 7 days instead of 3; settings
   are stored sparse, so only a user on the default moves. This machine stores
-  `sidebarAutoSettleAfterDays: null` (off), an explicit value the change keeps.
+  `sidebarAutoSettleAfterDays: null` (off), an explicit value the change keeps. Since
+  pingdotgg/t3code#33134 (0.1.8-nightly.20261109.4392) T3 leaves out GitHub comments, reviews and
+  inline comments a maintainer hid (`isMinimized`), so a hidden one wakes no watch and a hidden
+  review no longer sets the review state; `babysit-pr` reads the round from GitHub itself and,
+  since 2026-11-09, leaves them out too (`triage.md` § Reading the round). Since pingdotgg/t3code#32395 (0.1.8-nightly.20261107.4327) T3's review state
+  follows GitHub's `reviewDecision` when GitHub gives one.
 - **Used by:** `skills/babysit-pr/SKILL.md` § 2 and § 5; `skills/implement/SKILL.md` § 7;
   `skills/implement/THREADS.md` ("A launched thread reports to its own inbox")
 - **Breaks if:** a wake event is dropped, or a wake no longer ends the turn, so the session has to
@@ -314,7 +329,10 @@ T3 source paths below are in pingdotgg/t3code.
   pingdotgg/t3code#28204 (0.1.8-nightly.20261105.4205) interrupting one child's completion wake
   keeps its siblings' wakes, and since pingdotgg/t3code#26435 (same build) an older pending
   question stays answerable. `t3_thread_send` takes `freshContext` (pingdotgg/t3code#30323), but
-  a re-check is a new `delegate_task`, so no skill uses it.
+  a re-check is a new `delegate_task`, so no skill uses it. Since pingdotgg/t3code#32573
+  (0.1.8-nightly.20261109.4392) a result read after the parent's run ended (a `mode: wait` call
+  returning late) no longer marks the completion observed, so the idle parent still gets its wake;
+  an in-turn read picks the calling provider's active run (`OrchestratorMcpService.ts`).
   Source: `packages/contracts/src/orchestratorMcp.ts`. Read-only review
   is a prompt rule (`agents/reviewer.md`), not something T3 enforces.
 - **Used by:** `agents/models.md` § Reaching each model; `skills/code-review/SKILL.md` § Spawning
@@ -386,7 +404,9 @@ T3 source paths below are in pingdotgg/t3code.
   background and passes the result to the server, so a PATH change reaches only sessions started
   after that probe finishes (5 s timeout per shell;
   `apps/desktop/src/shell/DesktopShellEnvironment.ts`). A provider process started earlier keeps
-  the PATH it started with until it restarts.
+  the PATH it started with until it restarts. Unchanged in 0.1.8-nightly.20261109.4399:
+  pingdotgg/t3code#33153 only adds `awaitUserShellDiscovery`, which tells whether the user's own
+  login shell or a fallback gave the PATH, for setting up the `t3` command.
 - **Used by:** `hooks/check-tool-path.sh` (the SessionStart warning)
 - **Breaks if:** T3 starts agent sessions with a shell environment of its own, so `~/.profile` no
   longer reaches them.
@@ -423,7 +443,11 @@ T3 source paths below are in pingdotgg/t3code.
   reviews still start a new thread per run. The one-time re-read `babysit-pr` schedules binds to
   its thread, so it is `continue`, as before. `fresh_session` would keep every run in one thread
   without its context, but a bound run uses that thread's checkout, never a fresh worktree from
-  `origin/main`, so the reviews stay on new threads.
+  `origin/main`, so the reviews stay on new threads. Since pingdotgg/t3code#31379
+  (0.1.8-nightly.20261108.4367) Settings → Scheduled tasks → Destination moves a one-thread task
+  to another thread of its project, and a save that changes a task's thread refuses one deleted,
+  archived or in another project; an unchanged destination is not rechecked. `babysit-pr`'s
+  re-read binds to its own live thread, so it passes.
 - **Used by:** `skills/upstream-review/SKILL.md` § Cadence; `skills/t3-update-review/SKILL.md`
   § Cadence
 - **Breaks if:** scheduled runs stop starting when no thread is open, stop getting a worktree of
@@ -453,7 +477,7 @@ T3 source paths below are in pingdotgg/t3code.
   after the machine wakes can fire before the network is up: workspace preparation fails on
   `git fetch` ("Git could not reach the remote", `retryable: false`) and the task still says
   `succeeded` (all three Monday runs on 2026-10-19; again the daily review on 2026-11-04, retried
-  by hand). Still so in 0.1.8-nightly.20261107.4314:
+  by hand). Still so in 0.1.8-nightly.20261109.4399:
   `lastRunStatus` is `failed` only when the launch call itself fails, and since
   pingdotgg/t3code#29889 (0.1.7-nightly.20261104.4151) `lastRunError` is a plain message without a
   stack trace. `run_scheduled_task_now`
@@ -546,7 +570,10 @@ T3 source paths below are in pingdotgg/t3code.
   them, and the report has no MCP tool. `t3_worktree_list` cannot find them either: it lists
   git's branch refs and the checkout each one is in, with no thread and no detached worktree
   (seen on 2026-10-17), so an orphan on a branch is listed like any other. An orphan is a folder
-  no live thread's `worktreePath` (from `t3_thread_read`) names.
+  no live thread's `worktreePath` (from `t3_thread_read`) names. Since pingdotgg/t3code#25883
+  (0.1.8-nightly.20261108.4353) the report also finds a project worktree nested deeper in a plain
+  folder (`<repo>/replay/<n>`), from each project's `git worktree list`, and lists it as "No thread
+  uses this worktree" instead of listing its holding folder; still not removed.
 - **Used by:** `skills/housekeeping/SKILL.md` (the orphan-folder row, and step 1's orphan rule)
 - **Would improve if:** T3's cleanup removes an orphan folder by the same rules as a thread's
   worktree, or offers it to the user to remove.
@@ -579,7 +606,7 @@ T3 source paths below are in pingdotgg/t3code.
   setup terminal log under `logs/terminals/`. `ProviderTurnStartService.ts` on T3's `main` has no
   reference to a setup script (keyword search of that file only; the same at
   0.1.7-nightly.20261102.4066, after pingdotgg/t3code#26758 changed which ref the recovery restores,
-  and at 0.1.8-nightly.20261107.4314).
+  and at 0.1.8-nightly.20261109.4399).
 - **Used by:** `skills/implement/THREADS.md` (the intro); `skills/housekeeping/SKILL.md` (a live
   thread's resources are kept for its resume)
 - **Would improve if:** T3 runs `runOnWorktreeCreate` when it recreates a worktree.
@@ -705,7 +732,9 @@ T3 source paths below are in pingdotgg/t3code.
   no snapshot fault moved. Since pingdotgg/t3code#30306 (same build) the server's headless browser
   closes after five idle minutes, and the next agent tab starts it cold (about 190 ms); since
   pingdotgg/t3code#24186 (0.1.8-nightly.20261105.4205) idle agent tabs free a slot when the
-  32-tab limit is full.
+  32-tab limit is full. Since pingdotgg/t3code#28255 (0.1.8-nightly.20261108.4353)
+  `preview_snapshot` with `save: true` also keeps the uncapped capture and writes that to disk;
+  the agent's image stays 1280 px wide, and capture and timing are unchanged.
   Since 0.1.6-nightly.20261030.3904
   the preview browser runs in an agent scope, with the agents' +800 OOM score, low CPU weight and
   memory limits (pingdotgg/t3code#27239, #27176): "under agent memory pressure the preview
@@ -765,8 +794,7 @@ T3 source paths below are in pingdotgg/t3code.
   tabs and in delegated children); #24812 (open: snapshots time out after the CDP relay
   reconnects); #23515 (open: a capture that never answers no longer blocks the tab); #24130 (open:
   reports the actual snapshot timeout); #20899 (the blur, fixed; no issue asks to lift the size
-  cap, and #10141, which tried, closed unmerged); #28255 (open: `save: true` keeps full resolution
-  while the agent's image stays 1280 px wide); `apps/server/src/preview/ServerBrowserPage.ts`
+  cap, and #10141, which tried, closed unmerged); `apps/server/src/preview/ServerBrowserPage.ts`
   (`MAX_SCREENSHOT_WIDTH`, `captureViewport`); `apps/server/src/mcp/toolkits/preview/tools.ts`;
   the trial's notes in the final reports of en-escena's and rubens' PRs
 
@@ -791,6 +819,26 @@ T3 source paths below are in pingdotgg/t3code.
 None.
 
 ## Resolved
+
+### browser-setup-sudo-secret
+
+- **Workaround:** when `preview_open` is refused because the host blocks the browser's sandbox
+  (the error names `sudo ~/.t3/bin/t3 browser setup`), `PREVIEW.md` hands the fix to the user and
+  finishes with § Drive's fallback, since an agent could not type a sudo password.
+- **Used by:** `skills/implement/PREVIEW.md` (the refusal paragraph before § The loop)
+- **Would improve if:** an agent can run a sudo command with a password only the user gives,
+  without the password entering the chat.
+- **Met in:** 0.1.8-nightly.20261109.4399 (pingdotgg/t3code#27748). T3's injected instructions now
+  say: "A login, token, PIN, pairing code or sudo password only the user can give: call
+  `request_secret` ... Sudo: if `sudo -n <cmd>` says a password is required, use
+  `delivery: "file"` and run `sudo -S -p '' <cmd> < "$file"`" (`orchestrationInstructions.ts`).
+  The setup is one-time per machine, done here since 2026-10-16, so it bears mainly on a new
+  machine.
+- **Adopted:** 2026-11-09, by the user's call; `PREVIEW.md` keeps "Agent browser access" as the
+  user's setting, and for the sandbox refusal runs `t3 browser setup` through `request_secret`
+  (`delivery: "file"`) once, then retries `preview_open`. A background subagent, which
+  `request_secret` refuses (`background-subagents-keep-t3-tools`), hands the refusal to its
+  parent.
 
 ### implementer-worktrees
 

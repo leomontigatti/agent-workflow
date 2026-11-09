@@ -19,9 +19,13 @@ with the browser CLI, or report the path as not clicked.
 Note every place the tools fall short in the final report.
 
 When `preview_open` is refused, the machine is not set up for them: "Agent browser access" is off
-in T3's Settings, or the host blocks the browser's sandbox (the error names
-`sudo ~/.t3/bin/t3 browser setup`). Both are the user's to fix. Finish with § Drive's fallback,
-and open the final report with the refusal's exact text.
+in T3's Settings, which is the user's to turn on, or the host blocks the browser's sandbox (the
+error names `sudo ~/.t3/bin/t3 browser setup`). Run that setup once yourself: `request_secret`
+for the sudo password with `delivery: "file"`, then `sudo -S -p '' ~/.t3/bin/t3 browser setup <
+"$file"`, and retry `preview_open`. A background subagent cannot call `request_secret`, so it
+hands the refusal to its parent. When the setting is off, the user declines the card or the retry
+is refused, finish with § Drive's fallback, and open the final report with the refusal's exact
+text.
 
 ## The loop
 
