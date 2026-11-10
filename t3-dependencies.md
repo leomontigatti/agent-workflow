@@ -333,6 +333,13 @@ T3 source paths below are in pingdotgg/t3code.
   (0.1.8-nightly.20261109.4392) a result read after the parent's run ended (a `mode: wait` call
   returning late) no longer marks the completion observed, so the idle parent still gets its wake;
   an in-turn read picks the calling provider's active run (`OrchestratorMcpService.ts`).
+  Since pingdotgg/t3code#27753 (0.1.8-nightly.20261109.4429) `task_status` and a thread's
+  `recentRuns` carry `executedModel`, the model the provider reported running (null when
+  unknown; only the Claude adapter records it), and when it differs from the requested `model`
+  the child's `summary` starts with "Requested model X; the provider reported running Y."
+  (adopting it is `reviewer-executed-model` under Ready). Since pingdotgg/t3code#33255 (same
+  build) every thread `link` the MCP tools return carries the thread's title as its label; skills
+  quote a link verbatim and parse none.
   Source: `packages/contracts/src/orchestratorMcp.ts`. Read-only review
   is a prompt rule (`agents/reviewer.md`), not something T3 enforces.
 - **Used by:** `agents/models.md` § Reaching each model; `skills/code-review/SKILL.md` § Spawning
@@ -796,12 +803,13 @@ T3 source paths below are in pingdotgg/t3code.
   click, a dispatched event or a `fetch`, #72 to #83), which skips what a real click checks. Clicks
   failed 23 of 81 times in `open: false` tabs and 3 of 40 in `open: true` ones, unevenly spread
   across threads; snapshots failed 14 of 131 and 9 of 63, so the tab's state does not explain them.
-- **Retry when:** #23936 and #24812 are fixed, or #23515 merges. Then one real drive with
+- **Retry when:** #23936 and #24812 are fixed, or #25862 merges. Then one real drive with
   `preview_act` clicks on the current build decides whether step one runs again. A PR counts toward
   step two only with real `preview_act` clicks, none lost, no timed-out snapshot and sharp captures.
 - **Watch:** pingdotgg/t3code#23936 (open: `preview_snapshot` always times out on `open: false`
   tabs and in delegated children); #24812 (open: snapshots time out after the CDP relay
-  reconnects); #23515 (open: a capture that never answers no longer blocks the tab); #24130 (open:
+  reconnects); #25862 (open: bounds a stalled screenshot capture; it replaced #23515, closed
+  unmerged 2026-11-10); #24130 (open:
   reports the actual snapshot timeout); #20899 (the blur, fixed; no issue asks to lift the size
   cap, and #10141, which tried, closed unmerged); `apps/server/src/preview/ServerBrowserPage.ts`
   (`MAX_SCREENSHOT_WIDTH`, `captureViewport`); `apps/server/src/mcp/toolkits/preview/tools.ts`;
@@ -825,7 +833,22 @@ T3 source paths below are in pingdotgg/t3code.
 
 ## Ready
 
-None.
+### reviewer-executed-model
+
+- **Workaround:** a review report names the model a reviewer ran on from the model the skill
+  asked for (`agents/models.md` table), so a provider that runs another model (an organization
+  that allows only Sonnet runs an Opus request on Sonnet) yields an "Opus review" Sonnet did.
+- **Used by:** `agents/models.md` (a task on another model, and a fallback: "the report names
+  the model and why"); `skills/code-review/SKILL.md` § Spawning a reviewer
+- **Would improve if:** `delegate_task` reports the model that actually ran.
+- **Met in:** 0.1.8-nightly.20261109.4429 (pingdotgg/t3code#27753): `task_status` gains
+  `executedModel` ("Model the provider reported running, or null when unavailable. Can differ
+  from the requested `model`", `packages/contracts/src/orchestratorMcp.ts`), taken from the run
+  that produced the result, and a differing child's result starts "Requested model X; the
+  provider reported running Y." Only the Claude adapter records it, so a Codex child reads null.
+- **Adopting it:** `agents/models.md` gains one rule beside the fallback one: when a child's
+  `executedModel` names another model than the role's, the report names the model that ran, and
+  a review that ran below its row's family or tier counts as that tier's, not the row's.
 
 ## Resolved
 
