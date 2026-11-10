@@ -22,6 +22,10 @@ A task can run on a different model than its row names when that model fits it b
 judgment too hard for the light model, say). The family rule still holds, and the report names
 the model and why, as it does for a fallback.
 
+A provider can run another model than the one asked for. The report names the model that ran (a
+child's `executedModel`, or its result's opening "Requested model X; the provider reported
+running Y"), and its tier and family are the review's; null keeps the requested model.
+
 | Role                  | What it does                                              | Model                                                    | Effort  | Fallback                                     |
 | --------------------- | --------------------------------------------------------- | -------------------------------------------------------- | ------- | -------------------------------------------- |
 | Standards, Spec       | `code-review`'s two axes                                  | the other family: Sol, or Opus when Codex wrote it       | medium  | `reviewer-opus` (Claude) / `reviewer` (Codex) |

@@ -337,7 +337,7 @@ T3 source paths below are in pingdotgg/t3code.
   `recentRuns` carry `executedModel`, the model the provider reported running (null when
   unknown; only the Claude adapter records it), and when it differs from the requested `model`
   the child's `summary` starts with "Requested model X; the provider reported running Y."
-  (adopting it is `reviewer-executed-model` under Ready). Since pingdotgg/t3code#33255 (same
+  (adopted as `reviewer-executed-model`, under Resolved). Since pingdotgg/t3code#33255 (same
   build) every thread `link` the MCP tools return carries the thread's title as its label; skills
   quote a link verbatim and parse none.
   Source: `packages/contracts/src/orchestratorMcp.ts`. Read-only review
@@ -833,6 +833,10 @@ T3 source paths below are in pingdotgg/t3code.
 
 ## Ready
 
+None.
+
+## Resolved
+
 ### reviewer-executed-model
 
 - **Workaround:** a review report names the model a reviewer ran on from the model the skill
@@ -846,11 +850,9 @@ T3 source paths below are in pingdotgg/t3code.
   from the requested `model`", `packages/contracts/src/orchestratorMcp.ts`), taken from the run
   that produced the result, and a differing child's result starts "Requested model X; the
   provider reported running Y." Only the Claude adapter records it, so a Codex child reads null.
-- **Adopting it:** `agents/models.md` gains one rule beside the fallback one: when a child's
-  `executedModel` names another model than the role's, the report names the model that ran, and
-  a review that ran below its row's family or tier counts as that tier's, not the row's.
-
-## Resolved
+- **Adopted:** 2026-11-10, by the user's call: `agents/models.md` § The rule has the report name
+  the model that ran, from `executedModel` or the result's opening note, and count the review by
+  that model's tier and family; null keeps the requested model.
 
 ### browser-setup-sudo-secret
 
