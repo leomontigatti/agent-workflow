@@ -258,7 +258,8 @@ T3 source paths below are in pingdotgg/t3code.
   still wait on the 2-minute sweep. This machine has no app sign-in in `settings.json`, so it
   still polls.
 - **Used by:** `skills/babysit-pr/SKILL.md` § 2 and § 5; `skills/implement/SKILL.md` § 7;
-  `skills/implement/THREADS.md` ("A launched thread reports to its own inbox")
+  `skills/implement/THREADS.md` ("A launched thread reports to its own inbox");
+  `skills/fan-out/SKILL.md` § 4
 - **Breaks if:** a wake event is dropped, or a wake no longer ends the turn, so the session has to
   poll or sleep to wait; `unwatch_pull_request` stops returning the thread to the inbox;
   `list_thread_pull_requests` stops taking another thread's id; or inactivity auto-settle is
@@ -492,6 +493,21 @@ T3 source paths below are in pingdotgg/t3code.
   drops `fixed_time` tasks. A task stored before that build on a project whose default branch
   is not `main` keeps the Base branch set in Settings → Scheduled tasks
   (pingdotgg/t3code#16183).
+
+### fan-out-other-projects
+
+- **Relies on:** `t3_project_list` returns every project with its `id`, `workspaceRoot` and
+  `repositoryIdentity` (null for "No project"; else `canonicalKey`, the same for two entries of one
+  repo). The list holds stale entries beside current ones (on 2026-11-11, `en-escena` at
+  `~/projects/en-escena` beside `enescena` at `~/.t3/projects/enescena`, two repos with different
+  keys). `t3_thread_launch` with another project's `projectId` and a `worktree`
+  `workspaceStrategy` creates that project's checkout and runs its setup, which `delegate_task`
+  refuses for a local `target.projectId` other than the parent's (`delegate-task-reviews`). The
+  launch itself is `thread-launch-workspace`; a child's PR comes from `list_thread_pull_requests`
+  (`pr-watch-is-native`).
+- **Used by:** `skills/fan-out/SKILL.md` §§ 1 and 3
+- **Breaks if:** `repositoryIdentity.canonicalKey` or `workspaceRoot` leave the project list, or
+  `t3_thread_launch` stops accepting a `projectId` other than the caller's.
 
 ### update-review-reads-t3
 

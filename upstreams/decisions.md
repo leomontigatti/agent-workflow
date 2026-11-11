@@ -194,3 +194,9 @@ Verdicts marked proposed stand until this review's PR merges; the user approved 
 | `mattpocock-docs:wayfinder-prototype-choice-is-human` | The human picks the prototype variant. | declined (proposed) | `skills/wayfinder/SKILL.md` § Ticket Types. |
 | `mattpocock-docs:wayfinder-bounded-destination` | Scope the map to an epic. | declined (proposed) | An upstream failure report with no observed case of ours. |
 | `mattpocock-docs:wayfinder-cleared-map-to-spec` | A cleared map points at `to-spec`. | declined (proposed) | A cleared map can end in a one-session change, which needs no spec. |
+
+## Cross-project changes from one home repo (2026-11-11)
+
+| Id | Idea | Verdict | Where or why |
+| -- | ---- | ------- | ------------ |
+| `mattpocock-skills:home-repo` | Run every agent from one home repo that holds the skills and steering files and has the other repos cloned inside it, so one session makes a sweeping change across repos. | adopted | Adapted: the shared half is already this repo, installed globally; `skills/fan-out/SKILL.md` has a coordinator thread launch one thread per project instead. Agents still run per project, since worktrees, `t3.json` setup, each project's contract and its PR all hang off the project. |
