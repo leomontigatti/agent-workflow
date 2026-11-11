@@ -33,7 +33,7 @@ Done when every project is in or out with a reason and the user has agreed to th
 Write `/tmp/fan-out-<slug>/notes.md`, outside every repo:
 
 - the change, and the PR or issue it comes from;
-- one section per **in** project: what that project must do;
+- one section per **in** project: what that project must do, and its merge order (step 5);
 - every name, heading, wording and file path that must be identical in every project, spelled
   out exactly once.
 
@@ -54,11 +54,14 @@ top-level thread: `t3_thread_launch` with
 ```
 Notes: /tmp/fan-out-<slug>/notes.md (read it first; its shared names are exact)
 Your part: § <project>
-Run the `implement` skill.
+Run the `implement` skill, then commit, push, open your PR and babysit it.
+<only when your part merges with the shared PR:> Leave the merge to the user.
 ```
 
-Invoking this skill is the user's request for these threads. Each child opens and babysits its
-own PR ([THREADS.md](../implement/THREADS.md), "A launched thread reports to its own inbox").
+Invoking this skill and agreeing to the step 1 list is the user's whole go-ahead for these
+threads: launch every **in** project without asking again. Each child opens and babysits its
+own PR, and merges it itself unless its message holds the merge
+([THREADS.md](../implement/THREADS.md), "A launched thread reports to its own inbox").
 Record each child's `threadId` and `link` in the notes file.
 
 ## 4. Track and report
@@ -80,6 +83,8 @@ When the change comes from an agent-workflow PR, link every project PR from its 
 - a project PR that only adds what a new required contract row asks for merges before the shared
   PR, so the row is met the moment it lands;
 - a project PR that renames something the shared files name merges together with the shared PR,
-  back to back, so neither side reads a name the other has dropped.
+  back to back, so neither side reads a name the other has dropped. Its launch message held the
+  merge (step 3), so it waits at READY until the user merges both, or hands the merges to the
+  coordinator.
 
 Say which order applies to each PR in the step 4 report.
