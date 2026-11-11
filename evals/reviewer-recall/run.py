@@ -216,8 +216,10 @@ def run_one(spec, alias, prompt, wt, path):
     if run.returncode or not text.strip():
         open(path + ".err", "w", encoding="utf-8").write((run.stderr + run.stdout)[-4000:])
         return path, "failed"
-    json.dump({"model": spec["model"], "effort": spec["effort"], "wall_s": wall, **meta},
-              open(path[:-3] + ".meta.json", "w", encoding="utf-8"), indent=2)
+    meta_path = path[:-3] + ".meta.json"
+    with open(meta_path + ".tmp", "w", encoding="utf-8") as f:
+        json.dump({"model": spec["model"], "effort": spec["effort"], "wall_s": wall, **meta}, f, indent=2)
+    os.replace(meta_path + ".tmp", meta_path)  # `report` never reads a half-written file
     open(path, "w", encoding="utf-8").write(text)  # last: a review on disk always has its measurements
     return path, "ok"
 
