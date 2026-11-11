@@ -25,6 +25,8 @@ When a role's result falls short, climb this **ladder** and stop at the first ru
 3. Move to the next model up in the same family, one effort step below what the smaller model
    ran. Past high, one more effort step costs about as much as that model.
 
+With no rung left, stop and report the shortfall and the rungs tried.
+
 A task can run on a different model than its row names when that model fits it better (a
 judgment too hard for the light model, say). The family rule still holds, and the report names
 the model and why, as it does for a fallback.
