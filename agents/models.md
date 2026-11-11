@@ -89,6 +89,11 @@ Codex, `effort` for Claude. `delegate_task` runs a child in this thread's projec
 machine with `target.environmentId`; work in another project on this machine is a
 `t3_thread_launch` in that project.
 
+A wrapper pins its row's model and effort. A role run above them (the ladder, the hardest work)
+is a `delegate_task` with the model and effort in `target`, on the role's own provider, and its
+task opens with the brief line below. In Claude Code the Agent tool's `model` and `effort` do the
+same. Outside T3, a harness with no such override ends the ladder at rung 1.
+
 When a call refuses a model id, `orchestrator_capabilities` lists the live ones; fix the table
 and the wrappers together.
 
