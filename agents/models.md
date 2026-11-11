@@ -18,6 +18,15 @@ Effort starts at the row's level. Raise it one step for the hardest work (a migr
 concurrency bug, a design nobody has settled); lower it for routine reading. A change of effort
 keeps the family, so a diverse panel stays diverse.
 
+When a role's result falls short, climb this **ladder** and stop at the first rung that fixes it:
+
+1. Give the role a check it can run on its own work: a test, a build, a script.
+2. Raise effort one step, up to high.
+3. Move to the next model up in the same family, one effort step below what the smaller model
+   ran. Past high, one more effort step costs about as much as that model.
+
+With no rung left, stop and report the shortfall and the rungs tried.
+
 A task can run on a different model than its row names when that model fits it better (a
 judgment too hard for the light model, say). The family rule still holds, and the report names
 the model and why, as it does for a fallback.
@@ -79,6 +88,11 @@ The table's effort goes in `target.options` under the provider's own name: `reas
 Codex, `effort` for Claude. `delegate_task` runs a child in this thread's project, or on a linked
 machine with `target.environmentId`; work in another project on this machine is a
 `t3_thread_launch` in that project.
+
+A wrapper pins its row's model and effort. A role run above them (the ladder, the hardest work)
+is a `delegate_task` with the model and effort in `target`, on the role's own provider, and its
+task opens with the brief line below. In Claude Code the Agent tool's `model` and `effort` do the
+same. Outside T3, a harness with no such override ends the ladder at rung 1.
 
 When a call refuses a model id, `orchestrator_capabilities` lists the live ones; fix the table
 and the wrappers together.
