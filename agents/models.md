@@ -18,6 +18,13 @@ Effort starts at the row's level. Raise it one step for the hardest work (a migr
 concurrency bug, a design nobody has settled); lower it for routine reading. A change of effort
 keeps the family, so a diverse panel stays diverse.
 
+When a role's result falls short, climb this **ladder** and stop at the first rung that fixes it:
+
+1. Give the role a check it can run on its own work: a test, a build, a script.
+2. Raise effort one step, up to high.
+3. Move to the next model up in the same family, one effort step below what the smaller model
+   ran. Past high, one more effort step costs about as much as that model.
+
 A task can run on a different model than its row names when that model fits it better (a
 judgment too hard for the light model, say). The family rule still holds, and the report names
 the model and why, as it does for a fallback.

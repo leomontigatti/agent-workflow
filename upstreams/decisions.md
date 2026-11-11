@@ -200,3 +200,14 @@ Verdicts marked proposed stand until this review's PR merges; the user approved 
 | Id | Idea | Verdict | Where or why |
 | -- | ---- | ------- | ------------ |
 | `mattpocock-skills:home-repo` | Run every agent from one home repo that holds the skills and steering files and has the other repos cloned inside it, so one session makes a sweeping change across repos. | adopted | Adapted: the shared half is already this repo, installed globally; `skills/fan-out/SKILL.md` has a coordinator thread launch one thread per project instead. Agents still run per project, since worktrees, `t3.json` setup, each project's contract and its PR all hang off the project. |
+
+## Choosing a model per task, from Anthropic (2026-11-11)
+
+The guide "Which Claude model should you build with?" on claude.dev (2026-11-09), reached through a post that asks a session to audit its setup against it and a third-party skill that condenses it. The guide speaks as Anthropic, which is not a watched source, so these rows carry `anthropic:`; we did not confirm who owns the site. Its numbers are Anthropic's own benchmark runs, none on our work. Verdicts marked proposed stand until this PR merges.
+
+| Id | Idea | Verdict | Where or why |
+| -- | ---- | ------- | ------------ |
+| `anthropic:escalation-order` | When a model falls short: first make sure it can verify its own work, then raise effort one level, then move to the next model up at a lower effort; past high, one more effort level can cost as much as the bigger model. | adopted (proposed) | `agents/models.md` § The rule, the ladder. Our one measurement fits rung 3's lower effort and warns about its price: Fable at low matched Opus at medium on reviewer recall (20 and 19 of 30, 2026-11-11) at about twice the cost per review. |
+| `anthropic:task-model-table` | A task-to-model table (Haiku for search and extraction, Sonnet for scoped coding and review, Opus for everyday engineering, Fable for migrations and leading subagents), loaded as a skill before every subagent spawn. | declined (proposed) | `agents/models.md` already maps each role to a model, from our own evals, and they disagree with the table: it puts review on Sonnet, where `evals/reviewer-recall` backs Opus and Sol. A second table loaded in every session would be a second source of truth. |
+| `anthropic:explore-on-haiku` | Define a subagent named `Explore` with `model: haiku`, since the built-in one now runs on the session's model. | declined (proposed) | A harness setting already does it wider: `CLAUDE_CODE_SUBAGENT_MODEL` puts every subagent with no model on the light one, and every role that needs more names its model. Reopen if `install.sh` starts to own Claude settings. |
+
