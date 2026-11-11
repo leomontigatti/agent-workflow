@@ -248,7 +248,15 @@ T3 source paths below are in pingdotgg/t3code.
   inline comments a maintainer hid (`isMinimized`), so a hidden one wakes no watch and a hidden
   review no longer sets the review state; `babysit-pr` reads the round from GitHub itself and,
   since 2026-11-09, leaves them out too (`triage.md` § Reading the round). Since pingdotgg/t3code#32395 (0.1.8-nightly.20261107.4327) T3's review state
-  follows GitHub's `reviewDecision` when GitHub gives one.
+  follows GitHub's `reviewDecision` when GitHub gives one. Since pingdotgg/t3code#24599
+  (0.1.9-nightly.20261110.4465) checks waiting on a maintainer's workflow approval wake the
+  thread once per head ("checks await approval", `awaitingApproval` and `approvalAnnounced` in
+  `threadPullRequest.ts`) instead of flapping between failed and passed; the projects here run
+  no fork workflows. Since pingdotgg/t3code#33548 (0.1.9-nightly.20261111.4515) a watched
+  github.com PR also re-reads on GitHub's event stream (push, review, merge, conflict), but only
+  for a user signed in through T3's GitHub app, which is opt-in; checks have no events, so they
+  still wait on the 2-minute sweep. This machine has no app sign-in in `settings.json`, so it
+  still polls.
 - **Used by:** `skills/babysit-pr/SKILL.md` § 2 and § 5; `skills/implement/SKILL.md` § 7;
   `skills/implement/THREADS.md` ("A launched thread reports to its own inbox")
 - **Breaks if:** a wake event is dropped, or a wake no longer ends the turn, so the session has to
@@ -339,7 +347,16 @@ T3 source paths below are in pingdotgg/t3code.
   the child's `summary` starts with "Requested model X; the provider reported running Y."
   (adopted as `reviewer-executed-model`, under Resolved). Since pingdotgg/t3code#33255 (same
   build) every thread `link` the MCP tools return carries the thread's title as its label; skills
-  quote a link verbatim and parse none.
+  quote a link verbatim and parse none. Since pingdotgg/t3code#32504 (0.1.9-nightly.20261111.4515)
+  a follow-up task whose child queues a run on its own thread settles on that run's reply, not on
+  the turn that queued it (`delegatedTaskResultRun`), as the original task already did; since
+  pingdotgg/t3code#32815 (0.1.9-nightly.20261110.4478) removing one queued completion keeps its
+  siblings' wakes; since pingdotgg/t3code#33446 (0.1.9-nightly.20261111.4501) a send to a finished
+  child from an MCP client with no thread scope (`t3 thread send`) wakes the parent too, a path no
+  skill uses. Since pingdotgg/t3code#33295 (0.1.9-nightly.20261110.4478) a call reads only the
+  caller's active runs and `task_status` reads the result from the child's records; the result
+  fields are unchanged. `claude-fable-5-2` (pingdotgg/t3code#33500, 0.1.8-nightly.20261109.4433)
+  was listed on 2026-11-11; `agents/models.md` names it nowhere.
   Source: `packages/contracts/src/orchestratorMcp.ts`. Read-only review
   is a prompt rule (`agents/reviewer.md`), not something T3 enforces.
 - **Used by:** `agents/models.md` § Reaching each model; `skills/code-review/SKILL.md` § Spawning
@@ -463,7 +480,11 @@ T3 source paths below are in pingdotgg/t3code.
   (0.1.8-nightly.20261108.4367) Settings → Scheduled tasks → Destination moves a one-thread task
   to another thread of its project, and a save that changes a task's thread refuses one deleted,
   archived or in another project; an unchanged destination is not rechecked. `babysit-pr`'s
-  re-read binds to its own live thread, so it passes.
+  re-read binds to its own live thread, so it passes. Since pingdotgg/t3code#32494
+  (0.1.9-nightly.20261111.4515) a `schedule_task` update recomputes the workspace strategy only
+  when the task moves between bound and unbound, so `bindToCurrentThread: false` on a task already
+  unbound keeps its stored strategy instead of resetting it to a fresh worktree; unbinding a bound
+  task still switches it to one.
 - **Used by:** `skills/upstream-review/SKILL.md` § Cadence; `skills/t3-update-review/SKILL.md`
   § Cadence
 - **Breaks if:** scheduled runs stop starting when no thread is open, stop getting a worktree of
@@ -622,7 +643,8 @@ T3 source paths below are in pingdotgg/t3code.
   setup terminal log under `logs/terminals/`. `ProviderTurnStartService.ts` on T3's `main` has no
   reference to a setup script (keyword search of that file only; the same at
   0.1.7-nightly.20261102.4066, after pingdotgg/t3code#26758 changed which ref the recovery restores,
-  and at 0.1.8-nightly.20261109.4399).
+  at 0.1.8-nightly.20261109.4399, and at 0.1.9-nightly.20261111.4515, whose diff to the file
+  leaves `recreateMissingWorktree` alone).
 - **Used by:** `skills/implement/THREADS.md` (the intro); `skills/housekeeping/SKILL.md` (a live
   thread's resources are kept for its resume)
 - **Would improve if:** T3 runs `runOnWorktreeCreate` when it recreates a worktree.
@@ -750,8 +772,19 @@ T3 source paths below are in pingdotgg/t3code.
   pingdotgg/t3code#24186 (0.1.8-nightly.20261105.4205) idle agent tabs free a slot when the
   32-tab limit is full. Since pingdotgg/t3code#28255 (0.1.8-nightly.20261108.4353)
   `preview_snapshot` with `save: true` also keeps the uncapped capture and writes that to disk;
-  the agent's image stays 1280 px wide, and capture and timing are unchanged.
-  Since 0.1.6-nightly.20261030.3904
+  the agent's image stays 1280 px wide, and capture and timing are unchanged. Since
+  pingdotgg/t3code#32861 (0.1.9-nightly.20261110.4478; closes #32848) a fresh desktop tab is
+  announced only once its first page is up: before, 11 of 30 new `about:blank` tabs (16 of 30
+  under load) lost every `preview_wait_for`, locator `preview_act` and `preview_snapshot` for
+  good while `preview_evaluate` still worked, which matches the trial's lost clicks and the
+  agent's turn to `preview_evaluate` from rubens #72 on (not checked against their logs). Since
+  pingdotgg/t3code#23589 (0.1.9-nightly.20261110.4452) a tab the desktop shows reads
+  `visible: true` and is the default for a call without `tabId`; since pingdotgg/t3code#33745
+  (0.1.9-nightly.20261111.4515) a snapshot of a page with a large accessibility tree keeps 2,000
+  characters of `visibleText` instead of none; since pingdotgg/t3code#31925
+  (0.1.9-nightly.20261110.4465) `preview_evaluate` accepts top-level `await`. `t3_preview_close`,
+  `PREVIEW.md` step 7's close, is unchanged. #23936 and #24812 stay open, so **Retry when** is
+  not met. Since 0.1.6-nightly.20261030.3904
   the preview browser runs in an agent scope, with the agents' +800 OOM score, low CPU weight and
   memory limits (pingdotgg/t3code#27239, #27176): "under agent memory pressure the preview
   browser is throttled too". Whether that bears on the snapshot timeouts is untested; a preview
