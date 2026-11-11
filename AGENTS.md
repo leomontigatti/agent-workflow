@@ -55,6 +55,7 @@ moment it merges, so each change goes through a PR and nothing is committed to `
   project, under a name no shared skill has.
 - **A new required contract file is a breaking change**: the PR lists the file every project must
   write, and lands with the lint's view of the contract (the table in `contract.md`) updated.
+  The projects' own PRs come from the user-invoked [`fan-out`](skills/fan-out/SKILL.md) skill.
 - **A model changes in `agents/models.md`**, and in the wrappers in the same commit; nothing else
   names one.
 - **A T3 assumption** a change adds or drops is an entry in `t3-dependencies.md`, with its

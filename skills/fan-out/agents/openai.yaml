@@ -1,0 +1,5 @@
+interface:
+  display_name: "Fan Out"
+  short_description: "Land one change across several projects"
+policy:
+  allow_implicit_invocation: false
