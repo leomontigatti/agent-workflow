@@ -32,6 +32,8 @@ jobs:
         run: python3 -I tests/test_upstreams.py
       - name: lib/parts.py cuts output into Read-sized parts
         run: python3 -I tests/test_parts.py
+      - name: reviewer-recall reads efforts, old manifests, and each review's time and cost
+        run: python3 -I tests/test_reviewer_recall.py
       - name: retro sessions.py finds the last retro window
         run: python3 -I tests/test_retro_sessions.py
       - name: block-push-default-branch.sh blocks what it should

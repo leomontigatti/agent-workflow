@@ -8,7 +8,10 @@ correctness reviewer, and asks a judge whether the review reports that bug.
 Usage, from anywhere:
   python3 -I run.py review [--models opus,sol,luna] [--repeats 2] [--cases id,id] [--effort medium] [--jobs 4] [--out DIR]
   python3 -I run.py grade DIR        judge every review in DIR that has no verdict yet
-  python3 -I run.py report DIR       print recall per model and per case
+  python3 -I run.py report DIR       print recall, time and cost per model, and recall per case
+
+A model in --models may name its own effort, `fable:low,opus:medium`; a bare one takes --effort.
+Each review's wall time, cost and tokens go beside it in `<case>.<model>.<k>.meta.json`.
 
 DIR defaults to ~/.local/state/reviewer-recall/<today>. `review` skips a review already on disk, so
 a stopped run resumes. Repos are read from ~/.t3/projects/<repo>, else cloned once into ~/.cache/reviewer-recall; a missing commit is fetched from
@@ -22,9 +25,11 @@ import hashlib
 import json
 import os
 import re
+import statistics
 import subprocess
 import sys
 import tempfile
+import time
 
 HERE = os.path.dirname(os.path.realpath(__file__))
 ROOT = os.path.normpath(os.path.join(HERE, "..", ".."))
@@ -32,26 +37,92 @@ PROJECTS = os.path.expanduser("~/.t3/projects")
 CACHE = os.path.expanduser("~/.cache/reviewer-recall")  # a clone for a repo with no project checkout
 TIMEOUT = 1800
 
-# The models agents/models.md names for review roles. Effort defaults to the correctness role's.
-EFFORTS = ("low", "medium", "high", "xhigh")
+# The models agents/models.md names for review roles, and the candidates for one. An alias is a
+# run key's middle part, so it holds no dot. Effort defaults to the correctness role's.
+EFFORTS = ("low", "medium", "high", "xhigh", "max")
 CLAUDE_TOOLS = "Read,Grep,Glob,Bash(git diff:*),Bash(git log:*),Bash(git show:*)"
-
-
-def claude(model):
-    return lambda prompt, wt, out, effort: (["claude", "-p", "--model", model, "--effort", effort,
-                                     "--allowedTools", CLAUDE_TOOLS, "--no-session-persistence",
-                                     prompt], wt, None)
-
-
-def codex(model):
-    return lambda prompt, wt, out, effort: (["codex", "exec", "-m", model, "-c", f'model_reasoning_effort="{effort}"',
-                                     "-s", "read-only", "--ephemeral", "-C", wt, "-o", out, prompt], wt, out)
-
-
-MODEL_IDS = {"opus": "claude-opus-5-5", "sonnet": "claude-sonnet-5-5", "sol": "gpt-6.1-sol", "luna": "gpt-6-luna"}
-MODELS = {alias: (claude if alias in ("opus", "sonnet") else codex)(model) for alias, model in MODEL_IDS.items()}
+MODEL_IDS = {"opus": "claude-opus-5-5", "sonnet": "claude-sonnet-5-5", "fable": "claude-fable-5-2",
+             "sol": "gpt-6.1-sol", "luna": "gpt-6-luna"}
+FAMILY = {"opus": "claude", "sonnet": "claude", "fable": "claude", "sol": "codex", "luna": "codex"}
 JUDGE = ["claude", "-p", "--model", "claude-sonnet-5-5", "--effort", "low",
          "--no-session-persistence"]
+
+
+def command(family, model, prompt, wt, out, effort):
+    if family == "claude":
+        return ["claude", "-p", "--model", model, "--effort", effort, "--output-format", "json",
+                "--allowedTools", CLAUDE_TOOLS, "--no-session-persistence", prompt]
+    return ["codex", "exec", "--json", "-m", model, "-c", f'model_reasoning_effort="{effort}"',
+            "-s", "read-only", "--ephemeral", "-C", wt, "-o", out, prompt]
+
+
+def parse_output(family, stdout, out_file):
+    """The review text and its measurements, from one reviewer call's output. Claude prints one
+    JSON result whose `result` is the review; Codex prints JSONL events and writes the review to
+    `out_file`, and reports tokens but no price."""
+    if family == "claude":
+        try:
+            data = json.loads(stdout)
+        except ValueError:
+            return "", {}
+        usage = data.get("usage") or {}
+        meta = {"cost_usd": data.get("total_cost_usd"), "duration_ms": data.get("duration_ms"),
+                "num_turns": data.get("num_turns"),
+                "usage": {k: usage[k] for k in ("input_tokens", "cache_creation_input_tokens",
+                                                "cache_read_input_tokens", "output_tokens") if k in usage}}
+        return ("" if data.get("is_error") else data.get("result") or ""), meta
+    usage = {}
+    for line in stdout.splitlines():
+        try:
+            event = json.loads(line)
+        except ValueError:
+            continue
+        if isinstance(event, dict) and event.get("type") == "turn.completed":
+            for k, v in (event.get("usage") or {}).items():
+                if isinstance(v, int):
+                    usage[k] = usage.get(k, 0) + v
+    text = open(out_file, encoding="utf-8").read() if out_file and os.path.exists(out_file) else ""
+    return text, {"cost_usd": None, "usage": usage}
+
+
+def parse_models(spec, effort):
+    """`fable:low,opus` into {alias: {model, effort}}; a bare alias takes `effort`."""
+    models = {}
+    for item in spec.split(","):
+        alias, _, own = item.partition(":")
+        if alias not in MODEL_IDS:
+            sys.exit(f"--models: {alias!r} is not one of {', '.join(MODEL_IDS)}")
+        if (own or effort) not in EFFORTS:
+            sys.exit(f"effort is one of {', '.join(EFFORTS)}")
+        models[alias] = {"model": MODEL_IDS[alias], "effort": own or effort}
+    return models
+
+
+def normalize(manifest):
+    """A manifest from before each model recorded its effort held a model id per alias and one
+    top-level effort, medium when absent."""
+    effort = manifest.pop("effort", "medium")
+    manifest["models"] = {a: v if isinstance(v, dict) else {"model": v, "effort": effort}
+                          for a, v in manifest["models"].items()}
+    return manifest
+
+
+def claim(out, models, prompts, asked):
+    """Record what this directory measures: a review on disk is reused only when its model, effort
+    and prompt are the ones asked for now. The lock makes the check and the write one step, so two
+    runs started together on one directory cannot both pass it."""
+    manifest_path = os.path.join(out, "manifest.json")
+    with open(os.path.join(out, ".lock"), "w") as lock:
+        fcntl.flock(lock, fcntl.LOCK_EX)
+        manifest = (normalize(json.load(open(manifest_path))) if os.path.exists(manifest_path)
+                    else {"models": {}, "prompts": {}, "runs": []})
+        for key, wanted in (("models", models), ("prompts", prompts)):
+            clash = [k for k, v in wanted.items() if manifest[key].get(k, v) != v]
+            if clash:
+                sys.exit(f"{out} holds a different {key[:-1]} or effort for {', '.join(clash)}: use a new directory")
+            manifest[key].update(wanted)
+        manifest["runs"] = sorted(set(manifest["runs"]) | set(asked))  # only the runs someone asked for
+        json.dump(manifest, open(manifest_path, "w"), indent=2)
 
 
 def git(repo, *args):
@@ -98,34 +169,13 @@ def ensure(case):
 
 def review(args):
     cases = load_cases(args.get("cases"))
-    models = args.get("models", "opus,sol,luna").split(",")
+    models = parse_models(args.get("models", "opus,sol,luna"), args.get("effort", "medium"))
     repeats = int(args.get("repeats", 2))
-    effort = args.get("effort", "medium")
-    if effort not in EFFORTS:
-        sys.exit(f"--effort is one of {', '.join(EFFORTS)}")
     out = args["out"]
     os.makedirs(out, exist_ok=True)
     prompts = {c["id"]: prompt_for(c, ensure(c)) for c in cases}
-    wanted = {"models": {m: MODEL_IDS[m] for m in models},
-              "prompts": {i: hashlib.sha256(p.encode()).hexdigest() for i, p in prompts.items()}}
     asked = [f"{c['id']}.{m}.{k}" for c in cases for m in models for k in range(1, repeats + 1)]
-    # The manifest pins what this directory measures: a review on disk is reused only when its
-    # model, effort and prompt are the ones asked for now. A manifest from before effort was
-    # recorded measured medium. The lock makes the check and the write one step, so two runs
-    # started together on one directory cannot both pass it.
-    manifest_path = os.path.join(out, "manifest.json")
-    with open(os.path.join(out, ".lock"), "w") as lock:
-        fcntl.flock(lock, fcntl.LOCK_EX)
-        manifest = json.load(open(manifest_path)) if os.path.exists(manifest_path) else {"models": {}, "prompts": {}, "runs": []}
-        if manifest.setdefault("effort", "medium" if manifest["runs"] else effort) != effort:
-            sys.exit(f"{out} holds reviews at {manifest['effort']} effort: use a new directory")
-        for key in ("models", "prompts"):
-            clash = [k for k, v in wanted[key].items() if manifest[key].get(k, v) != v]
-            if clash:
-                sys.exit(f"{out} holds a different {key[:-1]} for {', '.join(clash)}: use a new directory")
-            manifest[key].update(wanted[key])
-        manifest["runs"] = sorted(set(manifest["runs"]) | set(asked))  # only the runs someone asked for
-        json.dump(manifest, open(manifest_path, "w"), indent=2)
+    claim(out, models, {i: hashlib.sha256(p.encode()).hexdigest() for i, p in prompts.items()}, asked)
     tmp = tempfile.mkdtemp(prefix="reviewer-recall-")
     jobs, worktrees = [], []
     for case in cases:
@@ -140,7 +190,7 @@ def review(args):
                 if os.path.exists(path + ".err"):
                     os.remove(path + ".err")  # a failed run is retried
                 if not os.path.exists(path):
-                    jobs.append((model, prompt, wt, path, effort))
+                    jobs.append((models[model], model, prompt, wt, path))
     print(f"{len(jobs)} reviews to run", flush=True)
     try:
         with concurrent.futures.ThreadPoolExecutor(int(args.get("jobs", 4))) as pool:
@@ -151,21 +201,26 @@ def review(args):
             subprocess.run(["git", "-C", repo, "worktree", "remove", "--force", wt], capture_output=True)
 
 
-def run_one(model, prompt, wt, path, effort):
-    tmp_out = path + ".tmp"
-    cmd, cwd, out_file = MODELS[model](prompt, wt, tmp_out, effort)
+def run_one(spec, alias, prompt, wt, path):
+    family, out_file = FAMILY[alias], path + ".tmp"
+    started = time.monotonic()
     try:
-        run = subprocess.run(cmd, cwd=cwd, capture_output=True, text=True, timeout=TIMEOUT,
-                             stdin=subprocess.DEVNULL)
+        run = subprocess.run(command(family, spec["model"], prompt, wt, out_file, spec["effort"]), cwd=wt,
+                             capture_output=True, text=True, timeout=TIMEOUT, stdin=subprocess.DEVNULL)
     except subprocess.TimeoutExpired:
         return path, "timeout"
-    text = open(out_file, encoding="utf-8").read() if out_file and os.path.exists(out_file) else run.stdout
-    if run.returncode or not text.strip():
-        open(path + ".err", "w", encoding="utf-8").write(run.stderr[-4000:])
-        return path, "failed"
-    open(path, "w", encoding="utf-8").write(text)
-    if out_file and os.path.exists(out_file):
+    wall = round(time.monotonic() - started, 1)
+    text, meta = parse_output(family, run.stdout, out_file)
+    if os.path.exists(out_file):
         os.remove(out_file)
+    if run.returncode or not text.strip():
+        open(path + ".err", "w", encoding="utf-8").write((run.stderr + run.stdout)[-4000:])
+        return path, "failed"
+    meta_path = path[:-3] + ".meta.json"
+    with open(meta_path + ".tmp", "w", encoding="utf-8") as f:
+        json.dump({"model": spec["model"], "effort": spec["effort"], "wall_s": wall, **meta}, f, indent=2)
+    os.replace(meta_path + ".tmp", meta_path)  # `report` never reads a half-written file
+    open(path, "w", encoding="utf-8").write(text)  # last: a review on disk always has its measurements
     return path, "ok"
 
 
@@ -202,9 +257,9 @@ def grade(args):
 
 def report(args):
     out = args["out"]
-    manifest = json.load(open(os.path.join(out, "manifest.json")))
+    manifest = normalize(json.load(open(os.path.join(out, "manifest.json"))))
     models = sorted(manifest["models"])
-    print(f"effort: {manifest.get('effort', 'medium')}\n")
+    label = {m: f"{m} ({manifest['models'][m]['effort']})" for m in models}
     cases = {c["id"]: c for c in load_cases(None) if c["id"] in manifest["prompts"]}
     # Every run asked for is True, False, or missing (failed, timed out, or not graded yet), so a
     # model that failed half its runs shows it instead of reporting recall on the rest.
@@ -213,7 +268,7 @@ def report(args):
         case, m, _ = run.split(".")
         path = os.path.join(out, run + ".json")
         runs[case][m].append(json.load(open(path))["found"] if os.path.exists(path) else None)
-    print("| case | severity | first found by | " + " | ".join(models) + " |")
+    print("| case | severity | first found by | " + " | ".join(label[m] for m in models) + " |")
     print("| -- | -- | -- | " + " | ".join("--" for _ in models) + " |")
     for case, by in sorted(runs.items()):
         cells = [(f"{sum(v is True for v in by[m])}/{sum(v is not None for v in by[m])}"
@@ -228,10 +283,9 @@ def report(args):
               + (f"; {missing} runs missing, so this is incomplete" if missing else ""))
     # Every case was caught once, by the model in `found_by`: a model's recall on its own family's
     # cases is inflated, so compare on the cases the other family first found.
-    family = {"opus": "claude", "sonnet": "claude", "sol": "codex", "luna": "codex"}
     for m in models:
         other = [v for case, by in runs.items() for v in by[m]
-                 if v is not None and family.get(cases[case]["found_by"].lower()) not in (None, family[m])]
+                 if v is not None and FAMILY.get(cases[case]["found_by"].lower()) not in (None, FAMILY[m])]
         print(f"{m} on the other family's cases: {sum(other)}/{len(other)}")
     for a in models:
         for b in models:
@@ -239,6 +293,24 @@ def report(args):
                 full = [by for by in runs.values() if by[a] and by[b] and None not in by[a] + by[b]]
                 union = sum(any(by[a]) or any(by[b]) for by in full)
                 print(f"{a}+{b}: {union}/{len(full)} fully graded cases caught by at least one run of either")
+    print()
+    for m in models:
+        asked = [r for r in manifest["runs"] if r.split(".")[1] == m and r.split(".")[0] in cases]
+        metas = [json.load(open(p)) for p in (os.path.join(out, r + ".meta.json") for r in asked) if os.path.exists(p)]
+        walls = [x["wall_s"] for x in metas]
+        costs = [x["cost_usd"] for x in metas if x.get("cost_usd") is not None]
+        if not walls:
+            print(f"{m}: no review timed")
+            continue
+        price = (f"cost mean ${statistics.mean(costs):.2f} per review, total ${sum(costs):.2f}" if costs
+                 else "cost not reported")
+        # Claude's three input counts are disjoint; Codex's input_tokens already holds its cached ones.
+        tokens = [sum(x.get("usage", {}).get(k, 0) for k in ("input_tokens", "cache_creation_input_tokens",
+                                                            "cache_read_input_tokens")) for x in metas]
+        outs = [x.get("usage", {}).get("output_tokens", 0) for x in metas]
+        print(f"{m}: time mean {statistics.mean(walls):.0f}s, median {statistics.median(walls):.0f}s; {price} "
+              f"({len(walls)}/{len(asked)} reviews timed, {len(costs)} priced); "
+              f"tokens mean {statistics.mean(tokens):,.0f} in, {statistics.mean(outs):,.0f} out")
 
 
 def load_cases(ids):

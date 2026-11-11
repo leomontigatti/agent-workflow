@@ -13,15 +13,18 @@ the case's bug.
 
 ```sh
 python3 -I evals/reviewer-recall/run.py review --models opus,sol,luna --repeats 2
+python3 -I evals/reviewer-recall/run.py review --models fable:low,opus:medium --out ~/.local/state/reviewer-recall/<dir>
 python3 -I evals/reviewer-recall/run.py grade  ~/.local/state/reviewer-recall/<date>
 python3 -I evals/reviewer-recall/run.py report ~/.local/state/reviewer-recall/<date>
 ```
 
-Run it when a model in `agents/models.md` changes. Results
+Run it when a model in `agents/models.md` changes, or to weigh a candidate for a role. Results
 stay outside the repo; the conclusion goes into `agents/models.md`.
 
-Reviews run at the correctness role's effort, medium. To measure another effort, pass
-`--effort high` with a new directory: a directory holds one effort, and refuses another. To ask
+Reviews run at the correctness role's effort, medium, or at `--effort`. A model may name its own:
+`--models fable:low,opus:medium` compares Fable at low with Opus at medium in one directory, so the
+per-case table and the `a+b` union lines cover both. A directory holds one effort per model and
+refuses another: to measure Opus at high too, use a new directory. To ask
 whether a change turns misses into catches, rerun only the cases each model missed
 (`--models sol --cases id,id`), one repeat first: it spares the Codex quota, which a full run at
 high effort can exhaust.
@@ -35,6 +38,12 @@ high effort can exhaust.
 - **The judge can be wrong.** Before acting on a surprising number, read the reviews behind it.
   Each one is `<case>.<model>.<run>.md` beside its verdict.
 - **The intent is the PR title only.** The PR body records the fix, so it would leak the answer.
+- **Time is wall seconds per review**, from launch to exit, so it moves with `--jobs` and the
+  provider's load that day: compare models measured in one run.
+- **Cost is Claude's `total_cost_usd`**, the CLI's estimate at API list prices, not what a
+  subscription bills. Codex reports tokens but no price, so its cost reads "not reported"; compare
+  it on tokens. Each review's numbers are in `<case>.<model>.<run>.meta.json`; a review run
+  before they were recorded has none, and the report counts how many were timed.
 
 ## Adding a case
 
