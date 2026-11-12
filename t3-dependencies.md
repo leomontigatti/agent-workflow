@@ -91,7 +91,14 @@ T3 source paths below are in pingdotgg/t3code.
   pingdotgg/t3code#32933 (0.1.8-nightly.20261109.4392) a sweep checks age before any Git read and
   measures a worktree's size outside its checkout lease, then rechecks path, activity, branch,
   commit, changes and settings inside the lease before removing; with `worktreeOnMerge` on, as
-  here, every worktree still gets the Git checks, and the keep reasons read as before.
+  here, every worktree still gets the Git checks, and the keep reasons read as before. Since
+  pingdotgg/t3code#31069 (0.1.10-nightly.20261112.4564) a worktree with an edit git status hides
+  (an `assume-unchanged` or `skip-worktree` file whose content differs) is kept, as "has
+  uncommitted changes hidden from git status (<file>)"; since #26593 (0.1.10-nightly.20261111.4529)
+  one whose status or ignored-file listing outgrows the inspection limit is kept too. Since
+  pingdotgg/t3code#19665 (0.1.10-nightly.20261111.4544) a subagent thread settles with its
+  parent, once idle, instead of on its own inactivity or PR rules; that settlement is what
+  `worktreeSettledAfterDays` ages a child's own worktree from, as above.
 - **Used by:** `skills/housekeeping/SKILL.md` (its table, and step 1 reads the settings);
   `skills/implement/THREADS.md` ("Leaving a worktree behind is fine")
   Since 2026-10-16 the user also runs `worktreeAfterDays: 5`, `worktreeSettledAfterDays: 5`,
@@ -147,7 +154,16 @@ T3 source paths below are in pingdotgg/t3code.
   `~/.t3/worktrees/agent-workflow/t3-b9f99963-6a1fe677a1bd3922`), still under
   `<managed folder>/<repo>/`; existing and explicit paths keep theirs. Folder names stay unique
   and keep their name on a branch rename, which rubens' and enescena's
-  `worktree-folder-names-unique` rely on.
+  `worktree-folder-names-unique` rely on. Since pingdotgg/t3code#34781 (0.1.10-nightly.20261112.4580)
+  a new worktree thread's agent starts only once T3's branch rename has landed, so
+  `git branch --show-current` gives the final name from the first command; a rename that fails
+  leaves the temporary `t3/<id>` name and, since #34813 (same build), a "Branch not renamed"
+  notice in the thread. Since #29328 (0.1.10-nightly.20261111.4544) a launch is refused up front
+  when an existing branch blocks the requested `branch` (`docs` against `docs/x`, or the
+  reverse), with a sibling name to use; since #34279 (same build) a `worktree` launch in a
+  project that is not a Git repository is refused; since #26625 (same build) a `modelSelection`
+  the provider does not advertise is refused (aliases match). A `root` launch with no `branch`
+  records the checkout's branch since #34812 (0.1.10-nightly.20261112.4580).
 - **Used by:** `skills/implement/THREADS.md` ("Work where you started", "A launched thread
   reports to its own inbox")
 - **Breaks if:** the tool or its `workspaceStrategy` shape changes, or a launched thread stops
@@ -191,7 +207,11 @@ T3 source paths below are in pingdotgg/t3code.
   the PR sync's git reads run as background git work, so they no longer delay git status after a
   restart; what it links and reports is unchanged. Since pingdotgg/t3code#30071 (0.1.7-nightly.20261104.4151)
   the sync stops polling a link whose PR closed over a day ago; a requested sync or a seen state
-  change still reads it, so a reopened PR is picked up.
+  change still reads it, so a reopened PR is picked up. Since pingdotgg/t3code#33474
+  (0.1.10-nightly.20261112.4564) `gh pr new` is auto-linked like `gh pr create`; since #34218
+  (0.1.10-nightly.20261111.4544) automatic association no longer gives a new thread a PR that
+  merged or closed before it was created, unless that PR is checked out; since #33095
+  (0.1.10-nightly.20261112.4564) settling a thread refreshes its PR status once.
 - **Used by:** `skills/implement/THREADS.md` ("One thread, one branch, one PR");
   `skills/implement/SKILL.md` § 7; `skills/implement-spec/SKILL.md` § 3 step 3
 - **Breaks if:** the tool is renamed or removed, stops taking a URL, or stops showing status or
@@ -207,10 +227,21 @@ T3 source paths below are in pingdotgg/t3code.
   `packages/contracts/src/orchestratorMcp.ts`). Since pingdotgg/t3code#26442
   (0.1.4-nightly.20261028.3824) `t3_thread_list` also takes `allProjects: true`, each item has its
   `projectId`, and the result's top-level `projectId` is `null` for an all-projects list; a call
-  without the flag still lists the caller's project and returns `currentThreadId`.
-- **Used by:** `skills/implement/THREADS.md` ("A lost context is recovered from T3")
+  without the flag still lists the caller's project and returns `currentThreadId`. Since
+  pingdotgg/t3code#34895 (0.1.10-nightly.20261112.4580) `pullRequests` holds only the links not yet
+  merged or closed (a link whose state is still unread stays in), each with `watching` and
+  `watchStartedAt`, and `pullRequestCount` counts every link; `t3_thread_read` carries them on
+  the first page only (no `afterPosition` or `itemId`), and `list_thread_pull_requests` still
+  lists every link with its state. So a thread whose PR merged reads an empty `pullRequests`
+  with `pullRequestCount: 1`. `THREADS.md` still says `pullRequests` gives "this thread's PRs with
+  their state", and treats a PR missing from it as unlinked; the 0.1.10-nightly.20261112.4580
+  review proposed the edit. Since #34674 (0.1.10-nightly.20261112.4564) `t3_thread_list` gives `status: waiting`
+  for a thread whose turn ended on awaited background work.
+- **Used by:** `skills/implement/THREADS.md` ("A lost context is recovered from T3", "One thread,
+  one branch, one PR")
 - **Breaks if:** `currentThreadId` is dropped from the list result, a thread's timeline stops
-  holding messages from before a compaction, or `t3_thread_read` stops returning `pullRequests`.
+  holding messages from before a compaction, `t3_thread_read` stops returning the open
+  `pullRequests`, or `list_thread_pull_requests` stops listing merged and closed links.
 
 ### pr-watch-is-native
 
@@ -256,7 +287,13 @@ T3 source paths below are in pingdotgg/t3code.
   github.com PR also re-reads on GitHub's event stream (push, review, merge, conflict), but only
   for a user signed in through T3's GitHub app, which is opt-in; checks have no events, so they
   still wait on the 2-minute sweep. This machine has no app sign-in in `settings.json`, so it
-  still polls.
+  still polls. Since pingdotgg/t3code#34624 (0.1.10-nightly.20261112.4564) a GitHub workflow run
+  still queued with no jobs counts as a pending check, so a lone finished check (a skipped
+  CodeRabbit) no longer wakes "checks passed" while CI waits to start. Since #21239
+  (0.1.10-nightly.20261111.4529) a stale queued watch wake is dropped; since #27953
+  (0.1.10-nightly.20261111.4544) a closed PR's watch ends even when the activity read fails; since
+  #34884 (0.1.10-nightly.20261112.4580) a watch started after a pending self-settle survives the
+  turn's end. `t3_thread_read` now shows each open PR's `watching` (`own-thread-readable`).
 - **Used by:** `skills/babysit-pr/SKILL.md` § 2 and § 5; `skills/implement/SKILL.md` § 7;
   `skills/implement/THREADS.md` ("A launched thread reports to its own inbox");
   `skills/fan-out/SKILL.md` § 4
@@ -357,7 +394,19 @@ T3 source paths below are in pingdotgg/t3code.
   skill uses. Since pingdotgg/t3code#33295 (0.1.9-nightly.20261110.4478) a call reads only the
   caller's active runs and `task_status` reads the result from the child's records; the result
   fields are unchanged. `claude-fable-5-2` (pingdotgg/t3code#33500, 0.1.8-nightly.20261109.4433)
-  was listed on 2026-11-11; `agents/models.md` names it nowhere.
+  was listed on 2026-11-11; `agents/models.md` names it nowhere. Since pingdotgg/t3code#35032
+  (0.1.10-nightly.20261112.4580) a `mode: wait` call returns its task handle (`waitTimedOut`)
+  after 4 minutes by default instead of 10, before Node fetch drops a silent call at 300 s; the
+  skills here delegate with `mode: async`. Since #34489 (0.1.10-nightly.20261112.4564) Codex and
+  Pi runs report `executedModel` too, so a Codex reviewer's model is no longer null. Since #26721
+  (0.1.10-nightly.20261111.4544) every MCP tool rejects a top-level argument it does not declare
+  ("Unknown argument"), where it used to drop it; every argument the skills and briefs name was
+  in the tools' schemas on 2026-11-12. Since #33426 (0.1.10-nightly.20261112.4564) a model the
+  catalog lacks is refused only after the provider's catalog is refreshed, and since #26625 an
+  alias matches. A failed task keeps its child's final report as `summary` (#34915,
+  0.1.10-nightly.20261112.4580); results survive the parent's wake turns (#34568, same build) and
+  a steer during a `mode: wait` (#27387, 0.1.10-nightly.20261111.4544); cancelling a task whose
+  child had only background work left reports `interrupted` (#21676).
   Source: `packages/contracts/src/orchestratorMcp.ts`. Read-only review
   is a prompt rule (`agents/reviewer.md`), not something T3 enforces.
 - **Used by:** `agents/models.md` § Reaching each model; `skills/code-review/SKILL.md` § Spawning
@@ -398,6 +447,8 @@ T3 source paths below are in pingdotgg/t3code.
 - **Relies on:** a Bash command started with `run_in_background: true` keeps running across
   turns, and `t3_background_wait` with its task ID holds the turn until it exits; T3's injected
   instructions name it the way to wait for a background command (0.1.8-nightly.20261109.4399).
+  Since pingdotgg/t3code#34343 (0.1.10-nightly.20261112.4564) the tool is marked read-only, so
+  Claude's Plan mode runs it without asking.
 - **Used by:** `skills/implement/HEAVY.md` § 3 (`gh run watch` on the § Heavy CI run)
 - **Breaks if:** `t3_background_wait` goes away or stops returning when the command exits, so the
   session has to poll the run.
@@ -440,7 +491,9 @@ T3 source paths below are in pingdotgg/t3code.
   `apps/desktop/src/shell/DesktopShellEnvironment.ts`). A provider process started earlier keeps
   the PATH it started with until it restarts. Unchanged in 0.1.8-nightly.20261109.4399:
   pingdotgg/t3code#33153 only adds `awaitUserShellDiscovery`, which tells whether the user's own
-  login shell or a fallback gave the PATH, for setting up the `t3` command.
+  login shell or a fallback gave the PATH, for setting up the `t3` command. Since
+  pingdotgg/t3code#35033 (0.1.10-nightly.20261112.4580) the first shell that times out at 5 s is
+  read once more with 20 s, for a profile slow only while the machine boots.
 - **Used by:** `hooks/check-tool-path.sh` (the SessionStart warning)
 - **Breaks if:** T3 starts agent sessions with a shell environment of its own, so `~/.profile` no
   longer reaches them.
@@ -485,7 +538,12 @@ T3 source paths below are in pingdotgg/t3code.
   (0.1.9-nightly.20261111.4515) a `schedule_task` update recomputes the workspace strategy only
   when the task moves between bound and unbound, so `bindToCurrentThread: false` on a task already
   unbound keeps its stored strategy instead of resetting it to a fresh worktree; unbinding a bound
-  task still switches it to one.
+  task still switches it to one. Since pingdotgg/t3code#23609 (0.1.10-nightly.20261112.4564) a
+  recurring task bound to a busy thread skips a slot while its previous occurrence is still
+  queued there; the reviews are unbound, and `babysit-pr`'s re-read is `once`, so neither
+  skips. Since #34801 (0.1.10-nightly.20261112.4580) a `schedule_task` update applies
+  `freshSession`, which it used to drop. A run's outcome now reaches `lastRunStatus`
+  (`scheduled-run-status`, `scheduled-missed-runs`).
 - **Used by:** `skills/upstream-review/SKILL.md` § Cadence; `skills/t3-update-review/SKILL.md`
   § Cadence
 - **Breaks if:** scheduled runs stop starting when no thread is open, stop getting a worktree of
@@ -504,7 +562,10 @@ T3 source paths below are in pingdotgg/t3code.
   `workspaceStrategy` creates that project's checkout and runs its setup, which `delegate_task`
   refuses for a local `target.projectId` other than the parent's (`delegate-task-reviews`). The
   launch itself is `thread-launch-workspace`; a child's PR comes from `list_thread_pull_requests`
-  (`pr-watch-is-native`).
+  (`pr-watch-is-native`). Since pingdotgg/t3code#35005 (0.1.10-nightly.20261112.4580) a project's
+  identity follows `gh repo set-default`, and since #35080 (same build) an origin URL with a space
+  gets one; since #29109 and #29187 (0.1.10-nightly.20261112.4564) `t3_thread_launch` and
+  `t3_thread_list` say when the `projectId` names no project.
 - **Used by:** `skills/fan-out/SKILL.md` §§ 1 and 3
 - **Breaks if:** `repositoryIdentity.canonicalKey` or `workspaceRoot` leave the project list, or
   `t3_thread_launch` stops accepting a `projectId` other than the caller's.
@@ -542,28 +603,19 @@ T3 source paths below are in pingdotgg/t3code.
 - **Used by:** `skills/upstream-review/SKILL.md` § Cadence; `skills/t3-update-review/SKILL.md`
   § Cadence
 - **Would improve if:** a run that fails or ends without its result is recorded as failed.
-- **Watch:** pingdotgg/t3code#17889 (open), with PR #23131 (open: scheduled runs record how their
-  turn ended)
-
-### scheduled-missed-runs
-
-- **Workaround:** a `fixed_time` run that falls due while T3 is not running is dropped. When T3
-  comes back more than 10 minutes past the due time, the scheduler moves the task to its next
-  slot without running it (`MISSED_FIXED_TIME_GRACE_MS` in
-  `apps/server/src/scheduledTasks/Schedule.ts`, `rescheduleMissedRun` in
-  `ScheduledTaskService.ts`). Only a server log line records the skip: no thread, and the task's
-  `lastRunStatus`, `lastRunAt` and run count stay at the previous run's. So a scheduled day with
-  no run thread is a missed run, and the next run, or a manual one, covers it. Seen on
-  2026-10-18: T3 was down from 03:45 to 14:17 UTC, and the daily review due at 12:00 never ran.
-  Only `fixed_time` drops a run: `isMissedFixedTimeRun` is false for every other type, so an
-  `interval` task and a `{type: "once", runAt}` task (pingdotgg/t3code#28104,
-  0.1.7-nightly.20261101.4016) run when T3 is back. An interval has no fixed clock time, so the daily
-  and weekly reviews stay on `fixed_time`.
-- **Used by:** `skills/upstream-review/SKILL.md` § Cadence; `skills/t3-update-review/SKILL.md`
-  § Cadence
-- **Would improve if:** a missed run is run once on startup (catch-up), or is recorded on the
-  task as missed.
-- **Watch:** `apps/server/src/scheduledTasks/Schedule.ts`; no upstream issue found yet
+- **Partly met in:** 0.1.10-nightly.20261112.4580 (pingdotgg/t3code#34815; closes #30844, and
+  #17889 closed with it). After a dispatch T3 follows the run for up to 24 hours, and a run that
+  ends `failed`, `interrupted`, `cancelled` or `rolled_back` sets `lastRunStatus: failed`, with the
+  provider's own failure as `lastRunError` or "The run failed." / "The run was stopped." / "The
+  run was cancelled." / "The run was rolled back." A queued run cancelled by a steer into the
+  active run is not a failure. Still `succeeded`: a run that completes without its report or PR,
+  and one still running after 24 hours. A run whose workspace preparation fails on `git fetch`
+  was not tried; whether it gets a run for T3 to follow is unread. So a run's thread stays the
+  record of whether it did its work, and `failed` on the task is now a reliable sign that it did
+  not. The Cadence sections of both review skills still say `lastRunStatus` "says `succeeded`
+  whatever the run did"; the 0.1.10-nightly.20261112.4580 review proposed the edit.
+- **Watch:** PR pingdotgg/t3code#23131 (open: scheduled runs record how their turn ended); a
+  completed run without its result has no issue of its own
 
 ### t3json-manual-import
 
@@ -698,9 +750,12 @@ T3 source paths below are in pingdotgg/t3code.
   the required ones passed early (pingdotgg/t3code#23904), and once when a GitHub head has had no
   checks for 15 minutes or more (pingdotgg/t3code#23863; on time since #25437). Still no wake
   while a required check has not reported and others have, nor when the rest finish after a red
-  check woke the thread.
-- **Watch:** pingdotgg/t3code discussions/18047 (open); discussions/23245 (open; #16924,
-  converted 2026-10-22); #17831 (closed without merging on 2026-10-14)
+  check woke the thread. Since pingdotgg/t3code#34624 (0.1.10-nightly.20261112.4564) a workflow run
+  still queued with no jobs counts as pending, so a skipped advisory check no longer wakes "checks
+  passed" before CI starts; a required check GitHub has not created yet is PR #28200's (open).
+- **Watch:** pingdotgg/t3code#28200 (open: PR watches wait for required checks that have not
+  started yet); discussions/18047 (open); discussions/23245 (open; #16924, converted
+  2026-10-22); #17831 (closed without merging on 2026-10-14)
 
 ### pr-watch-behind-base
 
@@ -736,7 +791,9 @@ T3 source paths below are in pingdotgg/t3code.
   the fixed build from a desktop-launched instance, reopen once more (the old code did that
   restart), then check that the next update installs from the in-app restart with the flag at
   `0`, and report the result on pingdotgg/t3code#14905.
-- **Watch:** pingdotgg/t3code#14905 (open), fixed by PR #15387 (open)
+- **Watch:** pingdotgg/t3code#14905 (open), with no open fix: PR #15387 closed unmerged as stale
+  (open over three weeks), as did its follow-up #35173 and #27884 (keep sudo working in terminals
+  after a Linux relaunch); checked 2026-11-12
 
 ### preview-tools-verification
 
@@ -799,8 +856,15 @@ T3 source paths below are in pingdotgg/t3code.
   (0.1.9-nightly.20261111.4515) a snapshot of a page with a large accessibility tree keeps 2,000
   characters of `visibleText` instead of none; since pingdotgg/t3code#31925
   (0.1.9-nightly.20261110.4465) `preview_evaluate` accepts top-level `await`. `t3_preview_close`,
-  `PREVIEW.md` step 7's close, is unchanged. #23936 and #24812 stay open, so **Retry when** is
-  not met. Since 0.1.6-nightly.20261030.3904
+  `PREVIEW.md` step 7's close, is unchanged. Since pingdotgg/t3code#24829
+  (0.1.10-nightly.20261112.4564; closes #24812) desktop snapshots work again after the CDP relay
+  reconnects. #23936 stays open, so **Retry when** is still not met. In the same builds: a
+  locator that matches several elements is reported as ambiguous, no longer as an invalid
+  selector (#34205); `preview_wait_for` stops at its timeout when the page stops answering
+  (#32846); `preview_open` reports a tab it shows as visible (#26055); a desktop tab detached
+  during setup no longer blocks later tabs (#34252); `preview_evaluate` always returns by value
+  (#22948); and a recording keeps the page's last state (#33931) and stays decodable after a
+  resize (#10495). Since 0.1.6-nightly.20261030.3904
   the preview browser runs in an agent scope, with the agents' +800 OOM score, low CPU weight and
   memory limits (pingdotgg/t3code#27239, #27176): "under agent memory pressure the preview
   browser is throttled too". Whether that bears on the snapshot timeouts is untested; a preview
@@ -856,8 +920,8 @@ T3 source paths below are in pingdotgg/t3code.
   `preview_act` clicks on the current build decides whether step one runs again. A PR counts toward
   step two only with real `preview_act` clicks, none lost, no timed-out snapshot and sharp captures.
 - **Watch:** pingdotgg/t3code#23936 (open: `preview_snapshot` always times out on `open: false`
-  tabs and in delegated children); #24812 (open: snapshots time out after the CDP relay
-  reconnects); #25862 (open: bounds a stalled screenshot capture; it replaced #23515, closed
+  tabs and in delegated children); #24812 (closed 2026-11-12 by #24829: snapshots timed out
+  after the CDP relay reconnected); #25862 (open: bounds a stalled screenshot capture; it replaced #23515, closed
   unmerged 2026-11-10); #24130 (open:
   reports the actual snapshot timeout); #20899 (the blur, fixed; no issue asks to lift the size
   cap, and #10141, which tried, closed unmerged); `apps/server/src/preview/ServerBrowserPage.ts`
@@ -882,7 +946,53 @@ T3 source paths below are in pingdotgg/t3code.
 
 ## Ready
 
-None.
+### scheduled-missed-runs
+
+- **Workaround:** a `fixed_time` run that falls due while T3 is not running is dropped. When T3
+  comes back more than 10 minutes past the due time, the scheduler moves the task to its next
+  slot without running it (`MISSED_FIXED_TIME_GRACE_MS` in
+  `apps/server/src/scheduledTasks/Schedule.ts`, `rescheduleMissedRun` in
+  `ScheduledTaskService.ts`). Only a server log line records the skip: no thread, and the task's
+  `lastRunStatus`, `lastRunAt` and run count stay at the previous run's. So a scheduled day with
+  no run thread is a missed run, and the next run, or a manual one, covers it. Seen on
+  2026-10-18: T3 was down from 03:45 to 14:17 UTC, and the daily review due at 12:00 never ran.
+  Only `fixed_time` drops a run: `isMissedFixedTimeRun` is false for every other type, so an
+  `interval` task and a `{type: "once", runAt}` task (pingdotgg/t3code#28104,
+  0.1.7-nightly.20261101.4016) run when T3 is back. An interval has no fixed clock time, so the daily
+  and weekly reviews stay on `fixed_time`.
+- **Used by:** `skills/upstream-review/SKILL.md` § Cadence; `skills/t3-update-review/SKILL.md`
+  § Cadence
+- **Would improve if:** a missed run is run once on startup (catch-up), or is recorded on the
+  task as missed.
+- **Met in:** 0.1.10-nightly.20261112.4580 (pingdotgg/t3code#34815): a missed slot now sets the
+  task's `lastRunStatus` to `failed`, with `lastRunError` "Missed a scheduled run because the
+  server was not running at that time." (`rescheduleMissedRun` in `ScheduledTaskService.ts`).
+  Still no catch-up run, no thread, and `lastRunAt` and the run count keep the previous run's.
+  The update only lands while the row still holds the slot it read, so a run or an edit since
+  wins.
+- **Adopting means:** both Cadence sections say a missed day shows on the task, in
+  Settings → Scheduled tasks or `list_scheduled_tasks`, as `failed` with that error, so the
+  user tells a skipped run from a failed one there instead of by a missing thread; the next run,
+  or a manual one, still covers it.
+- **Watch:** `apps/server/src/scheduledTasks/Schedule.ts`, for a catch-up run
+
+### lost-context-watch-state
+
+- **Workaround:** a turn that starts without its context rebuilds the goal, branch and PR from
+  `t3_thread_read` ("A lost context is recovered from T3" in `skills/implement/THREADS.md`), but
+  cannot tell whether it was babysitting a PR: it reads the round again and may call
+  `watch_pull_request` on a PR already watched, or end its turn without one.
+- **Used by:** `skills/implement/THREADS.md` ("A lost context is recovered from T3");
+  `skills/babysit-pr/SKILL.md` § 2
+- **Would improve if:** a thread read says which of its PRs it watches.
+- **Met in:** 0.1.10-nightly.20261112.4580 (pingdotgg/t3code#34895): each open PR in
+  `t3_thread_read`'s first page and in `t3_thread_list` carries `watching` and `watchStartedAt`
+  (`OrchestratorMcpThreadPullRequest` in `packages/contracts/src/orchestratorMcp.ts`).
+- **Adopting means:** "A lost context is recovered from T3" reads the open PRs from
+  `pullRequests` (with `list_thread_pull_requests` for merged and closed ones, see
+  `own-thread-readable`), and a PR with `watching: true` means the thread was babysitting it:
+  resume `babysit-pr` at its read of the round, and end the turn on the existing watch, without
+  a new `watch_pull_request` call.
 
 ## Resolved
 
@@ -898,7 +1008,8 @@ None.
   `executedModel` ("Model the provider reported running, or null when unavailable. Can differ
   from the requested `model`", `packages/contracts/src/orchestratorMcp.ts`), taken from the run
   that produced the result, and a differing child's result starts "Requested model X; the
-  provider reported running Y." Only the Claude adapter records it, so a Codex child reads null.
+  provider reported running Y." Only the Claude adapter recorded it, so a Codex child read null
+  until pingdotgg/t3code#34489 (0.1.10-nightly.20261112.4564), which records it for Codex and Pi.
 - **Adopted:** 2026-11-10, by the user's call: `agents/models.md` § The rule has the report name
   the model that ran, from `executedModel` or the result's opening note, and count the review by
   that model's tier and family; null keeps the requested model.
