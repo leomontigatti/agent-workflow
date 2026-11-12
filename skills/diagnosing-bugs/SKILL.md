@@ -109,7 +109,7 @@ Tool preference:
 
 **Tag every debug log** with a unique prefix, e.g. `[DEBUG-a4f2]`. Cleanup at the end becomes a single grep. Untagged logs survive; tagged logs die.
 
-**Perf branch.** For performance regressions, logs are usually wrong. Instead: establish a baseline measurement (timing harness, `performance.now()`, profiler, query plan), then bisect. Before the first run, write the result that would change your decision and the noise floor; stop when the run-to-run spread is larger than the effect. Measure first, fix second.
+**Perf branch.** For performance regressions, logs are usually wrong. Instead: establish a baseline measurement, then bisect. The clock gives the verdict: time the reported symptom (timing harness, `performance.now()`, profiler) with the old and the new code **paired**, in turns on the same machine, so its load falls on both. Between those timed runs, steer by a **count** of the work behind the time (queries, round trips, allocations, bytes, a query plan's rows) when one moves with the slowdown: a count reads the same on every run, and explains only the part of the time it counts. Before the first run, write the result that would change your decision and the noise floor; stop when the run-to-run spread is larger than the effect. Before each change, write the gain you expect from it: a result far from that guess means your model of the code is wrong, so profile again before the next change. Measure first, fix second.
 
 ## Phase 5: Fix + regression test
 

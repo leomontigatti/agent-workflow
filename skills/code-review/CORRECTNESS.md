@@ -26,7 +26,8 @@ this one asks whether it is **wrong**.
    > navigation, or an effect or dialog that outlives what it belongs to; an HTTP header, cookie
    > or cache directive that leaks, caches or blocks what it should not; a script that deletes or
    > overwrites (a sync with delete, a reset, a restore) pointed at the wrong target or run with
-   > an empty variable.
+   > an empty variable; an existing test this diff deletes, skips or gives a new expected value,
+   > where the stated intent does not change that behaviour: name the behaviour it no longer pins.
    >
    > For each finding give its severity (`critical`: a wrong result, lost or corrupt data, a
    > security hole; `warning`: holds today and breaks under a condition you can name, and how
