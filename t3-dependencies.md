@@ -233,9 +233,8 @@ T3 source paths below are in pingdotgg/t3code.
   `watchStartedAt`, and `pullRequestCount` counts every link; `t3_thread_read` carries them on
   the first page only (no `afterPosition` or `itemId`), and `list_thread_pull_requests` still
   lists every link with its state. So a thread whose PR merged reads an empty `pullRequests`
-  with `pullRequestCount: 1`. `THREADS.md` still says `pullRequests` gives "this thread's PRs with
-  their state", and treats a PR missing from it as unlinked; the 0.1.10-nightly.20261112.4580
-  review proposed the edit. Since #34674 (0.1.10-nightly.20261112.4564) `t3_thread_list` gives `status: waiting`
+  with `pullRequestCount: 1`; `THREADS.md` reads the rest from `list_thread_pull_requests` since
+  2026-11-12. Since #34674 (0.1.10-nightly.20261112.4564) `t3_thread_list` gives `status: waiting`
   for a thread whose turn ended on awaited background work.
 - **Used by:** `skills/implement/THREADS.md` ("A lost context is recovered from T3", "One thread,
   one branch, one PR")
@@ -976,25 +975,24 @@ T3 source paths below are in pingdotgg/t3code.
   or a manual one, still covers it.
 - **Watch:** `apps/server/src/scheduledTasks/Schedule.ts`, for a catch-up run
 
+## Resolved
+
 ### lost-context-watch-state
 
 - **Workaround:** a turn that starts without its context rebuilds the goal, branch and PR from
   `t3_thread_read` ("A lost context is recovered from T3" in `skills/implement/THREADS.md`), but
   cannot tell whether it was babysitting a PR: it reads the round again and may call
   `watch_pull_request` on a PR already watched, or end its turn without one.
-- **Used by:** `skills/implement/THREADS.md` ("A lost context is recovered from T3");
-  `skills/babysit-pr/SKILL.md` § 2
+- **Used by:** `skills/implement/THREADS.md` ("A lost context is recovered from T3")
 - **Would improve if:** a thread read says which of its PRs it watches.
 - **Met in:** 0.1.10-nightly.20261112.4580 (pingdotgg/t3code#34895): each open PR in
   `t3_thread_read`'s first page and in `t3_thread_list` carries `watching` and `watchStartedAt`
   (`OrchestratorMcpThreadPullRequest` in `packages/contracts/src/orchestratorMcp.ts`).
-- **Adopting means:** "A lost context is recovered from T3" reads the open PRs from
-  `pullRequests` (with `list_thread_pull_requests` for merged and closed ones, see
-  `own-thread-readable`), and a PR with `watching: true` means the thread was babysitting it:
-  resume `babysit-pr` at its read of the round, and end the turn on the existing watch, without
-  a new `watch_pull_request` call.
-
-## Resolved
+- **Adopted:** 2026-11-12, by the user's call: "A lost context is recovered from T3" in
+  `THREADS.md` reads the open PRs from `pullRequests` and the rest from
+  `list_thread_pull_requests`, and takes `watching: true` as a babysit to pick up at its read of
+  the round, ending the turn on the running watch. `babysit-pr` is unchanged: the recovery hands
+  the session to it.
 
 ### reviewer-executed-model
 

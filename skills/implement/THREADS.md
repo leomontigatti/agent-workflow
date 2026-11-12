@@ -23,7 +23,7 @@ while it is clean and on that branch.
 - **One thread, one branch, one PR.** T3 links a PR that `gh pr create` opens to the thread that
   ran it, shows its status and settles the thread when it merges. A PR opened another way (`gh
   api`, a loop creating several) is linked with the `link_pull_request` tool, as is one missing
-  from `t3_thread_read`'s `pullRequests`. To keep working on an existing PR, start the thread on
+  from `list_thread_pull_requests`. To keep working on an existing PR, start the thread on
   that branch (or link the PR) instead of checking it out in another worktree.
 - **A launched thread reports to its own inbox.** A thread started with `t3_thread_launch`
   babysits its own PR, merges it when the merge is the agent's (the `babysit-pr` skill) and
@@ -37,8 +37,11 @@ while it is clean and on that branch.
 - **A lost context is recovered from T3.** When a turn starts without the goal, branch or PR of
   the work (a failed compaction, or a summary that left them out), rebuild them from the thread
   before searching logs or GitHub: `t3_thread_list` returns `currentThreadId`, and
-  `t3_thread_read` on it gives the user's requests, your earlier reports, and in `pullRequests`
-  this thread's PRs with their state.
+  `t3_thread_read` on it gives the user's requests and your earlier reports. Its first page's
+  `pullRequests` lists the thread's open PRs; a `pullRequestCount` above that list's length means
+  others merged or closed, which `list_thread_pull_requests` gives with their state. An open PR
+  with `watching: true` is one you were babysitting: pick `babysit-pr` up at its read of the
+  round, and end the turn on the watch already running.
 - **Read-only threads** (writing issues, triage, reviewing a PR without editing code) change no
   branch.
 - **Leaving a worktree behind is fine; abandoning a branch is not.** Push the branch or delete it.
