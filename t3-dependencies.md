@@ -611,8 +611,7 @@ T3 source paths below are in pingdotgg/t3code.
   and one still running after 24 hours. A run whose workspace preparation fails on `git fetch`
   was not tried; whether it gets a run for T3 to follow is unread. So a run's thread stays the
   record of whether it did its work, and `failed` on the task is now a reliable sign that it did
-  not. The Cadence sections of both review skills still say `lastRunStatus` "says `succeeded`
-  whatever the run did"; the 0.1.10-nightly.20261112.4580 review proposed the edit.
+  not. Both review skills' Cadence sections say so since 2026-11-12.
 - **Watch:** PR pingdotgg/t3code#23131 (open: scheduled runs record how their turn ended); a
   completed run without its result has no issue of its own
 
@@ -945,6 +944,10 @@ T3 source paths below are in pingdotgg/t3code.
 
 ## Ready
 
+None.
+
+## Resolved
+
 ### scheduled-missed-runs
 
 - **Workaround:** a `fixed_time` run that falls due while T3 is not running is dropped. When T3
@@ -969,13 +972,11 @@ T3 source paths below are in pingdotgg/t3code.
   Still no catch-up run, no thread, and `lastRunAt` and the run count keep the previous run's.
   The update only lands while the row still holds the slot it read, so a run or an edit since
   wins.
-- **Adopting means:** both Cadence sections say a missed day shows on the task, in
-  Settings → Scheduled tasks or `list_scheduled_tasks`, as `failed` with that error, so the
-  user tells a skipped run from a failed one there instead of by a missing thread; the next run,
-  or a manual one, still covers it.
+- **Adopted:** 2026-11-12, by the user's call: both Cadence sections
+  (`skills/t3-update-review/SKILL.md`, `skills/upstream-review/SKILL.md`) say `lastRunStatus`
+  turns `failed`, with `lastRunError` saying why, for a run that failed, was stopped or was
+  missed while T3 was down, and that `succeeded` only means the run started.
 - **Watch:** `apps/server/src/scheduledTasks/Schedule.ts`, for a catch-up run
-
-## Resolved
 
 ### lost-context-watch-state
 
