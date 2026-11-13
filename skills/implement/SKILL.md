@@ -101,7 +101,7 @@ prints (a `GLOSSARY.md` term no path shows, anything else you judge risky), neve
 - **`readback+correctness`** when the diff changes behaviour, config included (a header, a cache
   directive, a build or server setting, a permission rule): follow
   [READBACK.md](../code-review/READBACK.md), one sub-agent that restates what the diff does and
-  flags anything surprising, and add the correctness axis beside it.
+  flags anything surprising and any new test that catches no bug, and add the correctness axis beside it.
 - **`readback`** alone for a docs-only diff, or a config-only one that changes no runtime
   behaviour (tooling, agent or editor settings).
 
