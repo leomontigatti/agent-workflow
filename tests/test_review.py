@@ -97,6 +97,19 @@ class Record(unittest.TestCase):
         v, _ = review.check_record(review.parse_record(body("readback", "- readback (luna): ok")), ["docs/a.md"], None, rules())
         self.assertTrue(any("not on this branch" in x for x in v))
 
+    def test_an_annotated_extra_line_still_passes(self):
+        # Shapes rubens PRs use for fix rounds (#319, #348, #365), beside a plain line.
+        v, _ = self.check(body("readback+correctness", "- readback (luna): ok",
+                               "- readback (Luna), over abcd51a (the tools report): no findings",
+                               "- correctness (sol): ok", "- correctness fix round (Sol): no findings",
+                               "- correctness (Sol), fix round: no findings"), ["app/x.ts"])
+        self.assertEqual(v, [])
+
+    def test_a_model_id_in_the_parentheses_fails(self):
+        # rubens#332's first body.
+        v, _ = self.check(body("readback", "- readback (gpt-6-luna): ok"), ["docs/a.md"])
+        self.assertTrue(any("(gpt-6-luna)" in x and review.LINE in x for x in v))
+
     def test_no_record_names_what_is_needed(self):
         v, _ = review.check_record(None, ["app/x.ts"], [], rules())
         self.assertIn("readback+correctness", v[0])

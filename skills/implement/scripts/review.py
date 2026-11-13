@@ -116,10 +116,12 @@ def parse_record(body):
     if not head:
         return None
     axes, unread = [], []
-    for line in re.findall(r"^[-*]\s+(?:readback|standards|spec|correctness)\b.*$", section.group(1), re.M | re.I):
+    for line in re.findall(r"^[-*]\s+(?:readback|standards|spec|correctness)\s*\(.*$", section.group(1), re.M | re.I):
         if m := re.match(r"^[-*]\s+(readback|standards|spec|correctness)\s*\((\w+)\)\s*:\s*(.*)$", line, re.I):
             axes.append((m.group(1).lower(), m.group(2).lower(), bool(re.match(r"skipped\b", m.group(3).strip(), re.I))))
-        else:
+        elif not re.match(r"^[-*]\s+\w+\s*\(\w+\)", line):
+            # Only a model name the parser cannot read: an annotated extra line
+            # (`- correctness (Sol), fix round: ...`) stays a note, as it always was.
             unread.append(line)
     return {"tier": head.group(1).lower(), "reviewed": head.group(2), "axes": axes, "unread": unread}
 
