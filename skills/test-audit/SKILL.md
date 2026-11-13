@@ -44,8 +44,8 @@ edits a protected test beyond renaming it, and lists a low-signal one as an ask.
      catches its bug.
    - **fold**: its one new assertion belongs in an existing case; name that case.
    - **retitle**: a keep whose name is **overstated**: it promises a clause no assertion checks.
-     Add the assertion when the clause names a real bug and it costs a line or two; otherwise
-     rename the test to what it asserts. Name the clause.
+     Add the assertion when the clause names a real bug, it costs a line or two and the test is
+     not protected; otherwise rename the test to what it asserts. Name the clause.
    - **ask**: low-signal but protected, or a call only the user can make.
 
    Done when every case in the window carries a verdict and a reason.
@@ -53,7 +53,8 @@ edits a protected test beyond renaming it, and lists a low-signal one as an ask.
 3. **Apply.** On a `test/audit-<YYYY-MM-DD>` branch, make every delete, fold and retitle, and
    remove a fixture, helper or import only the deleted tests used. Run `docs/agents/validation.md`
    § Before committing until clean; a case whose removal breaks it is a keep after all, so restore
-   it and move its verdict.
+   it and move its verdict. An added assertion that fails has found a bug in the code: drop it,
+   rename the test to what it asserts, and list the bug as an ask.
    - Nothing to delete, fold or retitle → write the new watermark, reply with the report from
      step 5 and open no PR.
 
