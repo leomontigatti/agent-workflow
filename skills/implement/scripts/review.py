@@ -43,9 +43,9 @@ TIERS = ["readback", "readback+correctness", "full"]
 QUIET_DEFAULT = [r"\.md$", r"^docs/", r"^\.agents/", r"^\.claude/", r"^\.codex/", r"^\.vscode/",
                  r"^\.github/labels\.json$", r"^NOTICE$", r"^LICENSE$"]
 HEAVY = {"sol", "opus"}  # the models that may run the correctness axis
-MODELS = {"sol", "opus", "luna", "sonnet"}
+MODELS = {"sol", "opus", "terra", "luna", "sonnet"}
 LINE = "- <axis> (<model>): <outcome>"
-FAMILY = {"sol": "codex", "luna": "codex", "opus": "claude", "sonnet": "claude"}
+FAMILY = {"sol": "codex", "terra": "codex", "luna": "codex", "opus": "claude", "sonnet": "claude"}
 
 
 def git(*args):
