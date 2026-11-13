@@ -59,6 +59,8 @@ class Digest(unittest.TestCase):
             "preview-login": ("watching", "Would improve if: the preview keeps a session across tabs."),
             "old-thing": ("resolved", None),
         }
+        self.assertEqual(len(expected), SAMPLE.count("\n### "))
+        self.assertEqual(len(lines), len(expected))
         for entry, (status, clause) in expected.items():
             hits = [l for l in lines if f"`{entry}`" in l]
             self.assertEqual(len(hits), 1, entry)
