@@ -64,7 +64,8 @@ Nothing is removed until the user accepts a dry-run report.
 
    Then the scheduled tasks, on every project `t3_project_list` names: `list_scheduled_tasks`
    with its `projectId`. A `once` task (`schedule.type`) is **spent** when its `nextRunAt` is null
-   (it ran, or its time passed) and **orphaned** when its `boundThreadId` names no live thread.
+   (it ran, or its time passed) and **orphaned** when its `boundThreadId` is not among its own
+   project's live threads (`t3_thread_list` with that `projectId` and `settled: false`).
    Report each spent or orphaned `once` task under **Would remove**, with its title, project and
    reason. Every other task is out of the sweep: `fixed_time`, `interval` and `webhook` tasks,
    and a `once` task still due on a live thread.
@@ -81,8 +82,8 @@ Nothing is removed until the user accepts a dry-run report.
    resource by name, as `docs/agents/housekeeping.md` says, never by a command that removes
    whatever is orphaned when it runs: that would take what became orphaned after the report.
    `git worktree prune` at the end. Remove each listed scheduled task with
-   `delete_scheduled_task` and its `scheduledTaskId`, after `list_scheduled_tasks` shows it still
-   spent or orphaned.
+   `delete_scheduled_task` and its `scheduledTaskId`, after `list_scheduled_tasks` and its
+   project's live threads show it still spent or orphaned.
 
 4. Report what was removed as counts, anything an error stopped, and every kept worktree or
    branch with its reason. A kept one is the user's call: name it and leave it.
