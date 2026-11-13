@@ -27,8 +27,16 @@ needs `pull-requests: read` for that read; a public one reads it with `contents:
 
 The `edited` event fires on every body edit, and a project's other `edited` checks restart with
 it and block the merge until they finish. A check that reads only the title, such as `pr-title`,
-skips the body edits with `if: github.event.action != 'edited' || github.event.changes.title`: a
-skipped job still satisfies a required check.
+skips the edits that change neither the title nor the base. A skipped job reports a success under
+its name, which would turn a red title green, so the skipped run takes another name:
+
+```yaml
+  pr-title:
+    name: ${{ github.event.action == 'edited' && github.event.changes.title == null && github.event.changes.base == null && 'pr-title (title unchanged)' || 'pr-title' }}
+    if: github.event.action != 'edited' || github.event.changes.title != null || github.event.changes.base != null
+```
+
+The required `pr-title` context then keeps the verdict of the last run that read the title.
 
 Pin the action to the commit of a release tag, with the tag as the comment: zizmor checks that
 the comment's ref still points at the pinned commit, and a branch such as `main` stops doing so
