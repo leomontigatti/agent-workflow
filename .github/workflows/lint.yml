@@ -30,6 +30,8 @@ jobs:
         run: python3 -I tests/test_review.py
       - name: upstreams.py mark keeps the file's layout
         run: python3 -I tests/test_upstreams.py
+      - name: changes.py digests every dependency entry
+        run: python3 -I tests/test_t3_changes.py
       - name: lib/parts.py cuts output into Read-sized parts
         run: python3 -I tests/test_parts.py
       - name: reviewer-recall reads efforts, old manifests, and each review's time and cost
