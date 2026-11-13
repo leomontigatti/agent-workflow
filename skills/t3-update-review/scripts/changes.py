@@ -2,6 +2,7 @@
 """Collect what changed in T3 Code between the last reviewed build and the installed one.
 
 Usage: python3 -I changes.py <installed-version> [--since <version>] [--out DIR]
+       python3 -I changes.py --digest FILE... [--out DIR]
 
 Reads the last reviewed version from STATE (unless --since is given), lists the
 releases in between (same channel as the installed one), gathers their
@@ -10,6 +11,10 @@ releases in between (same channel as the installed one), gathers their
 into parts that each fit one Read (`release-items.<n>.md`, `watched.<n>.diff`)
 and listed in `index.md`, and prints a short summary. Changes nothing else; `--mark` records the installed
 version as reviewed.
+
+--digest writes `entries.md` under --out: one line per `### ` entry of each
+dependency file given, with its file and line, its status (the `## ` section it
+sits in) and its **Breaks if** / **Would improve if** clauses cut to one line.
 """
 
 import argparse
@@ -65,6 +70,8 @@ WATCHED_PATHS = [
 
 PR_LINE = re.compile(r"^\* (.+?) by @\S+ in (https://github\.com/\S+/pull/(\d+))\s*$")
 NAME_SHA = re.compile(r"\(([0-9a-f]{7,40})\)\s*$")
+CLAUSES = ("Breaks if", "Would improve if")
+CLAUSE_CHARS = 160
 
 
 def gh(*args):
@@ -94,13 +101,59 @@ def content(path, sha):
     return base64.b64decode(out).decode("utf-8", "replace")
 
 
+def clip(text):
+    text = " ".join(text.split())
+    return text if len(text) <= CLAUSE_CHARS else text[:CLAUSE_CHARS - 1].rstrip() + "…"
+
+
+def digest(paths):
+    out = []
+    for path in paths:
+        status, entry, fields, field = None, None, {}, None
+
+        def flush():
+            if entry:
+                clauses = "; ".join(f"{k}: {clip(fields[k])}" for k in CLAUSES if k in fields)
+                out.append(f"- {path}:{entry[1]} `{entry[0]}` ({status})" + (f" {clauses}" if clauses else ""))
+
+        for n, line in enumerate(open(path, encoding="utf-8"), 1):
+            line = line.rstrip("\n")
+            if line.startswith("## ") or line.startswith("### "):
+                flush()
+                entry, fields, field = None, {}, None
+                if line.startswith("## "):
+                    status = line[3:].strip().lower()
+                else:
+                    entry = (line[4:].strip(), n)
+            elif entry and (m := re.match(r"^- \*\*([^*]+?):\*\*\s*(.*)$", line)):
+                field = m.group(1)
+                fields[field] = m.group(2)
+            elif entry and field and line.startswith("  "):
+                fields[field] += " " + line.strip()
+            else:
+                field = None
+        flush()
+    return "\n".join(out) + "\n"
+
+
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("installed")
+    ap.add_argument("installed", nargs="?")
+    ap.add_argument("--digest", nargs="+", metavar="FILE", help="write entries.md for these dependency files and exit")
     ap.add_argument("--since")
     ap.add_argument("--out", default=os.path.join(STATE_DIR, "work"))
     ap.add_argument("--mark", action="store_true", help="record the installed version as reviewed and exit")
     a = ap.parse_args()
+    if a.digest:
+        os.makedirs(a.out, exist_ok=True)
+        path = os.path.join(a.out, "entries.md")
+        text = digest(a.digest)
+        with open(path, "w", encoding="utf-8") as f:
+            f.write(text)
+        print(f"ENTRIES: {text.count(chr(10))} in {path}, {len(text)} chars")
+        return
+    if not a.installed:
+        ap.error("the installed version is required")
     installed = a.installed.lstrip("v")
 
     rels = releases()
