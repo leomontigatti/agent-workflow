@@ -1,7 +1,6 @@
 ---
 name: test-audit
-description: "Audit the tests a project gained since the last audit and open a PR that deletes the low-signal ones."
-disable-model-invocation: true
+description: "Audit the tests a project gained since the last audit and open a PR that deletes the low-signal ones. Use when the weekly test audit runs, or when asked for a test audit."
 ---
 
 A suite grows one reasonable test at a time, and most of the growth is tests that cannot name the
