@@ -31,12 +31,18 @@ skips the edits that change neither the title nor the base. A skipped job report
 its name, which would turn a red title green, so the skipped run takes another name:
 
 ```yaml
+concurrency:
+  group: pr-title-${{ github.event.pull_request.number }}-${{ github.event.action == 'edited' && github.event.changes.title == null && github.event.changes.base == null && 'skip' || 'check' }}
+  cancel-in-progress: true
+jobs:
   pr-title:
     name: ${{ github.event.action == 'edited' && github.event.changes.title == null && github.event.changes.base == null && 'pr-title (title unchanged)' || 'pr-title' }}
     if: github.event.action != 'edited' || github.event.changes.title != null || github.event.changes.base != null
 ```
 
-The required `pr-title` context then keeps the verdict of the last run that read the title.
+The required `pr-title` context then keeps the verdict of the last run that read the title. A
+workflow with a `concurrency` group splits it the same way, or a body edit right after a push
+cancels the run that checks the title.
 
 Pin the action to the commit of a release tag, with the tag as the comment: zizmor checks that
 the comment's ref still points at the pinned commit, and a branch such as `main` stops doing so
