@@ -18,8 +18,9 @@ test that catches no bug. The rest of the standards and the spec are the full re
    > nothing. Then, for every test case the diff adds or grows, name in one line the bug it
    > catches (the wrong implementation that makes it fail), or flag it as low-signal with the
    > anti-pattern it matches in `~/.agents/workflow/skills/tdd/SKILL.md` § Anti-patterns, or the
-   > existing case that already catches its bug. End with one line: `Would merge: yes | after
-   > fixes | no`. Under 300 words.
+   > existing case that already catches its bug, and flag each name that promises a clause its
+   > assertions do not check ("Name only what it asserts" in the same skill). End with one line:
+   > `Would merge: yes | after fixes | no`. Under 300 words.
 
 3. Report it under `## Readback`, verbatim or lightly cleaned, ending with one line: how many
    surprises and low-signal tests it flagged, and its merge verdict. A low-signal test is a
