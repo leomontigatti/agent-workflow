@@ -520,7 +520,10 @@ T3 source paths below are in pingdotgg/t3code.
   (`skills/upstream-review/SKILL.md`), and "T3 update review" daily at 09:00
   (`skills/t3-update-review/SKILL.md`). Each opens its bookkeeping PR from that thread. "Weekly
   test audit" (`skills/test-audit/SKILL.md`) is the same kind of task made on each project that
-  wants it, Mondays at 10:00, and opens its PR on that project. Since
+  wants it, Mondays at 10:00, and opens its PR on that project. A task whose prompt calls the
+  Skill tool needs a model-invoked skill: the tool refuses one with `disable-model-invocation`,
+  and the task still shows `succeeded`. A prompt that opens the `SKILL.md` by path, as the two
+  tasks on this repo do, works either way. Since
   pingdotgg/t3code#28474 (0.1.7-nightly.20261101.4035) an interrupt no longer leaves a task marked
   busy until a restart, which made scheduled polls skip it silently. A managed policy
   (pingdotgg/t3code#27197, `/etc/t3code/policy.json` on Linux) can block webhook tasks and cap
