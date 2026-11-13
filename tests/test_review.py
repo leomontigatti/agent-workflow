@@ -137,5 +137,79 @@ class CheckPr(unittest.TestCase):
             self.assertIn("review record: ok", run.stdout)
 
 
+class CheckBody(unittest.TestCase):
+    """`check --body <file>`: the record checked from the checkout, before the push."""
+
+    def setUp(self):
+        tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(tmp.cleanup)
+        self.tmp = tmp.name
+        # No user or system git config: a signing or hooks setting there would break the fixture.
+        self.env = {**os.environ, "GIT_CONFIG_GLOBAL": os.devnull, "GIT_CONFIG_NOSYSTEM": "1"}
+        origin, self.work = os.path.join(self.tmp, "origin.git"), os.path.join(self.tmp, "work")
+        self.git(self.tmp, "init", "-q", "--bare", "-b", "main", origin)
+        self.git(self.tmp, "clone", "-q", origin, self.work)
+        for args in (("config", "user.email", "t@t"), ("config", "user.name", "t"),
+                     ("commit", "-q", "--allow-empty", "-m", "base"), ("push", "-q", "origin", "main"),
+                     ("remote", "set-head", "origin", "main"), ("checkout", "-q", "-b", "feat")):
+            self.git(self.work, *args)
+
+    def git(self, cwd, *args):
+        return subprocess.run(["git", "-C", cwd, *args], check=True, capture_output=True, text=True,
+                              env=self.env).stdout.strip()
+
+    def commit(self, path):
+        os.makedirs(os.path.dirname(os.path.join(self.work, path)) or self.work, exist_ok=True)
+        with open(os.path.join(self.work, path), "a") as f:
+            f.write("x\n")
+        self.git(self.work, "add", path)
+        self.git(self.work, "commit", "-q", "-m", path)
+        return self.git(self.work, "rev-parse", "--short", "HEAD")
+
+    def run_check(self, text, *extra):
+        path = os.path.join(self.tmp, "body.md")
+        with open(path, "w") as f:
+            f.write(text)
+        return subprocess.run([sys.executable, "-I", os.path.join(ROOT, "skills/implement/scripts/review.py"),
+                               "check", "--body", path, *extra], cwd=self.work, capture_output=True, text=True,
+                              env=self.env)
+
+    def test_a_reviewed_branch_passes(self):
+        sha = self.commit("a.md")
+        run = self.run_check(body("readback", "- readback (luna): ok").replace("abc1234", sha))
+        self.assertEqual(run.returncode, 0, run.stderr)
+        self.assertIn("review record: ok", run.stdout)
+
+    def test_a_full_model_name_fails_with_the_line_it_expects(self):
+        # PR rubens#339's first body named each reviewer by its full model name.
+        sha = self.commit("a.ts")
+        run = self.run_check(body("readback+correctness", "- readback (GPT-6 Luna): ok",
+                                  "- correctness (Claude Opus 5.5): no findings").replace("abc1234", sha))
+        self.assertEqual(run.returncode, 1)
+        self.assertIn("- correctness (Claude Opus 5.5)", run.stderr)
+        self.assertIn("- <axis> (<model>): <outcome>", run.stderr)
+
+    def test_a_raised_tier_names_the_path_that_raised_it(self):
+        sha = self.commit("src/app.py")
+        run = self.run_check(body("readback", "- readback (luna): ok").replace("abc1234", sha))
+        self.assertEqual(run.returncode, 1)
+        self.assertIn("src/app.py", run.stderr)
+        self.assertIn("correctness (Opus or Sol)", run.stderr)
+
+    def test_a_code_commit_after_the_review_needs_a_fix_round(self):
+        sha = self.commit("a.ts")
+        self.commit("b.ts")
+        run = self.run_check(body("readback+correctness", "- readback (luna): ok", "- correctness (sol): ok")
+                             .replace("abc1234", sha))
+        self.assertEqual(run.returncode, 1)
+        self.assertIn(f"git diff {sha}..HEAD", run.stderr)
+
+    def test_the_base_can_be_given(self):
+        self.commit("src/app.py")
+        sha = self.commit("a.md")
+        run = self.run_check(body("readback", "- readback (luna): ok").replace("abc1234", sha), "--base", "HEAD~1")
+        self.assertEqual(run.returncode, 0, run.stderr)
+
+
 if __name__ == "__main__":
     unittest.main()

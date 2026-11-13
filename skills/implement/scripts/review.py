@@ -5,6 +5,9 @@ Usage, from a project checkout:
   python3 -I review.py tier [base]          the tier of everything since base (default: the
                                             remote default branch), uncommitted files included
   python3 -I review.py check --pr <n>       check PR <n>'s `## Review` record
+  python3 -I review.py check --body <file> [--base <ref>]
+                                            the same for a body not pushed yet, against HEAD and
+                                            its merge-base with the remote default branch
   python3 -I review.py check                the same, from PR_BODY, BASE_SHA, HEAD_SHA and
                                             PR_AUTHOR in the environment (CI)
 
@@ -41,6 +44,7 @@ QUIET_DEFAULT = [r"\.md$", r"^docs/", r"^\.agents/", r"^\.claude/", r"^\.codex/"
                  r"^\.github/labels\.json$", r"^NOTICE$", r"^LICENSE$"]
 HEAVY = {"sol", "opus"}  # the models that may run the correctness axis
 MODELS = {"sol", "opus", "luna", "sonnet"}
+LINE = "- <axis> (<model>): <outcome>"
 FAMILY = {"sol": "codex", "luna": "codex", "opus": "claude", "sonnet": "claude"}
 
 
@@ -111,10 +115,13 @@ def parse_record(body):
                      section.group(1), re.M | re.I)
     if not head:
         return None
-    axes = [(m.group(1).lower(), m.group(2).lower(), bool(re.match(r"skipped\b", m.group(3).strip(), re.I)))
-            for m in re.finditer(r"^[-*]\s+(readback|standards|spec|correctness)\s*\((\w+)\)\s*:\s*(.*)$",
-                                 section.group(1), re.M | re.I)]
-    return {"tier": head.group(1).lower(), "reviewed": head.group(2), "axes": axes}
+    axes, unread = [], []
+    for line in re.findall(r"^[-*]\s+(?:readback|standards|spec|correctness)\b.*$", section.group(1), re.M | re.I):
+        if m := re.match(r"^[-*]\s+(readback|standards|spec|correctness)\s*\((\w+)\)\s*:\s*(.*)$", line, re.I):
+            axes.append((m.group(1).lower(), m.group(2).lower(), bool(re.match(r"skipped\b", m.group(3).strip(), re.I))))
+        else:
+            unread.append(line)
+    return {"tier": head.group(1).lower(), "reviewed": head.group(2), "axes": axes, "unread": unread}
 
 
 def check_record(record, changed, later, rules):
@@ -127,8 +134,14 @@ def check_record(record, changed, later, rules):
     violations, warnings = [], []
     tier = record["tier"]
     if TIERS.index(tier) < TIERS.index(derived):
-        violations.append(f"The record says tier {tier}, but the diff is {derived}: {'; '.join(reasons) or 'it changes behaviour'}.")
+        loud = ", ".join(p for p in changed if not quiet(p, rules))
+        violations.append(f"The record says tier {tier}, but the diff is {derived}: "
+                          f"{'; '.join(reasons) or 'these paths change behaviour: ' + loud}. It needs "
+                          f"{', '.join(label(r) for r in requirements(derived, rules))}.")
         tier = derived
+    for line in record.get("unread", []):
+        violations.append(f"Cannot read the reviewer line `{line}`. Write `{LINE}`, the model one word of "
+                          f"{', '.join(sorted(MODELS))}.")
     for axis, model, _ in record["axes"]:
         if model not in MODELS:
             violations.append(f"Unknown model `{model}` on the {axis} line; use one of {', '.join(sorted(MODELS))}.")
@@ -136,7 +149,7 @@ def check_record(record, changed, later, rules):
         axis, models = req
         hits = [a for a in record["axes"] if a[0] == axis and (models is None or a[1] in models)]
         if not hits:
-            violations.append(f"Tier {tier} needs a {label(req)} line in the record.")
+            violations.append(f"Tier {tier} needs a {label(req)} line in the record, as `{LINE}`.")
         elif all(a[2] for a in hits):
             warnings.append(f"{label(req)} is recorded as skipped.")
     if later is None:
@@ -188,11 +201,16 @@ def run_check(args, rules):
         git("fetch", "-q", "origin", pr["baseRefName"], f"pull/{n}/head")
         body, head, author = pr["body"], pr["headRefOid"], pr["author"]["login"]
         base = git("merge-base", f"origin/{pr['baseRefName']}", head)
+    elif "--body" in args:
+        # Before a push: the head is the checkout's, and only a Dependabot author skips the check.
+        body = open(args[args.index("--body") + 1], encoding="utf-8").read()
+        head, author = git("rev-parse", "HEAD"), ""
+        base = args[args.index("--base") + 1] if "--base" in args else git("merge-base", default_base(), head)
     else:
         body, base, head = os.environ.get("PR_BODY"), os.environ.get("BASE_SHA"), os.environ.get("HEAD_SHA")
         author = os.environ.get("PR_AUTHOR", "")
         if None in (body, base, head):
-            sys.exit("set PR_BODY, BASE_SHA and HEAD_SHA, or pass --pr <n>")
+            sys.exit("set PR_BODY, BASE_SHA and HEAD_SHA, or pass --pr <n> or --body <file>")
     if author in ("dependabot[bot]", "app/dependabot"):
         print("Dependabot PR: no review record expected.")
         return 0
