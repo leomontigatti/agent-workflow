@@ -31,7 +31,7 @@
   },
   "on-load": {
     "agents/implementer.md": 3637,
-    "agents/models.md": 7700,
+    "agents/models.md": 7816,
     "agents/research.md": 2084,
     "agents/reviewer.md": 1004,
     "skills/babysit-pr/SKILL.md": 13914,
