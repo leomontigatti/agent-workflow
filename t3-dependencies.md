@@ -420,7 +420,7 @@ T3 source paths below are in pingdotgg/t3code.
   3); no `gpt-6.1-sol` child spawned the same way did. A re-spawn with the reviewer brief pasted
   inline worked. Workaround: `skills/code-review/SKILL.md` § Spawning a reviewer. Worth raising
   upstream when the inline retry fails too, when another model shows it, or when a retro counts
-  more than 1 in 20 Luna spawns.
+  more than 1 in 20 spawns of the readback's model.
 
 ### delegate-task-worktrees
 

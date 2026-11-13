@@ -39,7 +39,7 @@ running Y"), and its tier and family are the review's; null keeps the requested 
 | --------------------- | --------------------------------------------------------- | -------------------------------------------------------- | ------- | -------------------------------------------- |
 | Standards, Spec       | `code-review`'s two axes                                  | the other family: Sol, or Opus when Codex wrote it       | medium  | `reviewer-opus` (Claude) / `reviewer` (Codex) |
 | Correctness           | the bug hunt, `code-review`'s correctness brief          | full tier: both, Opus and Sol; else the other family: Sol, or Opus when Codex wrote it | medium  | one family, recorded                         |
-| Readback              | restates a diff                                           | Codex `gpt-6-luna`, or Claude Sonnet when Codex wrote it | low     | same-family, recorded                        |
+| Readback              | restates a diff                                           | Codex `gpt-6.1-terra`, or Claude Sonnet when Codex wrote it | low     | same-family, recorded                        |
 | Design runners        | `codebase-design`'s design-it-twice, `prototype` variants | both families, alternating: Opus, Sol, Opus…             | high    | one family, at the same count                |
 | Research              | primary sources outside the repo (`research` agent)       | Codex `gpt-6.1-terra`                                    | low     | Claude `research` on Sonnet                  |
 | Miners                | slices of transcripts or diffs (`retro`, `upstream-review`, `t3-update-review`) | Codex `gpt-6.1-terra`              | low     | Claude Sonnet                                |
@@ -56,7 +56,8 @@ Why each effort:
 - **Correctness**: depth on a traced path; raise it for a migration or concurrency diff. High
   effort elsewhere buys little: it turned 1 of 11 bugs a model missed at medium into a catch.
 - **Readback**: restating a diff needs little reasoning, and the light model spares the heavy
-  one's quota.
+  one's quota. On two small diffs read twice each (2026-11-13), Terra named the change the
+  commit title left out in 4 of 4 runs and Luna in none, for 1.4 times the tokens.
 - **Miners**: sorting needs little reasoning, but a slice is tens of kilobytes to read to the end.
   On the same two slices (retro, 2026-11-09), Luna dropped a session and missed the main
   friction of another, Haiku cited wrong transcript lines, and Terra matched Sonnet's blocks.
@@ -80,7 +81,7 @@ author's reasoning, the blind spot a judging role exists to escape.
   model set for the rest.
 - **Codex**: a Claude role goes through T3's `delegate_task` with
   `target: {providerInstanceId: "claudeAgent", model}`; a Codex role is a native agent
-  (`reviewer`, `reviewer-luna`, `research`).
+  (`reviewer`, `reviewer-terra`, `research`).
 - **The Implementer**, from either harness, is a `delegate_task` child with
   `isolation: "worktree"`, for the checkout T3 prepares; it has no harness wrapper.
 - **Outside T3** (no `delegate_task`): the fallback column.
