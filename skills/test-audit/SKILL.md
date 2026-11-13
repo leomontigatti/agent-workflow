@@ -30,7 +30,8 @@ edits a protected test, and lists a low-signal one as an ask.
 1. **Window.** The watermark is the default-branch commit the last audit reached, in
    `~/.local/state/test-audit/<repo>.json` (`{"reviewed": "<sha>"}`, `<repo>` the GitHub
    `owner-name`). With no file, start at the default-branch commit of seven days ago
-   (`git rev-list -1 --before="7 days ago" origin/<default>`). The window is
+   (`git rev-list -1 --before="7 days ago" origin/<default>`), or at the empty tree
+   (`git hash-object -t tree /dev/null`) when the repo is younger than that. The window is
    `git diff <watermark> origin/<default>` over the test files, as the tests layout `AGENTS.md`
    routes to names them. The `origin/<default>` commit you diff against is the new watermark.
    - No test case added or grown → write the new watermark, reply with one line ("test audit:
@@ -50,12 +51,16 @@ edits a protected test, and lists a low-signal one as an ask.
    fixture, helper or import only the deleted tests used. Run `docs/agents/validation.md`
    § Before committing until clean; a case whose removal breaks it is a keep after all, so restore
    it and move its verdict.
-   - Nothing to delete or fold → write the new watermark, reply with the report from step 4 and
+   - Nothing to delete or fold → write the new watermark, reply with the report from step 5 and
      open no PR.
 
-4. **Report and open the PR.** Commit as `test: delete <n> low-signal tests added since <short
-   sha>`, push, and open the PR ready for review, with a body written by calling the Skill tool
-   with "pr" and holding:
+4. **Review.** Commit as `test: delete <n> low-signal tests added since <short sha>`, then review
+   the branch as step 5 of `~/.agents/workflow/skills/implement/SKILL.md` says, tier and fix
+   round included. A reviewer's finding that a deleted case does catch a bug restores it as a
+   keep.
+
+5. **Report and open the PR.** Push, and open the PR ready for review, with a body written by
+   calling the Skill tool with "pr" (its `## Review` record included) and holding:
 
    ```
    Window: <watermark short sha>..<new short sha>, <n> cases judged
