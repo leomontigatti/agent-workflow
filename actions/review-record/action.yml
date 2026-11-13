@@ -9,8 +9,17 @@ runs:
     - name: Check the review record
       shell: bash
       env:
-        PR_BODY: ${{ github.event.pull_request.body }}
+        # The body is fetched when the step runs, not taken from the event: a rerun replays the
+        # event as it first fired, and would check the record as it stood then.
+        GH_TOKEN: ${{ github.token }}
+        PR_NUMBER: ${{ github.event.pull_request.number }}
         BASE_SHA: ${{ github.event.pull_request.base.sha }}
         HEAD_SHA: ${{ github.event.pull_request.head.sha }}
         PR_AUTHOR: ${{ github.event.pull_request.user.login }}
-      run: python3 -I "$GITHUB_ACTION_PATH/../../skills/implement/scripts/review.py" check
+      run: |
+        PR_BODY=$(gh api "repos/$GITHUB_REPOSITORY/pulls/$PR_NUMBER" --jq '.body // ""') || {
+          echo "::error::could not read PR #$PR_NUMBER: the job needs \`pull-requests: read\` in its permissions"
+          exit 1
+        }
+        export PR_BODY
+        python3 -I "$GITHUB_ACTION_PATH/../../skills/implement/scripts/review.py" check
