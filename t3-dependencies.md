@@ -640,6 +640,20 @@ T3 source paths below are in pingdotgg/t3code.
 - **Watch:** pingdotgg/t3code#5063 (closed 2026-08-15, yet the runner still reads only imported
   scripts)
 
+### folded-project-scripts
+
+- **Workaround:** with `projectSettingsFolded: true` in `~/.t3/userdata/settings.json` (this
+  machine), T3 runs only the scripts in `projectSettingsOverrides[<projectId>].defaultProjectScripts`
+  and ignores the project's imported ones, so a worktree's setup never runs until the script is
+  copied there by hand (done for each project on 2026-10-27). A change to a project's `t3.json`
+  setup goes to three places: `t3.json`, the imported copy (`t3_project_update`, or the import
+  in project settings), and the override in `settings.json`, edited after a backup.
+- **Used by:** `skills/implement/THREADS.md`; `agents/implementer.md` step 1
+- **Would improve if:** a folded project's imported scripts and `t3_project_update`'s writes
+  reach new threads; then delete each project's `defaultProjectScripts` override and the older
+  `projectScriptOverrides` entry, after checking that a new worktree still runs its setup.
+- **Watch:** pingdotgg/t3code#14991 (open; its fix PRs #22827 and #21224 closed unmerged)
+
 ### storage-cleanup-renamed-branches
 
 - **Workaround:** `housekeeping` sweeps a T3 worktree whose branch was renamed, once its PR is
