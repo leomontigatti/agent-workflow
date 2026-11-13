@@ -56,8 +56,9 @@ edits a protected test, and lists a low-signal one as an ask.
 
 4. **Review.** Commit as `test: delete <n> low-signal tests added since <short sha>`, then review
    the branch as step 5 of `~/.agents/workflow/skills/implement/SKILL.md` says, tier and fix
-   round included. A reviewer's finding that a deleted case does catch a bug restores it as a
-   keep.
+   round included. The spec any axis asks for is this skill and the step 2 verdicts. A
+   reviewer's finding that a deleted case does catch a bug restores it as a keep. Commit each
+   round's fixes before the next step, so the reviewed commit is the branch's head.
 
 5. **Report and open the PR.** Push, and open the PR ready for review, with a body written by
    calling the Skill tool with "pr" (its `## Review` record included) and holding:
