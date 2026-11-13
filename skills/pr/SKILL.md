@@ -103,6 +103,10 @@ Tier: full, reviewed 1a2b3c4
 - A commit pushed later that changes more than docs or agent configuration fails the check until
   its own review round runs and the record names the new commit. A merge from the base does not
   count.
+- **Check the record before GitHub does**: run `python3 -I
+  ~/.agents/workflow/skills/implement/scripts/review.py check --body <file>` (`--base <ref>` on a
+  stacked layer) on the body file before `gh pr create` and every body edit, until it prints
+  `review record: ok`; each failure names the line it expects.
 
 ## PRD PRs
 

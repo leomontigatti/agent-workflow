@@ -414,6 +414,13 @@ T3 source paths below are in pingdotgg/t3code.
   the parent (it would wait forever), `clientRequestId` stops
   deduplicating a retry, the `target` shape or live model ids change, or children stop sharing
   the parent's checkout by default.
+- **Observed flake:** a Codex `gpt-6-luna` child at low effort, `role: "review"`, sometimes starts
+  with no file or shell tools and replies that it cannot read `agents/reviewer.md`: 5 replies in
+  about 290 Luna spawns across 3 sessions, 2026-11-10 to 2026-11-13 (retro of 2026-11-13, finding
+  3); no `gpt-6.1-sol` child spawned the same way did. A re-spawn with the reviewer brief pasted
+  inline worked. Workaround: `skills/code-review/SKILL.md` § Spawning a reviewer. Worth raising
+  upstream when the inline retry fails too, when another model shows it, or when a retro counts
+  more than 1 in 20 Luna spawns.
 
 ### delegate-task-worktrees
 

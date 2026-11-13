@@ -138,7 +138,8 @@ whole job, ending in container cleanup: the failure sits just before the last `#
    `docs/agents/validation.md` § Before committing for what you touched, and commit once. When a
    fix changes more than docs or agent configuration, run `implement` step 5's fix round over it
    before pushing, and update the PR body's `## Review` record: the new reviewed commit, and the
-   round's findings on the correctness lines. Then push once.
+   round's findings on the correctness lines. Before every push, run `review.py check --body
+   <file>` on the body as it will stand (the `pr` skill § Review) until it passes. Then push once.
 2. On each fixed thread, reply with the commit SHA and resolve it. On each declined thread, reply
    with the concrete reason from the code and resolve it.
 3. Answer the review-body findings in one top-level PR comment: each finding with its SHA or its

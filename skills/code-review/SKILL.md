@@ -101,6 +101,9 @@ is named. On top of it:
   A later round is a new `delegate_task` carrying the prior findings and your answers to them,
   never a message to the child thread. Spawning from the main session keeps one hop and leaves
   each report with the session that judges it.
+- **A reply saying it has no file or shell tools** is a failed spawn, not a review. Spawn it once
+  more on the same model with `agents/reviewer.md` pasted inline in place of the line that points
+  at it; if that fails too, run the role on its fallback from the table, and the report names it.
 - **Codex**: the native agents the table names; an Opus role goes through `delegate_task` as the
   table says.
 - **Outside T3**: the table's fallback column, and the report names any role that ran on its
