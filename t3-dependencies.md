@@ -518,7 +518,9 @@ T3 source paths below are in pingdotgg/t3code.
   that points at a skill here (since pingdotgg/t3code#25423, 0.1.3-nightly.20261027.3748,
   `schedule_task` with a `scheduledTaskId` also updates a task; `update_scheduled_task` is gone): "Weekly upstream review" on Mondays at 09:00
   (`skills/upstream-review/SKILL.md`), and "T3 update review" daily at 09:00
-  (`skills/t3-update-review/SKILL.md`). Each opens its bookkeeping PR from that thread. Since
+  (`skills/t3-update-review/SKILL.md`). Each opens its bookkeeping PR from that thread. "Weekly
+  test audit" (`skills/test-audit/SKILL.md`) is the same kind of task made on each project that
+  wants it, Mondays at 10:00, and opens its PR on that project. Since
   pingdotgg/t3code#28474 (0.1.7-nightly.20261101.4035) an interrupt no longer leaves a task marked
   busy until a restart, which made scheduled polls skip it silently. A managed policy
   (pingdotgg/t3code#27197, `/etc/t3code/policy.json` on Linux) can block webhook tasks and cap
@@ -544,7 +546,7 @@ T3 source paths below are in pingdotgg/t3code.
   `freshSession`, which it used to drop. A run's outcome now reaches `lastRunStatus`
   (`scheduled-run-status`, `scheduled-missed-runs`).
 - **Used by:** `skills/upstream-review/SKILL.md` § Cadence; `skills/t3-update-review/SKILL.md`
-  § Cadence
+  § Cadence; `skills/test-audit/SKILL.md` § Cadence
 - **Breaks if:** scheduled runs stop starting when no thread is open, stop getting a worktree of
   their own, the MCP default base stops following the project's default branch, or the scheduler
   drops `fixed_time` tasks. A task stored before that build on a project whose default branch
@@ -600,7 +602,7 @@ T3 source paths below are in pingdotgg/t3code.
   (0.1.7-nightly.20261101.4016), and the service stopped re-wrapping it since
   pingdotgg/t3code#29620 (0.1.7-nightly.20261104.4151).
 - **Used by:** `skills/upstream-review/SKILL.md` § Cadence; `skills/t3-update-review/SKILL.md`
-  § Cadence
+  § Cadence; `skills/test-audit/SKILL.md` § Cadence
 - **Would improve if:** a run that fails or ends without its result is recorded as failed.
 - **Partly met in:** 0.1.10-nightly.20261112.4580 (pingdotgg/t3code#34815; closes #30844, and
   #17889 closed with it). After a dispatch T3 follows the run for up to 24 hours, and a run that
@@ -963,7 +965,7 @@ None.
   0.1.7-nightly.20261101.4016) run when T3 is back. An interval has no fixed clock time, so the daily
   and weekly reviews stay on `fixed_time`.
 - **Used by:** `skills/upstream-review/SKILL.md` § Cadence; `skills/t3-update-review/SKILL.md`
-  § Cadence
+  § Cadence; `skills/test-audit/SKILL.md` § Cadence
 - **Would improve if:** a missed run is run once on startup (catch-up), or is recorded on the
   task as missed.
 - **Met in:** 0.1.10-nightly.20261112.4580 (pingdotgg/t3code#34815): a missed slot now sets the
