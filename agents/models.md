@@ -56,7 +56,7 @@ Why each effort:
 - **Correctness**: depth on a traced path; raise it for a migration or concurrency diff. High
   effort elsewhere buys little: it turned 1 of 11 bugs a model missed at medium into a catch.
 - **Readback**: restating a diff needs little reasoning, and the light model spares the heavy
-  one's quota. On two small diffs read twice each (2026-11-13), Terra named the change the
+  one's quota. On #119 and #92, read twice each (2026-11-13), Terra named the change the
   commit title left out in 4 of 4 runs and Luna in none, for 1.4 times the tokens.
 - **Miners**: sorting needs little reasoning, but a slice is tens of kilobytes to read to the end.
   On the same two slices (retro, 2026-11-09), Luna dropped a session and missed the main
