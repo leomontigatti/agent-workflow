@@ -1,0 +1,29 @@
+# Scratch: proof for #77. Never merged.
+name: scratch-review-record
+on:
+  pull_request:
+    types: [opened, edited, synchronize]
+permissions:
+  contents: read
+jobs:
+  old-from-event:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: {fetch-depth: 0, persist-credentials: false}
+      - uses: leomontigatti/agent-workflow/actions/review-record@v1.2.1
+  new-contents-read-only:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: {fetch-depth: 0, persist-credentials: false}
+      - uses: ./actions/review-record
+  new-with-pr-read:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+    steps:
+      - uses: actions/checkout@v4
+        with: {fetch-depth: 0, persist-credentials: false}
+      - uses: ./actions/review-record
