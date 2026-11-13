@@ -8,6 +8,9 @@ name: review-record
 on:
   pull_request:
     types: [opened, edited, synchronize, reopened]
+permissions:
+  contents: read
+  pull-requests: read
 jobs:
   review-record:
     runs-on: ubuntu-latest
@@ -17,6 +20,15 @@ jobs:
           fetch-depth: 0
       - uses: leomontigatti/agent-workflow/actions/review-record@<commit sha> # v1.0.0
 ```
+
+The action reads the PR body when it runs, so `gh run rerun` checks the record as it is now:
+rerun a red run after fixing the record instead of pushing an empty commit. A private repository
+needs `pull-requests: read` for that read; a public one reads it with `contents: read` alone.
+
+The `edited` event fires on every body edit, and a project's other `edited` checks restart with
+it and block the merge until they finish. A check that reads only the title, such as `pr-title`,
+skips the body edits with `if: github.event.action != 'edited' || github.event.changes.title`: a
+skipped job still satisfies a required check.
 
 Pin the action to the commit of a release tag, with the tag as the comment: zizmor checks that
 the comment's ref still points at the pinned commit, and a branch such as `main` stops doing so
