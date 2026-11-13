@@ -67,6 +67,10 @@ class Record(unittest.TestCase):
         v, _ = self.check(body("readback+correctness", "- readback (luna): ok", "- correctness (luna): ok"), ["app/x.ts"])
         self.assertTrue(any("correctness (Opus or Sol)" in x for x in v))
 
+    def test_a_terra_readback_passes(self):
+        v, _ = self.check(body("readback", "- readback (Terra): ok"), ["docs/a.md"])
+        self.assertEqual(v, [])
+
     def test_the_full_tier_needs_both_families(self):
         v, _ = self.check(body("full", "- standards (sol): ok", "- spec (sol): ok", "- correctness (sol): ok"),
                           ["app/finances/a.ts"])

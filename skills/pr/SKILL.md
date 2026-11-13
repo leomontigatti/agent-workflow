@@ -84,7 +84,7 @@ wrote the change is the one grading it. These are always one-way, however small 
 The record of `implement` step 5, which the `review-record` check reads. The first line is the
 tier, as `review.py tier` printed it or raised, and the **reviewed commit**: the commit the last
 review round covered. Then one line per reviewer: its axis (`readback`, `standards`, `spec`,
-`correctness`) and model (`Sol`, `Opus`, `Luna`, `Sonnet`):
+`correctness`) and model (`Sol`, `Opus`, `Terra`, `Luna`, `Sonnet`):
 
 ```markdown
 ## Review

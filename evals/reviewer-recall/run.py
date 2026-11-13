@@ -42,8 +42,8 @@ TIMEOUT = 1800
 EFFORTS = ("low", "medium", "high", "xhigh", "max")
 CLAUDE_TOOLS = "Read,Grep,Glob,Bash(git diff:*),Bash(git log:*),Bash(git show:*)"
 MODEL_IDS = {"opus": "claude-opus-5-5", "sonnet": "claude-sonnet-5-5", "fable": "claude-fable-5-2",
-             "sol": "gpt-6.1-sol", "luna": "gpt-6-luna"}
-FAMILY = {"opus": "claude", "sonnet": "claude", "fable": "claude", "sol": "codex", "luna": "codex"}
+             "sol": "gpt-6.1-sol", "terra": "gpt-6.1-terra", "luna": "gpt-6-luna"}
+FAMILY = {"opus": "claude", "sonnet": "claude", "fable": "claude", "sol": "codex", "terra": "codex", "luna": "codex"}
 JUDGE = ["claude", "-p", "--model", "claude-sonnet-5-5", "--effort", "low",
          "--no-session-persistence"]
 
