@@ -19,6 +19,7 @@ hands T3 everything T3 can do, and sweeps only what T3 leaves by design:
 | a stack layer merged into another PR's branch | T3 counts only merges into the default branch                       | this sweep, until T3 fixes it    |
 | a folder in T3's folder that no thread uses   | T3 lists it under Last run but never removes it                     | this sweep, until T3 fixes it    |
 | per-worktree resources (a database, a cache)  | T3 runs no script when it removes a worktree                        | this sweep, by `docs/agents/housekeeping.md` |
+| a spent or orphaned one-time scheduled task (`babysit-pr`'s backstop) | T3 keeps a `once` task after it runs, and deletes a thread's tasks only with the thread | this sweep, until T3 fixes it |
 
 The "until T3 fixes it" rows are watched in the shared `t3-dependencies.md`; when one is fixed,
 its row moves to T3 here.
@@ -61,6 +62,13 @@ Nothing is removed until the user accepts a dry-run report.
      never-committed worktree too: a paused thread with no shell open looks exactly like a
      finished one, so those are where the user's eye is needed.
 
+   Then the scheduled tasks, on every project `t3_project_list` names: `list_scheduled_tasks`
+   with its `projectId`. A `once` task (`schedule.type`) is **spent** when its `nextRunAt` is null
+   (it ran, or its time passed) and **orphaned** when its `boundThreadId` names no live thread.
+   Report each spent or orphaned `once` task under **Would remove**, with its title, project and
+   reason. Every other task is out of the sweep: `fixed_time`, `interval` and `webhook` tasks,
+   and a `once` task still due on a live thread.
+
    Then stop. A request only to see what could be removed ends here.
 
 3. **On acceptance**, remove only what the report listed, skipping any entry the user spared.
@@ -72,7 +80,9 @@ Nothing is removed until the user accepts a dry-run report.
    branch git refuses to delete was not merged, so it is kept and reported). Remove each listed
    resource by name, as `docs/agents/housekeeping.md` says, never by a command that removes
    whatever is orphaned when it runs: that would take what became orphaned after the report.
-   `git worktree prune` at the end.
+   `git worktree prune` at the end. Remove each listed scheduled task with
+   `delete_scheduled_task` and its `scheduledTaskId`, after `list_scheduled_tasks` shows it still
+   spent or orphaned.
 
 4. Report what was removed as counts, anything an error stopped, and every kept worktree or
    branch with its reason. A kept one is the user's call: name it and leave it.

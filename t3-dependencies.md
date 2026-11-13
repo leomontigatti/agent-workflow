@@ -542,11 +542,19 @@ T3 source paths below are in pingdotgg/t3code.
   task still switches it to one. Since pingdotgg/t3code#23609 (0.1.10-nightly.20261112.4564) a
   recurring task bound to a busy thread skips a slot while its previous occurrence is still
   queued there; the reviews are unbound, and `babysit-pr`'s re-read is `once`, so neither
-  skips. Since #34801 (0.1.10-nightly.20261112.4580) a `schedule_task` update applies
-  `freshSession`, which it used to drop. A run's outcome now reaches `lastRunStatus`
+  skips. A task outlives what made it: a `once` task that ran stays listed with `nextRunAt` null
+  (`nextScheduledRunAt` in `apps/server/src/scheduledTasks/Schedule.ts`), `enabled: false` keeps
+  the row, and a thread's bound tasks are deleted only with the thread
+  (`deleteForThread`, reached only from `apps/server/src/orchestration-v2/ThreadDeletion.ts`), so
+  `babysit-pr` deletes its re-read and `housekeeping` sweeps leftovers
+  (`pr-watch-unreported-checks`). Since #34801 (0.1.10-nightly.20261112.4580) a `schedule_task`
+  update applies `freshSession`, which it used to drop. A run's outcome now reaches `lastRunStatus`
   (`scheduled-run-status`, `scheduled-missed-runs`).
 - **Used by:** `skills/upstream-review/SKILL.md` § Cadence; `skills/t3-update-review/SKILL.md`
-  § Cadence; `skills/test-audit/SKILL.md` § Cadence
+  § Cadence; `skills/test-audit/SKILL.md` § Cadence; `skills/housekeeping/SKILL.md` (it removes
+  only spent or orphaned `once` tasks, never these recurring ones)
+- **Would improve if:** T3 deletes a `once` task after it runs, or deletes a thread's bound tasks
+  when the thread is settled or archived.
 - **Breaks if:** scheduled runs stop starting when no thread is open, stop getting a worktree of
   their own, the MCP default base stops following the project's default branch, or the scheduler
   drops `fixed_time` tasks. A task stored before that build on a project whose default branch
@@ -735,17 +743,31 @@ T3 source paths below are in pingdotgg/t3code.
   stays: a required check that never reports while another still runs ends the turn, and no wake
   follows. That gap, and a wake the watch misses outright (rubens #79 and en-escena #1752, seen
   2026-11-02 and 2026-11-03: every check passed and no wake came), are covered by a one-time
-  `schedule_task` (`{type: "once", runAt}`, bound to the thread by default) that `babysit-pr` sets
-  20 minutes out before each turn it ends on the watch; its run re-reads the round. Until
+  `schedule_task` (`{type: "once", runAt}`, bound to the thread by default), the **backstop**:
+  `babysit-pr` makes one per PR on its first wait and moves it 20 minutes out (`schedule_task`
+  with its `scheduledTaskId`) before each later turn it ends on the watch; its run re-reads the
+  round (rubens #220, 2026-11-09: the watch missed a wake and the backstop's run merged it). T3
+  never removes it by itself: a `once` task that ran stays listed with `nextRunAt` null
+  (`nextRunAfterRun`; `nextScheduledRunAt` in `apps/server/src/scheduledTasks/Schedule.ts`),
+  `enabled: false` keeps the row, and `ScheduledTaskService.deleteForThread`
+  (`apps/server/src/scheduledTasks/ScheduledTaskService.ts`) runs only when its thread is deleted
+  (`apps/server/src/orchestration-v2/ThreadDeletion.ts`, through the `scheduled-tasks.cleanup`
+  effect and `ResourceCleanupService.cleanupScheduledTasks`), never when it is settled or
+  archived. So `babysit-pr` § 5 deletes it with `delete_scheduled_task`, and `housekeeping` sweeps
+  any left behind (over 14 days to 2026-11-12, 4 of 59 babysat sessions only disabled
+  it, 4 more left it, and one thread made 7 by scheduling on every wait). Until
   pingdotgg/t3code#29450 (0.1.7-nightly.20261103.4106) a watch stopped for good after eight failed
   host reads, so a network outage ended it silently; it now keeps reading through `failed` host
   errors. That may explain the missed wakes above (not checked against their logs); the one-time
   re-read stays for the never-reporting check. Outside T3 the background
   `gh pr checks --watch` loop stays. Chosen by the user on 2026-11-01.
 - **Used by:** `skills/babysit-pr/SKILL.md` § 2 (the T3 and outside-T3 waits and the state table)
+  and § 5 (deleting the backstop); `skills/housekeeping/SKILL.md` (the scheduled-task sweep)
 - **Would improve if:** `watch_pull_request` wakes the thread when a required check has not
   reported, and once every check has finished rather than only on a failure or on all required
-  checks passing; then those two cases need no handling of their own.
+  checks passing; then those two cases need no handling of their own. It would also improve if
+  T3 deletes a `once` task after it runs, or deletes a thread's bound tasks when the thread is
+  settled or archived; then neither the § 5 delete nor the housekeeping sweep is needed.
 - **Partly met in:** 0.1.3-nightly.20261023.3566. T3 now wakes once the other checks finish after
   the required ones passed early (pingdotgg/t3code#23904), and once when a GitHub head has had no
   checks for 15 minutes or more (pingdotgg/t3code#23863; on time since #25437). Still no wake
