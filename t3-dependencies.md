@@ -62,7 +62,8 @@ T3 source paths below are in pingdotgg/t3code.
   branch or its last thread is deleted, archived threads included (pingdotgg/t3code#16473, since
   0.1.1-nightly.20261020.3386), keeps one with uncommitted changes, an open terminal, a running
   or queued thread or an open provider session, or, since pingdotgg/t3code#24689 (0.1.6-nightly.20261031.3973), a thread held
-  for its usage-limit reset, and reports why it kept each one under Settings →
+  for its usage-limit reset (since pingdotgg/t3code#35397, 0.1.10-nightly.20261112.4603, no longer
+  one whose unarmed reset is more than 24 h overdue), and reports why it kept each one under Settings →
   Maintenance → Cleanup → Last run; its rules sit under Settings → Worktrees → Cleanup (both were
   Settings → Storage until pingdotgg/t3code#25651, 0.1.3-nightly.20261027.3748, which redirects
   the old page). A worktree other threads share is
@@ -98,12 +99,24 @@ T3 source paths below are in pingdotgg/t3code.
   one whose status or ignored-file listing outgrows the inspection limit is kept too. Since
   pingdotgg/t3code#19665 (0.1.10-nightly.20261111.4544) a subagent thread settles with its
   parent, once idle, instead of on its own inactivity or PR rules; that settlement is what
-  `worktreeSettledAfterDays` ages a child's own worktree from, as above.
+  `worktreeSettledAfterDays` ages a child's own worktree from, as above. Since
+  pingdotgg/t3code#35941 (0.1.10-nightly.20261113.4630) `worktreeUnchanged` applies only once the
+  thread is settled (through its settlement chain) or archived: before, every idle worktree with
+  no commits yet (a review, an investigation, a plan) went at the next sweep. Since
+  pingdotgg/t3code#25241 (0.1.10-nightly.20261113.4616) a worktree holding a nested Git
+  repository that is not a registered submodule is kept ("contains a nested Git repository"), and
+  one that could not be fully walked is kept too; since #25735 symlinked spellings of one checkout
+  count as one; since #33902 a dev-home T3 server run from a worktree cleans only its own folder.
+  Since pingdotgg/t3code#36369 (0.1.10-nightly.20261114.4669) the inactive and settled retention
+  also deletes the folders of "No project" threads under `~/.t3/scratch` (unrecoverable: not
+  Git), keeping one with a Git repository inside, with an enabled scheduled task on its thread, or
+  holding anything but `node_modules` unless `worktreeKeepWhen` is `tracked-changes`; no workflow
+  here keeps files in a scratch folder.
 - **Used by:** `skills/housekeeping/SKILL.md` (its table, and step 1 reads the settings);
   `skills/implement/THREADS.md` ("Leaving a worktree behind is fine")
   Since 2026-10-16 the user also runs `worktreeAfterDays: 5`, `worktreeSettledAfterDays: 5`,
-  `worktreeUnchanged: true` and `browserArtifactsAfterDays: 5`. The first and third remove a
-  paused thread's worktree, and T3 recreates it from the kept branch on resume, tracked files only
+  `worktreeUnchanged: true` and `browserArtifactsAfterDays: 5`. The first removes a paused
+  thread's worktree (the third did too until #35941, above), and T3 recreates it from the kept branch on resume, tracked files only
   (`rebuilt-worktree-no-setup`), so `housekeeping`
   judges branches and resources by the live thread (`t3_thread_list`, then `t3_thread_read` for its
   branch), not by the worktree. Since pingdotgg/t3code#20449 (0.1.1-nightly.20261017.3272) T3
@@ -116,7 +129,15 @@ T3 source paths below are in pingdotgg/t3code.
   pingdotgg/t3code#26758 (0.1.6-nightly.20261031.3969) recovery first restores the kept branch or its
   cached `origin/<branch>` tip, so pushed commits come back; with neither it takes the project
   branch, the cached remote default or a detached HEAD. So a live thread's branch is still never
-  deleted.
+  deleted. Since 0.1.10-nightly.20261113.4616 that recovery is one helper,
+  `makeRestoreMissingWorktree` in `apps/server/src/workspace/restoreMissingWorktree.ts`, with the
+  same managed-path test (since pingdotgg/t3code#35769, 0.1.10-nightly.20261113.4630, it looks for
+  the pushed branch on the primary remote, `origin` when present, else the first), and runs before
+  a turn and, since pingdotgg/t3code#24156, before a terminal opens on the thread; since pingdotgg/t3code#34894 (0.1.10-nightly.20261113.4656) it also
+  rebuilds a folder that lost its `.git` and holds only `node_modules` or `.next`. Since #36251
+  (same build) a `t3_thread_send` to a thread whose worktree cannot be rebuilt fails
+  (`thread_not_sendable`) instead of reporting started. `t3_thread_list` pages 10 threads by default
+  since #29268 (`own-thread-readable`), so the live-thread list takes every `nextCursor`.
 - **Breaks if:** the settings are reset or the merge and delete rules turned off; T3 stops
   recreating a removed worktree from its branch on resume, or deletes the branch; T3 moves its managed folder, so `housekeeping` would take T3's worktrees for its
   own; T3 again keeps every worktree a subagent shares, so each reviewed thread's worktree stays;
@@ -235,7 +256,21 @@ T3 source paths below are in pingdotgg/t3code.
   lists every link with its state. So a thread whose PR merged reads an empty `pullRequests`
   with `pullRequestCount: 1`; `THREADS.md` reads the rest from `list_thread_pull_requests` since
   2026-11-12. Since #34674 (0.1.10-nightly.20261112.4564) `t3_thread_list` gives `status: waiting`
-  for a thread whose turn ended on awaited background work.
+  for a thread whose turn ended on awaited background work, and since #36610
+  (0.1.10-nightly.20261114.4682) `t3_thread_read` does too; both carry `pendingBackgroundTasks`
+  and `blockedOnThreadWait` (#33858, 0.1.10-nightly.20261113.4616). Since #29268 and #33428
+  (0.1.10-nightly.20261113.4616) and #33455 (20261113.4630) the defaults are small and a read
+  from a thread runs **newest first**: `t3_thread_list` returns 10 threads a page (was 50),
+  `t3_thread_read` 10 items (was 50) of at most 500 chars each (was 20,000; `maxCharsPerItem`
+  now takes up to 20,000, was 50,000), and the whole result is cut to 30,000 bytes, dropping the oldest items of the page.
+  Older items come with `beforePosition=earlierPosition`; `afterPosition=-1`, then
+  `nextPosition`, reads from the start; `itemId` with `textOffset` pages a cut item. So a
+  cursorless read gives the newest reports, not the user's first request. Since #35858
+  (0.1.10-nightly.20261113.4643) the first page's and the list's `pullRequests` preview at most 5
+  open PRs, watched first, then the most recently updated, with `openPullRequestCount` for how
+  many are open; `list_thread_pull_requests` pages 50 at a time (`cursor`, `nextCursor`) and takes
+  `states`. A `pullRequestCount` above the preview's length no longer means the rest merged or
+  closed. `t3_thread_search` returns `currentThreadId` too (`apps/server/src/mcp/toolkits/thread/handlers.ts`).
 - **Used by:** `skills/implement/THREADS.md` ("A lost context is recovered from T3", "One thread,
   one branch, one PR")
 - **Breaks if:** `currentThreadId` is dropped from the list result, a thread's timeline stops
@@ -285,7 +320,8 @@ T3 source paths below are in pingdotgg/t3code.
   no fork workflows. Since pingdotgg/t3code#33548 (0.1.9-nightly.20261111.4515) a watched
   github.com PR also re-reads on GitHub's event stream (push, review, merge, conflict), but only
   for a user signed in through T3's GitHub app, which is opt-in; checks have no events, so they
-  still wait on the 2-minute sweep. This machine has no app sign-in in `settings.json`, so it
+  still waited on the 2-minute sweep until pingdotgg/t3code#35709 (0.1.10-nightly.20261113.4616)
+  added an event when a check suite on the head completes, on the same opt-in. This machine has no app sign-in in `settings.json`, so it
   still polls. Since pingdotgg/t3code#34624 (0.1.10-nightly.20261112.4564) a GitHub workflow run
   still queued with no jobs counts as a pending check, so a lone finished check (a skipped
   CodeRabbit) no longer wakes "checks passed" while CI waits to start. Since #21239
@@ -293,6 +329,20 @@ T3 source paths below are in pingdotgg/t3code.
   (0.1.10-nightly.20261111.4544) a closed PR's watch ends even when the activity read fails; since
   #34884 (0.1.10-nightly.20261112.4580) a watch started after a pending self-settle survives the
   turn's end. `t3_thread_read` now shows each open PR's `watching` (`own-thread-readable`).
+  Since pingdotgg/t3code#23522 (0.1.10-nightly.20261113.4616) a fresh watch's first read that has
+  a head records the checks and conflict state already there as its baseline and wakes for none
+  of it; later pushes, reruns, new failures and new comments still wake. So a check that finishes
+  between `babysit-pr`'s own read of the round and its `watch_pull_request` call wakes nobody,
+  and the backstop re-read (`pr-watch-unreported-checks`) is what catches it. Since
+  pingdotgg/t3code#33214 (0.1.10-nightly.20261113.4630) a watch holds its thread in Working only
+  while a check on the head is still running (`checksPending`); the watch itself, and its wakes
+  on comments, reviews, conflicts and new heads, stay until `unwatch_pull_request` or the merge.
+  A watched thread whose checks are done is therefore idle, not pending work, for storage
+  cleanup's idle test too. Since pingdotgg/t3code#24141 (same build) GitHub's merge queue dropping
+  a PR wakes the watch (no project here uses a merge queue); since #35109
+  (0.1.10-nightly.20261112.4603) one sweep that changes several watched PRs wakes their thread
+  once; since #33389 (0.1.10-nightly.20261113.4616) a watch is refused when the host's
+  dependencies are unavailable, instead of starting one that never reads.
 - **Used by:** `skills/babysit-pr/SKILL.md` § 2 and § 5; `skills/implement/SKILL.md` § 7;
   `skills/implement/THREADS.md` ("A launched thread reports to its own inbox");
   `skills/fan-out/SKILL.md` § 4
@@ -405,7 +455,14 @@ T3 source paths below are in pingdotgg/t3code.
   alias matches. A failed task keeps its child's final report as `summary` (#34915,
   0.1.10-nightly.20261112.4580); results survive the parent's wake turns (#34568, same build) and
   a steer during a `mode: wait` (#27387, 0.1.10-nightly.20261111.4544); cancelling a task whose
-  child had only background work left reports `interrupted` (#21676).
+  child had only background work left reports `interrupted` (#21676). Since #34924
+  (0.1.10-nightly.20261113.4656) a running task's `next` reads "Completion wakes this thread. Do
+  not wait on it or poll it. Continue other work, and end your turn when none is left.", and is a
+  plain string in the schema, so a linked environment may word it differently. Since #24475
+  (0.1.10-nightly.20261114.4682) `status` is `starting` until the child's provider starts its
+  turn ("no work has begun"), then `running`; `workState` is unchanged. Since #34958 and #36411
+  (0.1.10-nightly.20261113.4656, 20261114.4669) a follow-up task to a child reports
+  `waiting_for_children` while that child's own subagents or awaited background work run.
   Source: `packages/contracts/src/orchestratorMcp.ts`. Read-only review
   is a prompt rule (`agents/reviewer.md`), not something T3 enforces.
 - **Used by:** `agents/models.md` § Reaching each model; `skills/code-review/SKILL.md` § Spawning
@@ -428,8 +485,9 @@ T3 source paths below are in pingdotgg/t3code.
   managed folder at the parent's local commit, on a branch of its own, with the project's setup
   run before it starts (uncommitted edits stay out; refused when the repo lacks that commit,
   pingdotgg/t3code#20213). T3 may rename that branch, so the child reads it rather than assume
-  it. With `mode: async` the call returns at once with `next` ("Completion wakes this thread, so
-  end your turn"), and the child's completion wakes the parent with its `summary`
+  it. With `mode: async` the call returns at once with `next` (since pingdotgg/t3code#34924,
+  0.1.10-nightly.20261113.4656: "Completion wakes this thread. Do not wait on it or poll it.
+  Continue other work, and end your turn when none is left."), and the child's completion wakes the parent with its `summary`
   (`apps/server/src/mcp/toolkits/orchestrator/tools.ts`,
   `packages/contracts/src/orchestratorMcp.ts`). The result has no branch field, so the child's
   report names it. Tried 2026-10-26; the trial is under `implementer-worktrees`. Since
@@ -500,6 +558,9 @@ T3 source paths below are in pingdotgg/t3code.
   login shell or a fallback gave the PATH, for setting up the `t3` command. Since
   pingdotgg/t3code#35033 (0.1.10-nightly.20261112.4580) the first shell that times out at 5 s is
   read once more with 20 s, for a profile slow only while the machine boots.
+  Since pingdotgg/t3code#35617 (0.1.10-nightly.20261114.4682) the desktop's login-shell probe
+  keeps a profile's own `PATH` even when that `PATH` drops `printenv`;
+  `~/.profile` still reaches the sessions, so the hook's check stands.
 - **Used by:** `hooks/check-tool-path.sh` (the SessionStart warning)
 - **Breaks if:** T3 starts agent sessions with a shell environment of its own, so `~/.profile` no
   longer reaches them.
@@ -558,7 +619,10 @@ T3 source paths below are in pingdotgg/t3code.
   (`deleteForThread`, reached only from `apps/server/src/orchestration-v2/ThreadDeletion.ts`), so
   `babysit-pr` deletes its re-read and `housekeeping` sweeps leftovers
   (`pr-watch-unreported-checks`). Since #34801 (0.1.10-nightly.20261112.4580) a `schedule_task`
-  update applies `freshSession`, which it used to drop. A run's outcome now reaches `lastRunStatus`
+  update applies `freshSession`, which it used to drop. Since #34950
+  (0.1.10-nightly.20261112.4603) the schema says what the server has done since #15219: an omitted
+  `bindToCurrentThread` binds only when the caller schedules into its own thread's project, so
+  `babysit-pr`'s re-read binds and a task made from another project's thread starts new threads. A run's outcome now reaches `lastRunStatus`
   (`scheduled-run-status`, `scheduled-missed-runs`).
 - **Used by:** `skills/upstream-review/SKILL.md` § Cadence; `skills/t3-update-review/SKILL.md`
   § Cadence; `skills/test-audit/SKILL.md` § Cadence; `skills/housekeeping/SKILL.md` (it removes
@@ -744,12 +808,17 @@ T3 source paths below are in pingdotgg/t3code.
   reference to a setup script (keyword search of that file only; the same at
   0.1.7-nightly.20261102.4066, after pingdotgg/t3code#26758 changed which ref the recovery restores,
   at 0.1.8-nightly.20261109.4399, and at 0.1.9-nightly.20261111.4515, whose diff to the file
-  leaves `recreateMissingWorktree` alone).
+  leaves `recreateMissingWorktree` alone). Since 0.1.10-nightly.20261113.4616 the recovery lives in
+  `makeRestoreMissingWorktree` (`apps/server/src/workspace/restoreMissingWorktree.ts`), shared by
+  turn start and, since pingdotgg/t3code#24156, terminal launch; it still runs only
+  `pruneWorktrees` and `createWorktree`, and its file says why: "Worktree setup uses terminals,
+  so recovery must stay outside TerminalManager" (checked at 0.1.10-nightly.20261114.4682).
 - **Used by:** `skills/implement/THREADS.md` (the intro); `skills/housekeeping/SKILL.md` (a live
   thread's resources are kept for its resume)
 - **Would improve if:** T3 runs `runOnWorktreeCreate` when it recreates a worktree.
-- **Watch:** `recreateMissingWorktree` in
-  `apps/server/src/orchestration-v2/ProviderTurnStartService.ts`. No upstream issue filed: none
+- **Watch:** `makeRestoreMissingWorktree` in
+  `apps/server/src/workspace/restoreMissingWorktree.ts` (was `recreateMissingWorktree` in
+  `ProviderTurnStartService.ts`). No upstream issue filed: none
   covered this on 2026-10-30 (nearest: #26745 and PR #26758, the same recovery code, merged; #24390, a
   folder without `.git` is not rebuilt), and every confirmed case was a merged thread reopened,
   which is exceptional. File one if a live thread with unfinished work resumes bare.
@@ -840,6 +909,24 @@ T3 source paths below are in pingdotgg/t3code.
 - **Watch:** pingdotgg/t3code#14905 (open), with no open fix: PR #15387 closed unmerged as stale
   (open over three weeks), as did its follow-up #35173 and #27884 (keep sudo working in terminals
   after a Linux relaunch); checked 2026-11-12
+
+### remote-child-files
+
+- **Workaround:** a reply's image renders from a path on the machine the thread runs on. A child
+  delegated to a linked environment (`target.environmentId`) saves its captures on that machine,
+  so the same path shows "Image unavailable" in the parent's thread (rubens #105's browser check
+  on 2026-11-03). The parent copies each file to its own machine first, with the access the
+  user's instructions give for that machine, and lists the path when it has none. No T3 tool
+  reads or moves a file between environments (0.1.7-nightly.20261103.4138):
+  `t3_attachment_prepare_upload` uploads to the caller's own server, and
+  `t3_thread_send_attachments` sends to a thread there.
+- **Used by:** `skills/implement/SKILL.md` § 7
+- **Would improve if:** T3 renders a remote child's file in the parent's thread, or a tool fetches a
+  file from a linked environment; then the copy step goes away.
+- **Watch:** no upstream issue yet; check each update's MCP tool list for a cross-environment file
+  tool
+
+## Ready
 
 ### preview-tools-verification
 
@@ -965,34 +1052,32 @@ T3 source paths below are in pingdotgg/t3code.
 - **Retry when:** #23936 and #24812 are fixed, or #25862 merges. Then one real drive with
   `preview_act` clicks on the current build decides whether step one runs again. A PR counts toward
   step two only with real `preview_act` clicks, none lost, no timed-out snapshot and sharp captures.
-- **Watch:** pingdotgg/t3code#23936 (open: `preview_snapshot` always times out on `open: false`
-  tabs and in delegated children); #24812 (closed 2026-11-12 by #24829: snapshots timed out
-  after the CDP relay reconnected); #25862 (open: bounds a stalled screenshot capture; it replaced #23515, closed
-  unmerged 2026-11-10); #24130 (open:
-  reports the actual snapshot timeout); #20899 (the blur, fixed; no issue asks to lift the size
+- **Met in:** 0.1.10-nightly.20261114.4682, for **Retry when**. Since pingdotgg/t3code#32854
+  (0.1.10-nightly.20261113.4630) `preview_resize` waits for a desktop tab to draw and then reports
+  its measured size (or omits `viewport` when it cannot measure), the fault "the response always
+  said 1280x800" above. pingdotgg/t3code#25862 merged
+  2026-11-13 (`fec3b3a227`, in the installed build): a CDP screenshot that gets no frame within
+  3 s fails with "The browser is not producing screenshot frames. For a desktop tab, show or
+  restore the T3 Code window and try again." instead of holding the snapshot
+  (`captureViewport` in `apps/server/src/preview/ServerBrowserPage.ts`). #23936 closed as
+  completed on 2026-11-14 with #24130 (`089318005d`, in the build): a timed-out snapshot now names
+  its real 10 s deadline and the stages still pending (`pendingStages`: metrics, frames, page
+  state, screenshot, accessibility tree). The same diff makes a timed-out click name what
+  Playwright last saw ("Playwright last saw: element is ..."), keeps one deadline across a
+  click's scroll, box and click, retries a scroll whose element the page replaced, and drags in 5
+  steps. Adopting means the one real drive **Retry when** names: a session on a project whose
+  `verification.md` § Drive allows it drives a page with `preview_act` clicks (no
+  `preview_evaluate` clicks) and `preview_snapshot` captures on this build, and the user decides
+  from it whether step one of **Would improve if** runs again.
+- **Watch:** pingdotgg/t3code#23936 (closed 2026-11-14 with #24130); #24812 (closed 2026-11-12 by
+  #24829: snapshots timed out after the CDP relay reconnected); #25862 (merged 2026-11-13: bounds a
+  stalled screenshot capture; it replaced #23515); #24130 (merged 2026-11-14: reports the actual
+  snapshot timeout); #35160 (open: a hidden agent browser keeps painting while the agent drives
+  it); #20899 (the blur, fixed; no issue asks to lift the size
   cap, and #10141, which tried, closed unmerged); `apps/server/src/preview/ServerBrowserPage.ts`
   (`MAX_SCREENSHOT_WIDTH`, `captureViewport`); `apps/server/src/mcp/toolkits/preview/tools.ts`;
   the trial's notes in the final reports of en-escena's and rubens' PRs
 
-### remote-child-files
-
-- **Workaround:** a reply's image renders from a path on the machine the thread runs on. A child
-  delegated to a linked environment (`target.environmentId`) saves its captures on that machine,
-  so the same path shows "Image unavailable" in the parent's thread (rubens #105's browser check
-  on 2026-11-03). The parent copies each file to its own machine first, with the access the
-  user's instructions give for that machine, and lists the path when it has none. No T3 tool
-  reads or moves a file between environments (0.1.7-nightly.20261103.4138):
-  `t3_attachment_prepare_upload` uploads to the caller's own server, and
-  `t3_thread_send_attachments` sends to a thread there.
-- **Used by:** `skills/implement/SKILL.md` § 7
-- **Would improve if:** T3 renders a remote child's file in the parent's thread, or a tool fetches a
-  file from a linked environment; then the copy step goes away.
-- **Watch:** no upstream issue yet; check each update's MCP tool list for a cross-environment file
-  tool
-
-## Ready
-
-None.
 
 ## Resolved
 
