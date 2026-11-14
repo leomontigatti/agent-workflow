@@ -37,9 +37,13 @@ while it is clean and on that branch.
 - **A lost context is recovered from T3.** When a turn starts without the goal, branch or PR of
   the work (a failed compaction, or a summary that left them out), rebuild them from the thread
   before searching logs or GitHub: `t3_thread_list` returns `currentThreadId`, and
-  `t3_thread_read` on it gives the user's requests and your earlier reports. Its first page's
-  `pullRequests` lists the thread's open PRs; a `pullRequestCount` above that list's length means
-  others merged or closed, which `list_thread_pull_requests` gives with their state. An open PR
+  `t3_thread_read` on it gives the user's requests and your earlier reports. A read with no cursor
+  starts at the newest items, cut to 500 characters each: read from the start with
+  `afterPosition: -1`, then each `nextPosition`, and a `maxCharsPerItem` of a few thousand; an
+  item marked `textTruncated` is read to its end with its `itemId` and each `nextTextOffset` as
+  `textOffset` before the next page. Only
+  the cursorless read carries `pullRequests`, at most five open PRs, watched first;
+  `list_thread_pull_requests` gives every one with its state, a page per `nextCursor`. An open PR
   with `watching: true` is one you were babysitting: pick `babysit-pr` up at its read of the
   round, and end the turn on the watch already running.
 - **Read-only threads** (writing issues, triage, reviewing a PR without editing code) change no

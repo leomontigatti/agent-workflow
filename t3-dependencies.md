@@ -270,9 +270,10 @@ T3 source paths below are in pingdotgg/t3code.
   open PRs, watched first, then the most recently updated, with `openPullRequestCount` for how
   many are open; `list_thread_pull_requests` pages 50 at a time (`cursor`, `nextCursor`) and takes
   `states`. A `pullRequestCount` above the preview's length no longer means the rest merged or
-  closed. `t3_thread_search` returns `currentThreadId` too (`apps/server/src/mcp/toolkits/thread/handlers.ts`).
+  closed; since 2026-11-14 `THREADS.md` reads its thread from the start (`afterPosition: -1`) and
+  takes every linked PR from `list_thread_pull_requests`, and `housekeeping` pages the list. `t3_thread_search` returns `currentThreadId` too (`apps/server/src/mcp/toolkits/thread/handlers.ts`).
 - **Used by:** `skills/implement/THREADS.md` ("A lost context is recovered from T3", "One thread,
-  one branch, one PR")
+  one branch, one PR"); `skills/housekeeping/SKILL.md` step 2 (pages `t3_thread_list`)
 - **Breaks if:** `currentThreadId` is dropped from the list result, a thread's timeline stops
   holding messages from before a compaction, `t3_thread_read` stops returning the open
   `pullRequests`, or `list_thread_pull_requests` stops listing merged and closed links.
@@ -841,7 +842,8 @@ T3 source paths below are in pingdotgg/t3code.
   2026-11-02 and 2026-11-03: every check passed and no wake came), are covered by a one-time
   `schedule_task` (`{type: "once", runAt}`, bound to the thread by default), the **backstop**:
   `babysit-pr` makes one per PR on its first wait and moves it 20 minutes out (`schedule_task`
-  with its `scheduledTaskId`) before each later turn it ends on the watch; its run re-reads the
+  with its `scheduledTaskId`, found again with `list_scheduled_tasks` by its prompt when the
+  session lost the id) before each later turn it ends on the watch; its run re-reads the
   round (rubens #220, 2026-11-09: the watch missed a wake and the backstop's run merged it). T3
   never removes it by itself: a `once` task that ran stays listed with `nextRunAt` null
   (`nextRunAfterRun`; `nextScheduledRunAt` in `apps/server/src/scheduledTasks/Schedule.ts`),
@@ -923,7 +925,9 @@ T3 source paths below are in pingdotgg/t3code.
   reads or moves a file between environments (0.1.7-nightly.20261103.4138):
   `t3_attachment_prepare_upload` uploads to the caller's own server, and
   `t3_thread_send_attachments` sends to a thread there.
-- **Used by:** `skills/implement/SKILL.md` § 7
+- **Used by:** `skills/implement/SKILL.md` § 7; `skills/retro/SKILL.md` § Steps (step 2 scopes
+  each machine `t3_environment_links` lists as reachable, and reads its transcripts there with
+  `instabox exec`, since no T3 tool reads them across environments)
 - **Would improve if:** T3 renders a remote child's file in the parent's thread, or a tool fetches a
   file from a linked environment; then the copy step goes away.
 - **Watch:** no upstream issue yet; check each update's MCP tool list for a cross-environment file
