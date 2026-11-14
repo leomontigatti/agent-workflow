@@ -63,6 +63,7 @@ WATCHED_PATHS = [
     "apps/server/src/worktreesDirectory.ts",
     "apps/server/src/workspace/restoreMissingWorktree.ts",
     "apps/server/src/orchestration-v2/ThreadDeletion.ts",
+    "apps/server/src/orchestration-v2/pullRequestWatch.ts",
     "apps/web/src/components/settings/ScheduledTasksSettings.tsx",
     "packages/contracts/src/settings.ts",
     "apps/server/src/process/agentScope.ts",

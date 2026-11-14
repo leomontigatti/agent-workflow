@@ -335,7 +335,9 @@ T3 source paths below are in pingdotgg/t3code.
   between `babysit-pr`'s own read of the round and its `watch_pull_request` call wakes nobody,
   and the backstop re-read (`pr-watch-unreported-checks`) is what catches it. Since
   pingdotgg/t3code#33214 (0.1.10-nightly.20261113.4630) a watch holds its thread in Working only
-  while a check on the head is still running (`checksPending`); the watch itself, and its wakes
+  while a check on the head is still running (`checksPending`), or while a new head has no checks
+  yet, for up to the 15-minute no-checks wait (`checksAwaitedSince`, `evaluatePullRequestWatch` in
+  `apps/server/src/orchestration-v2/pullRequestWatch.ts`); the watch itself, and its wakes
   on comments, reviews, conflicts and new heads, stay until `unwatch_pull_request` or the merge.
   A watched thread whose checks are done is therefore idle, not pending work, for storage
   cleanup's idle test too. Since pingdotgg/t3code#24141 (same build) GitHub's merge queue dropping
