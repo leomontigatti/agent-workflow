@@ -3,7 +3,7 @@ name: upstream-review
 description: "Triage ideas from other skill repos against ours: drop what is already decided, check the rest against our skills, and report proposed changes. Use for the weekly upstream review, and when asked what to adopt from a repo or file."
 ---
 
-The repos our skills were first drawn from keep moving. This review reads what changed in each
+The repos we watch keep moving. This review reads what changed in each
 one since its **watermark** (the last reviewed commit), and reports which ideas we should take,
 decline or keep for later. The sources, their watched paths and their watermarks are
 `~/.agents/workflow/upstreams/sources.json`; every past verdict is

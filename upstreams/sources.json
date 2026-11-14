@@ -53,6 +53,15 @@
       "license": "MIT, Copyright (c) 2026 Theo Browne (LICENSE)",
       "reviewed": "1085050f3baed1ac724caa4a8166145fb2ac88af",
       "reviewedAt": "2026-11-02"
+    },
+    {
+      "id": "agent-browser",
+      "repo": "vercel-labs/agent-browser",
+      "branch": "main",
+      "paths": ["CHANGELOG.md", "docs/content/docs/network.mdx", "skills/**"],
+      "license": "Apache-2.0, Copyright 2025 Vercel Inc. (LICENSE; no NOTICE file)",
+      "reviewed": "f18b8bb5275ea2be22fca5e6856886827468f41e",
+      "reviewedAt": "2026-11-14"
     }
   ]
 }
