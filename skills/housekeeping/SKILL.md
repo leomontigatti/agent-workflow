@@ -42,8 +42,9 @@ Nothing is removed until the user accepts a dry-run report.
    `git rev-list --count origin/<default branch>..<branch>` show uncommitted work and unmerged
    commits, and `gh pr list --head <branch> --state all --json number,state,baseRefName` shows
    its PR. A **live thread** is one that exists and is neither settled nor archived:
-   `t3_thread_list` with `settled: false` lists them, and `t3_thread_read` (with `limit: 1`) gives
-   each one's `branch` and `worktreePath`, which the list does not. Read only the live threads;
+   `t3_thread_list` with `settled: false` lists them, ten a page: follow `nextCursor` until it is
+   null. `t3_thread_read` (with `limit: 1`) gives each one's `branch` and `worktreePath`, which
+   the list does not. Read only the live threads;
    with more than about 50, split them across subagents in the **Miners** role of
    `~/.agents/workflow/agents/models.md`, each returning `threadId branch worktreePath` lines. A
    folder in T3's folder that no live thread's `worktreePath` names is an orphan, judged by the
