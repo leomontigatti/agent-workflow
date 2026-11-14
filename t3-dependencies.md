@@ -273,7 +273,7 @@ T3 source paths below are in pingdotgg/t3code.
   closed; since 2026-11-14 `THREADS.md` reads its thread from the start (`afterPosition: -1`) and
   takes every linked PR from `list_thread_pull_requests`, and `housekeeping` pages the list. `t3_thread_search` returns `currentThreadId` too (`apps/server/src/mcp/toolkits/thread/handlers.ts`).
 - **Used by:** `skills/implement/THREADS.md` ("A lost context is recovered from T3", "One thread,
-  one branch, one PR")
+  one branch, one PR"); `skills/housekeeping/SKILL.md` step 2 (pages `t3_thread_list`)
 - **Breaks if:** `currentThreadId` is dropped from the list result, a thread's timeline stops
   holding messages from before a compaction, `t3_thread_read` stops returning the open
   `pullRequests`, or `list_thread_pull_requests` stops listing merged and closed links.

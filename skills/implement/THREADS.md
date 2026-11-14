@@ -39,7 +39,9 @@ while it is clean and on that branch.
   before searching logs or GitHub: `t3_thread_list` returns `currentThreadId`, and
   `t3_thread_read` on it gives the user's requests and your earlier reports. A read with no cursor
   starts at the newest items, cut to 500 characters each: read from the start with
-  `afterPosition: -1`, then each `nextPosition`, and a `maxCharsPerItem` of a few thousand. Only
+  `afterPosition: -1`, then each `nextPosition`, and a `maxCharsPerItem` of a few thousand; an
+  item marked `textTruncated` is read to its end with its `itemId` and each `nextTextOffset` as
+  `textOffset` before the next page. Only
   the cursorless read carries `pullRequests`, at most five open PRs, watched first;
   `list_thread_pull_requests` gives every one with its state, a page per `nextCursor`. An open PR
   with `watching: true` is one you were babysitting: pick `babysit-pr` up at its read of the
