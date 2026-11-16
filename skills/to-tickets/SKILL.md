@@ -24,7 +24,7 @@ Look for opportunities to prefactor the code to make the implementation easier. 
 
 ### 3. Draft vertical slices
 
-Break the work into **tracer bullet** tickets.
+Break the work into **tracer bullet** tickets. When the PRD carries winner comments from its prototype pass, cut the slices along the approved designs: each screen a winner settled is built as it shows.
 
 <vertical-slice-rules>
 
@@ -79,6 +79,10 @@ The end-to-end behaviour this ticket makes work, from the user's perspective, no
 
 - [ ] Criterion 1
 - [ ] Criterion 2
+
+## Design
+
+For a ticket that builds a screen the PRD's prototype pass settled: the `prototype/<PRD>` branch, the variant, and a link to its winner comment. Omit this section otherwise.
 
 ## Test seams
 

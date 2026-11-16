@@ -25,14 +25,28 @@ confirm with the user. When where a seam belongs is itself the question, call th
 "codebase-design". When the change renames a domain term or edits `GLOSSARY.md` or an ADR, call it
 with "domain-modeling".
 
-If the change will alter anything a user sees, capture its **before** now, by
-`docs/agents/verification.md` § Evidence: after the first edit there is no before left to take.
+**Prototype first** when the change adds a screen or flow, or changes a screen's layout or
+interaction. Say at the start which group the change is in; the user may move it. Unless the issue
+already links an approved prototype (a `prototype/<n>` branch and its winner comment, on the
+issue, in its `## Design` section or on its PRD for its screen), or the user picked one earlier in
+this thread, call the
+Skill tool with "prototype", follow its UI branch, and stop at the user's pick: the build starts
+from the winner. A change to copy, spacing or a visual bug skips it.
+
+The **reference** for what a user will see is the approved variant when there is one: step 4
+captures it from its branch. Otherwise, if the change will alter anything a user sees, capture
+its **before** now, by `docs/agents/verification.md` § Evidence: after the first edit there is no
+before left to take.
 
 ## 2. Build test-first
 
 Call the Skill tool with "tdd" and follow its loop at those seams: one failing test, the minimal
 code to pass it, repeat. The `tdd` skill also follows the project's `docs/agents/tdd-*.md` notes
 for the kind of code the change touches.
+
+With a prototype, copy the winner's markup and layout from its branch and rewrite its data,
+mutations and behaviour test-first. Each project style rule the winner comment says the pick
+overrules changes in this same branch, citing the comment.
 
 Write a comment only for intent or a constraint the code cannot show: the review holds the code to
 the **Comments** entry of the `code-review` skill's smell baseline.
@@ -80,7 +94,8 @@ clean before moving to the next. Read a failure where the command prints it: out
 When the change alters anything a user sees or drives, prove it by `docs/agents/verification.md`:
 launch, drive the flows its § Feature map names for the area (in a T3 thread, with the browser CLI
 § Drive names, or T3's preview tools as [PREVIEW.md](PREVIEW.md) says when it names none), and capture the **after** on the
-same screen, data and account as the before. Clean up what you launched, then check that each
+same screen, data and account as the reference: the before, or the approved variant captured from
+its branch in a worktree of its own. Clean up what you launched, then check that each
 capture is still at its path: step 7 embeds it from there. A check you can run is
 never handed to the user: run it and show the result. Skip this step for changes with no surface a
 user reaches, and say so.
@@ -165,15 +180,17 @@ user not to commit overrides this. Conventional-commit subject and body, in the 
 
 ## 7. Open the PR and hand it off
 
-**Screens are approved before the PR.** When step 4 captured a before and after, show them to the
-user and end the turn on the question, with what step 4 launched already stopped: in a T3 thread,
+**Screens are approved before the PR.** When step 4 captured a reference and an after, show them
+to the user. An after that matches its approved variant was approved at the pick: show the pair
+and go on. Any other pair, a before included, ends the turn on the question, with what step 4 launched already stopped: in a T3 thread,
 embed each image by its absolute path in the reply; elsewhere, list the paths. The path resolves
 on the thread's own machine: a capture taken in another environment (a child delegated with
 `target.environmentId`) is first copied to this machine, the way the user's instructions for that
 machine say, and embedded from the copy; with no way to copy it, list its path. An adjustment the
 user asks for is a change like any other: steps 2 to 6 again, then show the new after. The
 approval holds until a later commit changes what a captured screen shows; then show it again.
-Done when the user has approved every captured screen, or step 4 captured none. The images stay
+Done when every captured screen matches its approved variant or the user has approved it, or
+step 4 captured none. The images stay
 in the thread: the PR carries none.
 
 When the run started from an issue or the user asked for a PR: push the branch, open it ready for
