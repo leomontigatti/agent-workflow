@@ -772,43 +772,6 @@ T3 source paths below are in pingdotgg/t3code.
   `projectScriptOverrides` entry, after checking that a new worktree still runs its setup.
 - **Watch:** pingdotgg/t3code#14991 (open; its fix PRs #22827 and #21224 closed unmerged)
 
-### storage-cleanup-renamed-branches
-
-- **Workaround:** `housekeeping` sweeps a T3 worktree whose branch was renamed, once its PR is
-  merged or closed and its tree is clean. T3 keeps it even when its thread is deleted.
-- **Used by:** `skills/housekeeping/SKILL.md` § 1
-- **Would improve if:** T3's merged-worktree cleanup removes a worktree whose branch was renamed
-  after the thread started. Today it keeps one with "Repository or branch changed", or with "A
-  subagent thread's branch differs from this worktree's branch" when the rename happened before
-  pingdotgg/t3code#20079 (0.1.1-nightly.20261016.3203), which now renames the subagents' branch
-  too (`apps/server/src/storageCleanup.ts`). On 2026-10-16, 28 worktrees were kept, most for one
-  of these two reasons.
-- **Partly met in:** 0.1.8-nightly.20261106.4247, untried. Cleanup keeps "Repository or branch
-  changed" when the worktree's branch differs from the thread's recorded `branch`
-  (`branchChanged` in `storageCleanup.ts`), and since pingdotgg/t3code#31599 that recorded branch
-  follows the worktree once T3's VCS status cache sees the change (`renamed-branch-in-thread`).
-  So a renamed worktree may now be judged by its new branch's PR. Not settled: the sync runs only
-  when the status cache refreshes that worktree, and #17813 is still open. On 2026-11-06 this
-  review's own thread switched its worktree to a new branch mid-turn: `t3_thread_read` gave the
-  old branch until the turn ended, and the new one on the next turn, so the recorded branch does
-  follow a switch. Cleanup removing such a worktree is still unseen. **Ready** once a
-  worktree whose branch was renamed after the thread started is removed after its PR merges
-  (Settings → Maintenance → Cleanup → Last run); then `housekeeping` drops its renamed-branch row.
-- **Fix installed:** 0.1.10-nightly.20261116.4774 (pingdotgg/t3code#34984, merged 2026-11-14 as
-  `0cb9328ea0`, first in 0.1.10-nightly.20261114.4709). A sweep that keeps a worktree for
-  "repository or branch changed" now records the checked-out branch on its threads
-  (`followBranch` in `storageCleanup.ts`, the reconcile `WorktreeBranchSync` uses), so the next
-  sweep applies the normal rules to it, without anyone opening the thread; a detached HEAD and a
-  deleted owner are left as they were. The first sweep on this build (2026-11-16, 08:58 -03) ran
-  `StorageCleanup.followBranch` 46 times, none failing, in `~/.t3/userdata/logs/server.trace.ndjson*`.
-  The **Ready** check above is the next sweep's Last run.
-- **Watch:** pingdotgg/t3code#17813 (open; #16559 closed as its duplicate on 2026-10-22), fixed by
-  no open PR: #22805 (run finalization updates `thread.branch` to the checked-out branch) closed
-  unmerged on 2026-10-30 at a maintainer's request, as the approved direction covers only a
-  worktree belonging to exactly one thread; #11078
-  (open; the sidebar keeps the creation-time branch name after a rename). #17813 was still open on
-  2026-11-16; #34967, its detached-HEAD half, is open and unmerged.
-
 ### storage-cleanup-stack-layers
 
 - **Workaround:** `housekeeping` sweeps a worktree whose PR merged into another PR's branch, since
@@ -1163,6 +1126,47 @@ T3 source paths below are in pingdotgg/t3code.
 None.
 
 ## Resolved
+
+### storage-cleanup-renamed-branches
+
+- **Workaround:** `housekeeping` sweeps a T3 worktree whose branch was renamed, once its PR is
+  merged or closed and its tree is clean. T3 keeps it even when its thread is deleted.
+- **Used by:** `skills/housekeeping/SKILL.md` (its table's renamed-branch row, removed 2026-11-16)
+- **Would improve if:** T3's merged-worktree cleanup removes a worktree whose branch was renamed
+  after the thread started. Today it keeps one with "Repository or branch changed", or with "A
+  subagent thread's branch differs from this worktree's branch" when the rename happened before
+  pingdotgg/t3code#20079 (0.1.1-nightly.20261016.3203), which now renames the subagents' branch
+  too (`apps/server/src/storageCleanup.ts`). On 2026-10-16, 28 worktrees were kept, most for one
+  of these two reasons.
+- **Partly met in:** 0.1.8-nightly.20261106.4247, untried. Cleanup keeps "Repository or branch
+  changed" when the worktree's branch differs from the thread's recorded `branch`
+  (`branchChanged` in `storageCleanup.ts`), and since pingdotgg/t3code#31599 that recorded branch
+  follows the worktree once T3's VCS status cache sees the change (`renamed-branch-in-thread`).
+  So a renamed worktree may now be judged by its new branch's PR. Not settled: the sync runs only
+  when the status cache refreshes that worktree, and #17813 is still open. On 2026-11-06 this
+  review's own thread switched its worktree to a new branch mid-turn: `t3_thread_read` gave the
+  old branch until the turn ended, and the new one on the next turn, so the recorded branch does
+  follow a switch. Cleanup removing such a worktree is still unseen. **Ready** once a
+  worktree whose branch was renamed after the thread started is removed after its PR merges
+  (Settings → Maintenance → Cleanup → Last run); then `housekeeping` drops its renamed-branch row.
+- **Fix installed:** 0.1.10-nightly.20261116.4774 (pingdotgg/t3code#34984, merged 2026-11-14 as
+  `0cb9328ea0`, first in 0.1.10-nightly.20261114.4709). A sweep that keeps a worktree for
+  "repository or branch changed" now records the checked-out branch on its threads
+  (`followBranch` in `storageCleanup.ts`, the reconcile `WorktreeBranchSync` uses), so the next
+  sweep applies the normal rules to it, without anyone opening the thread; a detached HEAD and a
+  deleted owner are left as they were. The first sweep on this build (2026-11-16, 08:58 -03) ran
+  `StorageCleanup.followBranch` 46 times, none failing, in `~/.t3/userdata/logs/server.trace.ndjson*`.
+  The **Ready** check above is the next sweep's Last run.
+- **Watch:** pingdotgg/t3code#17813 (open; #16559 closed as its duplicate on 2026-10-22), fixed by
+  no open PR: #22805 (run finalization updates `thread.branch` to the checked-out branch) closed
+  unmerged on 2026-10-30 at a maintainer's request, as the approved direction covers only a
+  worktree belonging to exactly one thread; #11078
+  (open; the sidebar keeps the creation-time branch name after a rename). #17813 was still open on
+  2026-11-16; #34967, its detached-HEAD half, is open and unmerged.
+- **Adopted:** 2026-11-16, by the user's call, before a removal was seen in Last run: the
+  renamed-branch row left `skills/housekeeping/SKILL.md`, so T3's cleanup alone removes such a
+  worktree. If Last run keeps one for "repository or branch changed" across two sweeps, the row
+  comes back and this entry returns to Watching.
 
 ### scheduled-missed-runs
 
