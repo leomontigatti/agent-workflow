@@ -36,6 +36,11 @@ Two edges the tracker does not hold, added by you:
   frontier tickets add to the same file, type, route or copy, either serialise them or fix the
   exact names in the notes file before spawning them.
 
+An implementer child has nobody to pick a design, so **every ticket the prototype gate of
+`implement` step 1 catches has its winner before it runs**: its `## Design` section, or a winner
+comment on the PRD for its screen. When one has neither, run the prototype pass for those screens
+now, as `to-spec` step 4 says, and stop for the user's pick; the frontier waits for it.
+
 Write the graph, those decisions and the names to `/tmp/implement-spec-<PRD>/notes.md`, outside
 the repo, where every implementer can read it. Done when every ticket has its blockers listed.
 

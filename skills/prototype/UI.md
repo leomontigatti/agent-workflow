@@ -96,7 +96,7 @@ Put the switcher in a single shared component so both sub-shapes can reuse it. L
 
 ### 5. Check it yourself
 
-Launch by `docs/agents/verification.md` § Launch, once, as a background command, then poll the URL it gives until it answers; a second launch collides with the first. Drive every variant with the browser CLI § Drive names: each renders with the seed data, the switcher works by button and by key, and the console is clean. Fix what breaks first. Done when every variant passes: the user reviews designs, never a broken page.
+Launch by `docs/agents/verification.md` § Launch, once, as a background command, then poll the URL it gives until it answers; a second launch collides with the first. Drive every variant with the browser CLI § Drive names, or with T3's preview tools as the `implement` skill's [PREVIEW.md](../implement/PREVIEW.md) says when it names none: each renders with the seed data, the switcher works by button and by key, and the console is clean. Fix what breaks first. Done when every variant passes: the user reviews designs, never a broken page.
 
 ### 6. Hand it over
 
@@ -104,7 +104,7 @@ In a T3 thread, open the route in a preview tab the user sees (`preview_open` wi
 
 ### 7. Capture the answer and clean up
 
-Capture the winner the way the [SKILL](SKILL.md) describes, and stop what step 5 launched by `docs/agents/verification.md` § Cleanup, closing the preview tab and the browser CLI's session. The implementation then follows the winner:
+Capture the winner the way the [SKILL](SKILL.md) describes, and stop what step 5 launched by `docs/agents/verification.md` § Cleanup, closing the preview tab and any browser CLI session. The implementation then follows the winner:
 
 - **Sub-shape A**: the winner's markup moves into the existing pages; the losing variants and the switcher stay on the prototype branch.
 - **Sub-shape B**: the winning variant becomes a real route; the throwaway route and the switcher stay on the prototype branch.
