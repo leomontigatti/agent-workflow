@@ -1,6 +1,6 @@
 # UI Prototype
 
-Generate **several radically different UI variations** on a single route, switchable from a floating bottom bar. The user flips between variants in the browser, picks one (or steals bits from each), then throws the rest away.
+Generate **structurally different UI variations** on the real route, switchable from a floating bottom bar. The user drives them in a live preview, picks one (or steals bits from each), and the winner becomes the spec the implementation follows.
 
 If the question is about logic/state rather than what something looks like, this is the wrong branch. Use [LOGIC.md](LOGIC.md).
 
@@ -9,17 +9,20 @@ If the question is about logic/state rather than what something looks like, this
 - "What should this page look like?"
 - "I want to see a few options for this dashboard before committing."
 - "Try a different layout for the settings screen."
+- The `implement` skill's step 1 sends a change here before any code: a new screen or flow, or a change to a screen's layout or interaction.
 - Any time the user would otherwise spend a day picking between three vague mockups in their head.
 
 ## Two sub-shapes: strongly prefer sub-shape A
 
 A UI prototype is much easier to judge when it's **butting up against the rest of the app**: real header, real sidebar, real data, real density. A throwaway route on its own is a vacuum: every variant looks fine in isolation. Default to sub-shape A whenever there's a plausible existing page to host the variants. Only reach for sub-shape B if the prototype genuinely has no nearby home.
 
-### Sub-shape A: adjustment to an existing page (preferred)
+### Sub-shape A: adjustment to existing pages (preferred)
 
-The route already exists. Variants are rendered **on the same route**, gated by a `?variant=` URL search param. The existing data fetching, params, and auth all stay. Only the rendering swaps. This is the default; pick it unless there's a specific reason not to.
+The routes already exist. Variants are rendered **on the same routes**, gated by a `?variant=` URL search param. The existing data fetching, params, and auth all stay. Only the rendering swaps. This is the default; pick it unless there's a specific reason not to.
 
 If the prototype is for something that doesn't yet have a page but _would naturally live inside one_ (a new section of the dashboard, a new card on the settings screen, a new step in an existing flow), it's still sub-shape A. Mount the variants inside the host page.
+
+When the question is the path between screens (where an action starts, where the user lands), the variants **span routes**: mount the switcher on every route involved, keep `?variant=` on every link between them, and carry any throwaway draft in the URL's search params so a reload or a variant switch keeps it.
 
 ### Sub-shape B: a new page (last resort)
 
@@ -35,21 +38,23 @@ In both sub-shapes the floating bottom bar is identical.
 
 ### 1. State the question and pick N
 
-Default to **3 variants**. More than 5 stops being radically different and starts being noise, so cap there.
+The count follows the change: **3 variants** for a new screen or flow, **1** for a change to an existing screen, and **2** when that change holds a real layout or interaction choice. Cap at 5: past that they stop being radically different and start being noise.
 
 Write down the plan in one line, in the prototype's location or a top-of-file comment:
 
-> "Three variants of the settings page, switchable via `?variant=`, on the existing `/settings` route."
+> "Two variants of where the sandbox opens from the rules form, switchable via `?variant=`, on `/rules` and `/sandbox`."
 
-### 2. Generate radically different variants
+### 2. Generate structurally different variants
 
 Draft each variant. Hold each one to:
 
 - The page's purpose and the data it has access to.
-- The project's component library / styling system (TailwindCSS, shadcn, MUI, plain CSS, whatever).
+- **Patterns a screen already uses**: the components, layouts and tokens the app's screens show today, by the project's style guide. A component that exists in the repo but on no screen (a drawer nobody opens) is a new pattern too. Mark every new pattern on screen with a visible "new" badge, so the user judges it knowingly.
 - A clear exported component name, e.g. `VariantA`, `VariantB`, `VariantC`.
 
-Variants must be **structurally different**: different layout, different information hierarchy, different primary affordance, not just different colours. Three slightly-tweaked card grids isn't a UI prototype, it's wallpaper. If two drafts come out too similar, redo one with explicit "do not use a card grid" guidance.
+Variants must be **structurally different**: different layout, different information hierarchy, different primary affordance, not just different colours. Three slightly-tweaked card grids isn't a UI prototype, it's wallpaper. If two drafts come out too similar, redo one with explicit "do not use a card grid" guidance. A lone variant (a change with no real choice) is the proposed design itself.
+
+Keep throwaway state alive across the variant's own UI: when a panel, dialog or tab unmounts its content on close, hold the state above it, so the user's conversation or draft survives closing and reopening.
 
 ### 3. Wire them together
 
@@ -84,27 +89,31 @@ Behaviour:
 
 - Clicking an arrow updates the URL search param (use the framework's router, e.g. `router.replace` on Next, `navigate` on React Router, etc) so the variant is shareable and reload-stable.
 - Keyboard: `←` and `→` arrow keys also cycle. Don't intercept arrow keys when an `<input>`, `<textarea>`, or `[contenteditable]` is focused.
-- Visually distinct from the page (e.g. high-contrast pill, subtle shadow) so it's obviously not part of the design being evaluated.
+- Visually distinct from the page (e.g. high-contrast pill, subtle shadow) so it's obviously not part of the design being evaluated, built from the project's own button and colour tokens so it passes the lint.
 - Hidden in production builds: gate on `process.env.NODE_ENV !== 'production'` or an equivalent check, so a stray prototype merge can't ship the bar to users.
 
 Put the switcher in a single shared component so both sub-shapes can reuse it. Locate it wherever shared UI lives in the project.
 
-### 5. Hand it over
+### 5. Check it yourself
 
-Surface the URL (and the `?variant=` keys). The user will flip through whenever they get to it.
+Launch by `docs/agents/verification.md` § Launch, once, as a background command, then poll the URL it gives until it answers; a second launch collides with the first. Drive every variant with the browser CLI § Drive names: each renders with the seed data, the switcher works by button and by key, and the console is clean. Fix what breaks first. Done when every variant passes: the user reviews designs, never a broken page.
 
-### 6. Capture the answer and clean up
+### 6. Hand it over
 
-Once a variant has won, capture the answer (which variant and why), then capture the prototype the way the [SKILL](SKILL.md) describes. Fold the winner into the real code and move the rest onto the throwaway branch, not into main:
+In a T3 thread, open the route in a preview tab the user sees (`preview_open` with `open: true`); elsewhere, give the URL. Tell the user the `?variant=` keys, and one line per variant saying what it bets on. The user drives the tab and comments in the thread, on elements directly through the preview's annotations. Each ask changes the **prototype**, then step 5 runs again. Done when the user names a winner.
 
-- **Sub-shape A**: fold the winner into the existing page; drop the losing variants and the switcher from main.
-- **Sub-shape B**: promote the winning variant to a real route; drop the throwaway route and the switcher from main.
+### 7. Capture the answer and clean up
 
-The full set of variants is the primary source, so it lands on the throwaway branch, not the bin, since variant components and the switcher left in the main branch rot fast and confuse the next reader.
+Capture the winner the way the [SKILL](SKILL.md) describes, and stop what step 5 launched by `docs/agents/verification.md` § Cleanup, closing the preview tab and the browser CLI's session. The implementation then follows the winner:
+
+- **Sub-shape A**: the winner's markup moves into the existing pages; the losing variants and the switcher stay on the prototype branch.
+- **Sub-shape B**: the winning variant becomes a real route; the throwaway route and the switcher stay on the prototype branch.
+
+The full set of variants is the primary source, so it lives on the prototype branch, never in main, since variant components and the switcher left in the main branch rot fast and confuse the next reader.
 
 ## Anti-patterns
 
 - **Variants that differ only in colour or copy.** That's a tweak, not a prototype. Real variants disagree about structure.
 - **Sharing too much code between variants.** A shared `<Header>` is fine; a shared `<Layout>` defeats the point. Each variant should be free to throw out the layout.
 - **Wiring variants to real mutations.** Read-only prototypes are fine. If a variant needs to mutate, point it at a stub: the question is "what should this look like", not "does the backend work".
-- **Promoting the prototype directly to production.** The variant code was written under prototype constraints (no tests, minimal error handling). Rewrite it properly when you fold it in.
+- **Promoting the stubs.** The implementation copies the winner's markup and layout, and rewrites its data, mutations and behaviour test-first: the stubs were written to look right, never to be right.

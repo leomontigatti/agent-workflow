@@ -39,8 +39,9 @@ Two edges the tracker does not hold, added by you:
 Write the graph, those decisions and the names to `/tmp/implement-spec-<PRD>/notes.md`, outside
 the repo, where every implementer can read it. Done when every ticket has its blockers listed.
 
-If the PRD alters anything a user sees, capture its **before** now, from this worktree, as
-`implement` step 1 says.
+If the PRD alters anything a user sees, its reference comes as `implement` step 1 says: the
+approved variants of the PRD's prototype pass (`to-spec`), or a **before** captured now, from this
+worktree.
 
 ## 2. Run the frontier
 
@@ -134,8 +135,9 @@ When every ticket that is not retired has merged:
    the ticket number. Land it with step 3's fast-forward, push and worktree removal; there is no
    sub-issue to comment on or tick. Then re-run only the checks the findings named and step 5's
    fix round over the fixes: no second broad review.
-4. Run `implement` step 4 now that the code is final, then step 7's screen approval: the user
-   approves the **after** in the thread before the PR leaves draft.
+4. Run `implement` step 4 now that the code is final, then step 7's screen approval: an **after**
+   that matches its approved variant is shown and stands, and any other is approved by the user in
+   the thread before the PR leaves draft.
 5. Add the `## Review` record to the PR body (the `pr` skill), then `gh pr ready <n>`, then push
    one empty commit: a PR marked ready on the commit it was drafted on reports `BLOCKED` with every
    required check green until a new commit lands, and the reviewed commit in the record stands.

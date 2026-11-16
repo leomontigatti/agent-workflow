@@ -39,10 +39,11 @@ text.
    (`innerWidth`), before each capture too: the response's `viewport` can say 1280x800 whatever
    the page got, and the page sometimes lays out at 1280 after a resize to 1440. Check a dense
    screen (a table, a long row) at the narrower width the project names too.
-3. **Capture the before**, before the first edit: `preview_snapshot` with `save: true`, its
+3. **Capture the reference** (`implement` step 1): the before, before the first edit, or the
+   approved variant from its prototype branch: `preview_snapshot` with `save: true`, its
    `screenshotPath` the evidence file, or the browser CLI when `docs/agents/verification.md`
    § Evidence names it. The preview saves every capture at most 1280 px wide, scaling a wider
-   viewport down. When a capture comes out blurred, take the before and the after both with the
+   viewport down. When a capture comes out blurred, take the reference and the after both with the
    fallback § Drive names for outside T3: the two sides of a comparison come from one tool.
 4. **Drive** the flow with `preview_act` (`action`: `click`, `type`, `select`, `press`) and
    `preview_navigate`, targeting elements by the `aria-ref` refs of the latest `preview_snapshot`
@@ -60,7 +61,7 @@ text.
    `requestAnimationFrame`, `open: true` included, and a click waits for frames. Take a snapshot,
    which paints one, and click again by ref or CSS selector.
    When the snapshot itself times out, open a fresh tab on the same URL once and carry on there;
-   a second timeout ends the drive: finish with § Drive's fallback, before and after both, and
+   a second timeout ends the drive: finish with § Drive's fallback, reference and after both, and
    note it in the final report.
    Form fields: `type` adds to what a field holds, so pass `clear: true` on a filled one; a date
    input takes ISO text (`2026-10-29`), whatever the page's locale shows; and `press` `Tab` moves
@@ -70,7 +71,7 @@ text.
    to ~160 network entries and the console, so keep snapshots for refs and captures. The
    snapshot's console entries cover the tab's whole life: read their timestamps to tell which
    screen logged what. Done when the touched screens show no error.
-6. **Capture the after**, same screen, data, account, size and tool as the before. A change to motion or interaction is a recording instead:
+6. **Capture the after**, same screen, data, account, size and tool as the reference. A change to motion or interaction is a recording instead:
    `preview_recording_start` before the interaction, `preview_recording_stop` after.
 7. **Close** the tab with `t3_preview_close`, then stop what § Launch started (§ Cleanup).
 
