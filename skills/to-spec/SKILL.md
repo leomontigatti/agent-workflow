@@ -76,6 +76,8 @@ Any further notes about the feature.
 
 </spec-template>
 
+4. When the spec adds a screen or flow, or changes a screen's layout or interaction, the **prototype pass** comes next, before `to-tickets`: call the Skill tool with "prototype" for every such screen in the spec, on one `prototype/<PRD>` branch, and hand them to the user together, to review in one sitting. Each winner comment goes on the PRD. Say so as you publish, and stop: the tickets follow the approved designs.
+
 ## A snapshot, not a source
 
 The spec records what was decided when it was written, and stays the one place the reasoning behind the tickets lives while they are built. Nothing keeps it in sync with the code, and the build will teach things it doesn't say. What should outlast the build goes to `GLOSSARY.md` or `docs/adr/` (the `domain-modeling` skill), never into the spec. When a decision is replaced mid-build and the destination stays the same, leave the spec's sections as written and append to its body a `## Changed during the build` section: one line per replaced decision, what replaces it, and why. The review at the end of `implement-spec` reads the spec whole, so that section is what tells it which decision governs; `implement-spec` § Route change retires and replaces the tickets the change touches. When the destination changes, that is a new spec. Once the PRD's PR merges, the spec is history: the code, its tests, the glossary and the ADRs describe the system.

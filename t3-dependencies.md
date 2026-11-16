@@ -691,6 +691,20 @@ T3 source paths below are in pingdotgg/t3code.
 - **Breaks if:** `serverVersion` stops matching a release tag, so `changes.py` finds no range, or
   the project list stops giving a checkout path.
 
+### preview-tab-review
+
+- **Relies on:** an agent's `preview_open` with `open: true` shows a dev server's page in the
+  thread's preview pane, where the user drives it live, and the user's preview annotations on an
+  element reach the agent as `t3-context://v1/preview-annotation/…` links in their message.
+  Measured on 0.1.10-nightly.20261114.4682: rubens #256's prototype pilot on 2026-11-15 (one round
+  of annotated changes, then the pick), and a page served on `instabox-sarasa` showed and clicked
+  in a delegated child's pane opened from this machine (`runtime: "server"`, headless, reporting
+  `visible: false`). Only the live view is relied on: captures stay with the browser CLI
+  (`preview-tools-verification`).
+- **Used by:** `skills/prototype/UI.md` § 6 (the hand-over)
+- **Breaks if:** the preview pane stops showing an agent's tab to the user, or annotations stop
+  reaching the agent; then the hand-over gives the URL, as it does outside T3.
+
 ## Watching
 
 ### scheduled-run-status
@@ -976,8 +990,6 @@ T3 source paths below are in pingdotgg/t3code.
 - **Watch:** no upstream issue yet; check each update's MCP tool list for a cross-environment file
   tool
 
-## Ready
-
 ### preview-tools-verification
 
 - **Workaround:** projects drove UI verification with a browser CLI (`playwright-cli`) because
@@ -1131,7 +1143,24 @@ T3 source paths below are in pingdotgg/t3code.
   cap, and #10141, which tried, closed unmerged); `apps/server/src/preview/ServerBrowserPage.ts`
   (`MAX_SCREENSHOT_WIDTH`, `captureViewport`); `apps/server/src/mcp/toolkits/preview/tools.ts`;
   the trial's notes in the final reports of en-escena's and rubens' PRs
+- **Retry result** (0.1.10-nightly.20261114.4682, rubens, 2026-11-14): the drive **Retry when**
+  names. Clicks held: 14 of 14 in an `open: false` tab, 13 of 15 in an `open: true` one, both
+  losses stale refs; 23 snapshots, none timed out. Captures fell short: an `open: true` tab's are
+  blurred and upscaled at any size, `fill` included, and the saved size varies (1280×800,
+  1440×900, 1600×1000); in an `open: false` tab `preview_resize` reports 1280×800 while the page
+  lays out at 1440. A full-page snapshot costs about 6k tokens against about 2k for
+  `playwright-cli`, so a flow costs about three times as much, and runs slower.
+- **Decided** by the user on 2026-11-16: the browser CLI drives and takes the evidence wherever
+  § Drive names one, whatever this entry's faults become. The preview tools' job is the live
+  review (`preview-tab-review`). The entry moved from **ready** to **watching**.
+- **Would improve if** (replaces the condition above): captures from an `open: true` tab come out
+  sharp at the size requested, and `preview_resize` reports the page's width in either tab. This
+  now matters only to `PREVIEW.md`'s fallback for a project whose § Drive names no browser CLI
+  (pcp today).
 
+## Ready
+
+None.
 
 ## Resolved
 
