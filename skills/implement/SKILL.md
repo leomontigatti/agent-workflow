@@ -27,8 +27,9 @@ with "domain-modeling".
 
 **Prototype first** when the change adds a screen or flow, or changes a screen's layout or
 interaction. Say at the start which group the change is in; the user may move it. Unless the issue
-already links an approved prototype (a `prototype/<n>` branch and its winner comment), or the
-user picked one earlier in this thread, call the
+already links an approved prototype (a `prototype/<n>` branch and its winner comment, on the
+issue, in its `## Design` section or on its PRD for its screen), or the user picked one earlier in
+this thread, call the
 Skill tool with "prototype", follow its UI branch, and stop at the user's pick: the build starts
 from the winner. A change to copy, spacing or a visual bug skips it.
 
