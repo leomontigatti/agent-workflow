@@ -241,7 +241,7 @@ Verdicts marked proposed stand until this review's PR merges. Already decided, s
 
 | Id | Idea | Verdict | Where or why |
 | -- | ---- | ------- | ------------ |
-| `tstack:council-act-on-arrival` | Verify each reviewer's report as it arrives; edit nothing while a reviewer still reads the checkout. | adopted (proposed) | To do: `skills/implement/SKILL.md` § 5, in its own PR. |
+| `tstack:council-act-on-arrival` | Verify each reviewer's report as it arrives; edit nothing while a reviewer still reads the checkout. | adopted | `skills/implement/SKILL.md` § 5 (#135); the user approved it on 2026-11-16. |
 | `gentle-ai:description-exclusion` | A description names what the skill is not for and drops a trigger broad enough to load on every task. | later (proposed) | When a retro finds a shared skill loaded for a request it does not serve. |
 | `pstack:judge-other-vendor` | The judge comes from another vendor; Fable and the other Claude models are one vendor. | declined (proposed) | `agents/models.md` § The rule already counts families by provider. |
 | `pstack:fable-hardest-tasks` | The hardest changes default to Fable at max. | declined (proposed) | `agents/models.md` § The rule's ladder climbs a model only on a shortfall; Fable measured at about twice Opus's cost (2026-11-11). |
