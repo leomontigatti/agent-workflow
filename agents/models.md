@@ -39,6 +39,8 @@ running Y"), and its tier and family are the review's; null keeps the requested 
 | --------------------- | --------------------------------------------------------- | -------------------------------------------------------- | ------- | -------------------------------------------- |
 | Standards, Spec       | `code-review`'s two axes                                  | the other family: Sol, or Opus when Codex wrote it       | medium  | `reviewer-opus` (Claude) / `reviewer` (Codex) |
 | Correctness           | the bug hunt, `code-review`'s correctness brief          | full tier: both, Opus and Sol; else the other family: Sol, or Opus when Codex wrote it | medium  | one family, recorded                         |
+| Lifetime judges       | one candidate area each (`lifetime-audit`)                | the other family: Sol, or Opus when Codex runs the audit | medium  | `reviewer-opus` (Claude) / `reviewer` (Codex) |
+| Lifetime provers      | one claim each, a failing test (`lifetime-audit`)         | the audit's own family: Opus in Claude Code, Sol in Codex | medium  | inline                                       |
 | Readback              | restates a diff                                           | Codex `gpt-6.1-terra`, or Claude Sonnet when Codex wrote it | low     | same-family, recorded                        |
 | Design runners        | `codebase-design`'s design-it-twice, `prototype` variants | both families, alternating: Opus, Sol, Opus…             | high    | one family, at the same count                |
 | Research              | primary sources outside the repo (`research` agent)       | Codex `gpt-6.1-terra`                                    | low     | Claude `research` on Sonnet                  |
@@ -55,6 +57,12 @@ Why each effort:
   spec's lines); tracing one path in depth is the correctness axis's job.
 - **Correctness**: depth on a traced path; raise it for a migration or concurrency diff. High
   effort elsewhere buys little: it turned 1 of 11 bugs a model missed at medium into a catch.
+- **Lifetime judges**: depth on one slice's async starts, traced through its history. On rubens
+  (2026-11-17), Sol at medium traced 15 bugs in 10 areas, 5 of them already tracked; provers
+  turned all 10 new ones red. Opus at low, reading the same files as a general bug hunt, flagged
+  none of the 15.
+- **Lifetime provers**: a test written from the claim alone, by the family that did not make the
+  claim, so the judge's reasoning reaches it only through the code.
 - **Readback**: restating a diff needs little reasoning, and the light model spares the heavy
   one's quota. On #119 and #92, read twice each (2026-11-13), Terra named the change the
   commit title left out in 4 of 4 runs and Luna in none, for 1.4 times the tokens.

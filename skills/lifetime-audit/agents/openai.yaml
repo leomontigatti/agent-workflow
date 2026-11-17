@@ -1,0 +1,5 @@
+interface:
+  display_name: "Lifetime Audit"
+  short_description: "Hunt async lifetime bugs and prove them"
+policy:
+  allow_implicit_invocation: false
