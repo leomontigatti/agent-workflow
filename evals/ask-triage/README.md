@@ -30,6 +30,11 @@ the repo.
 - **An issue is an ask that was already raised.** What a session dropped in its thread never
   became one, so the cases lean towards the worth-raising side.
 
+- **The checkout can lack the code.** An issue filed from a branch names code the default branch
+  gained only when that branch merged. A model that verifies before it rules (Sol) then asks for
+  want of the code, where one that rules from the issue's text does not: read such a reply before
+  counting it.
+
 ## Adding a case
 
 An issue for a race or an edge case found beside other work, whose body states the problem and not
