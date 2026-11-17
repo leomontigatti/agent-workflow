@@ -13,14 +13,15 @@ on.
   disproof (a `file:line`, a test, the invariant that covers it) and resolve. "Intentional" alone
   is not a reason. A claim that holds but whose fix lies outside the PR's goal is declined too:
   reply that it is out of scope and left as a follow-up, resolve, and list it under **Declined**
-  in the report, with its weighing when it is a race (step 2 of the `implement` skill). Review rounds grow a PR one cheap-looking fix at a time; this keeps it the size
+  in the report. A race or an edge case among them takes its ruling from step 2 of the `implement`
+  skill: a **drop** is declined with its one line, and anything else is an **ask**. Review rounds grow a PR one cheap-looking fix at a time; this keeps it the size
   its goal needs.
 - **ask**: the call is the user's. Leave the thread open and bring it to them.
 
 Always **ask**, whatever a pattern says, when the finding touches an area in
 `docs/agents/review.md` § Always ask, a migration, a destructive data path, or a term defined in
-`GLOSSARY.md`; when it needs a product decision; when its fix is speculative hardening (step 2 of
-the `implement` skill); and when a person opened the thread.
+`GLOSSARY.md`; when it needs a product decision; when its fix is speculative hardening that step 2 of
+the `implement` skill does not drop; and when a person opened the thread.
 
 A finding backed by a documented standard is never declined on the triager's judgement alone: it
 is a **fix**, or an **ask** when the code is a deliberate exception the user rules on. The one

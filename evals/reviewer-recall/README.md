@@ -29,6 +29,18 @@ whether a change turns misses into catches, rerun only the cases each model miss
 (`--models sol --cases id,id`), one repeat first: it spares the Codex quota, which a full run at
 high effort can exhaust.
 
+## Foresight: `consult`
+
+`run.py consult` takes the same options and asks a different question: would the model have warned
+of the bug before the change was written? It checks out the PR's merge-base, hands the model the PR
+title, the linked issue's body and the paths the change went on to touch, and asks for at most 8
+hazards; `grade` and `report` then read the directory as they read a review's. A directory holds
+reviews or consults, never both.
+
+On 2026-11-17 (two runs per case) Sol at medium warned of the bug in 18 of 28 consults, Fable at
+low in 14 of 29 and Opus at medium in 13 of 30, at $1.21 a consult for Fable and $0.68 for Opus.
+Every case is a bug the review caught anyway, so a consult moves a fix earlier and no more.
+
 ## Reading the numbers
 
 - **Every case was caught once.** A model that found a case in production found it at least once.

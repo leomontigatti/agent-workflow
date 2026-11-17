@@ -21,7 +21,8 @@ moment it merges, so each change goes through a PR and nothing is committed to `
   them ([`decisions.md`](upstreams/decisions.md)). Upstream URLs live there and in `NOTICE`
   only.
 - `evals/`: measurements of the agents themselves, run by hand when a model changes;
-  [`reviewer-recall`](evals/reviewer-recall/README.md) replays known bugs through each reviewer.
+  [`reviewer-recall`](evals/reviewer-recall/README.md) replays known bugs through each reviewer,
+  [`ask-triage`](evals/ask-triage/README.md) the user's past rulings on found races and edge cases.
 - [`install.sh`](install.sh): links all of it where Claude Code and Codex read it, through the
   stable path `~/.agents/workflow`, which is how a skill or wrapper names a file here.
 
