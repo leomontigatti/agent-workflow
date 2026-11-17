@@ -6,8 +6,8 @@ replays issues the user already ruled on through that rule, to see who drops wha
 dropped and who drops what the user went on to fix.
 
 Each case in [`cases.json`](cases.json) is an issue and its ruling: `drop` when the user closed it
-as not planned, `ask` when they fixed or parked it, `null` when they have not ruled. `run.py`
-checks out the default branch as it stood when the issue was opened and hands each model the
+as not planned, `ask` when they fixed it, parked it or kept it open as worth raising, `null` when
+they have not ruled. `run.py` checks out the default branch as it stood when the issue was opened and hands each model the
 issue's title and body with step 2's rule, read from this checkout, so a reworded rule is measured
 by rerunning.
 
