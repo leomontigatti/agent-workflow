@@ -12,7 +12,8 @@ unchanged since.
 Three lists:
 
 - **Slices**: every file in exactly one slice of at most `--slice-lines` lines (1,500 by
-  default), a directory's files together where they fit, each file with its score and signals.
+  default), a directory's files together where they fit, and a longer file in a slice of its own;
+  each file with its score and signals.
 - **Explicit lifecycles**: files that already type a lifecycle as a union and transition it in
   one place, the calibration candidates.
 - **Lifecycle writes**: each `table.column` lifecycle write (`.update(table).set({...})`, the
@@ -92,8 +93,9 @@ ROUTINE_COLUMNS = {"createdAt", "updatedAt", "created_at", "updated_at", "delete
 
 
 def git(repo, *args):
-    return subprocess.run(["git", "-C", repo, *args], capture_output=True, text=True,
-                          check=True).stdout
+    # Unquoted paths: by default git escapes non-ASCII names in quotes, which no pattern here matches.
+    return subprocess.run(["git", "-C", repo, "-c", "core.quotePath=false", *args],
+                          capture_output=True, text=True, encoding="utf-8", check=True).stdout
 
 
 def read(repo, path):
@@ -212,7 +214,8 @@ def report_slices(scored, size, skipped):
     cut = slices(scored, size)
     lines = sum(v[1] for v in scored.values())
     print(f"## Slices\n\n{len(scored)} files, {lines} lines, {len(cut)} slices of at most {size} "
-          f"lines; {skipped} files judged before and unchanged, left out.\n")
+          f"lines (a longer file is a slice of its own); {skipped} files judged before and "
+          f"unchanged, left out.\n")
     for n, files in enumerate(cut, 1):
         top = max(scored[p][0] for p in files)
         print(f"Slice {n}: {sum(scored[p][1] for p in files)} lines, top score {top:.1f}")
@@ -267,7 +270,7 @@ def main():
     opt = lambda name, default: args[args.index(name) + 1] if name in args else default
     under, size = opt("--under", ""), int(opt("--slice-lines", 1500))
     skip = judged(opt("--skip", None))
-    tracked = git(repo, "ls-files").splitlines()
+    tracked = [p for p in git(repo, "ls-files", "-z").split("\0") if p]
     sources = [p for p in tracked if SOURCE.search(p) and not TEST.search(p)
                and not GENERATED.search(p) and p.startswith(under)]
     if not sources:

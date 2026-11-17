@@ -31,7 +31,8 @@ to the project; the issues it files are its output.
    `python3 -I ~/.agents/workflow/skills/lifetime-audit/scripts/scan.py <checkout> --skip <state>`,
    where `<state>` is `~/.local/state/lifetime-audit/<repo>.json` (`<repo>` the GitHub
    `owner-name`; a missing file skips nothing). It puts every source file not judged before and
-   unchanged since into one slice of at most 1,500 lines, highest lifetime score first, and lists
+   unchanged since into one slice of at most 1,500 lines (a longer file in a slice of its own),
+   highest lifetime score first, and lists
    the explicit lifecycles and the lifecycle writes. The score orders the slices; every slice is
    judged. For a stack the script does not read, cut the slices by hand the same way.
 
@@ -65,20 +66,21 @@ to the project; the issues it files are its output.
 
    A `rejected` claim goes once to a fresh prover, with the first prover's reason and the
    instruction to try another sequence before rejecting; the second answer is final. A prover
-   that ends without a verdict leaves its test in its checkout: run that test yourself, without
-   and then with its fix, and record that you did. A proof that changes the weighing (the hit
-   turns out loud, or the backstop catches it) moves the claim to a drop.
+   that ends without a verdict and left a test in its checkout: run that test yourself, without
+   and then with its fix, and record that you did; one that left no test is spawned once more,
+   fresh. A proof that changes the weighing (the hit turns out loud, or the backstop catches it)
+   is weighed again as step 4 does: it becomes a drop only when it is now loud and unlikely.
 
    Done when every ask is `demonstrated`, `confirmed-by-reading` or finally `rejected`.
 
 6. **Record and report.** Write the state file:
-   `{"judged": [{"file", "blob", "commit", "bug", "shape"}]}`, one entry per judged file, `blob`
-   from `git rev-parse <commit>:<file>`, merged with the entries already there. Copy each
-   prover's diff out of its checkout before T3 removes it. Reply with the report below: each
-   proven ask in the plain words step 2 asks for (what breaks and for whom, how likely, what the
-   fix costs) with your pick, and each drop as its line. An issue is filed only for an ask the
-   user rules for, as step 2 says, carrying the prover's test and its failing output, or saying in
-   its first line that it was confirmed by reading.
+   `{"judged": [{"file": …, "blob": …, "commit": …, "bug": …, "shape": …}]}`, one entry per
+   judged file, `blob` from `git rev-parse <commit>:<file>`, merged with the entries already
+   there. Copy each prover's diff out of its checkout before T3 removes it. Reply with the report
+   below: each proven ask in the plain words step 2 asks for (what breaks and for whom, how
+   likely, what the fix costs) with your pick, and each drop as its line. An issue is filed only
+   for an ask the user rules for, as step 2 says, carrying the prover's test and its failing
+   output, or saying in its first line that it was confirmed by reading.
 
 ## Calibration
 
