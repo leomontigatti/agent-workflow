@@ -30,7 +30,7 @@
     "skills/writing-for-agents/SKILL.md": 73
   },
   "on-load": {
-    "agents/implementer.md": 3637,
+    "agents/implementer.md": 3702,
     "agents/models.md": 7977,
     "agents/research.md": 2084,
     "agents/reviewer.md": 1004,
@@ -42,9 +42,9 @@
     "skills/fan-out/SKILL.md": 4350,
     "skills/grilling/SKILL.md": 2082,
     "skills/handoff/SKILL.md": 969,
-    "skills/housekeeping/SKILL.md": 7310,
+    "skills/housekeeping/SKILL.md": 7136,
     "skills/implement-spec/SKILL.md": 9674,
-    "skills/implement/SKILL.md": 14089,
+    "skills/implement/SKILL.md": 14712,
     "skills/pr/SKILL.md": 7368,
     "skills/prototype/SKILL.md": 3515,
     "skills/resolving-merge-conflicts/SKILL.md": 1048,

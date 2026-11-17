@@ -7,6 +7,7 @@ correctness reviewer, and asks a judge whether the review reports that bug.
 
 Usage, from anywhere:
   python3 -I run.py review [--models opus,sol,luna] [--repeats 2] [--cases id,id] [--effort medium] [--jobs 4] [--out DIR]
+  python3 -I run.py consult ...      the same options; asks for the hazards before the change exists
   python3 -I run.py grade DIR        judge every review in DIR that has no verdict yet
   python3 -I run.py report DIR       print recall, time and cost per model, and recall per case
 
@@ -16,6 +17,11 @@ Each review's wall time, cost and tokens go beside it in `<case>.<model>.<k>.met
 DIR defaults to ~/.local/state/reviewer-recall/<today>. `review` skips a review already on disk, so
 a stopped run resumes. Repos are read from ~/.t3/projects/<repo>, else cloned once into ~/.cache/reviewer-recall; a missing commit is fetched from
 the PR's head ref. Worktrees are made under a temporary directory and removed at the end.
+
+`consult` measures foresight instead: it checks out the PR's merge-base, where none of the change
+exists, hands each model the PR title, the linked issue's body and the paths the change went on to
+touch, and asks for the hazards an implementer should design out. The judge then decides whether a
+consult warned of the case's bug. A directory holds reviews or consults, never both.
 """
 
 import concurrent.futures
@@ -107,7 +113,7 @@ def normalize(manifest):
     return manifest
 
 
-def claim(out, models, prompts, asked):
+def claim(out, models, prompts, asked, kind):
     """Record what this directory measures: a review on disk is reused only when its model, effort
     and prompt are the ones asked for now. The lock makes the check and the write one step, so two
     runs started together on one directory cannot both pass it."""
@@ -116,6 +122,8 @@ def claim(out, models, prompts, asked):
         fcntl.flock(lock, fcntl.LOCK_EX)
         manifest = (normalize(json.load(open(manifest_path))) if os.path.exists(manifest_path)
                     else {"models": {}, "prompts": {}, "runs": []})
+        if manifest.setdefault("kind", "review" if manifest["runs"] else kind) != kind:
+            sys.exit(f"{out} holds {manifest['kind']}s: use a new directory")
         for key, wanted in (("models", models), ("prompts", prompts)):
             clash = [k for k, v in wanted.items() if manifest[key].get(k, v) != v]
             if clash:
@@ -143,9 +151,35 @@ def hotspots(repo, sha):
     return m.group(1).strip() if m else "none listed"
 
 
-def prompt_for(case, repo):
-    title = json.loads(subprocess.run(["gh", "pr", "view", str(case["pr"]), "-R", f"leomontigatti/{case['repo']}",
-                                       "--json", "title"], check=True, capture_output=True, text=True).stdout)["title"]
+def gh_json(case, *args):
+    return json.loads(subprocess.run(["gh", *args, "-R", f"leomontigatti/{case['repo']}"], check=True,
+                                     capture_output=True, text=True).stdout)
+
+
+def consult_prompt(case, repo, pr):
+    """What a session knows at the end of `implement` step 1: the intent, the ticket and the files
+    in play. The issue's comments and the PR body stay out: they record the review's findings."""
+    issues = [gh_json(case, "issue", "view", str(i["number"]), "--json", "title,body")
+              for i in pr["closingIssuesReferences"]]
+    ticket = "\n\n".join(f"### {i['title']}\n\n{i['body']}" for i in issues) or "None: the title is all there is."
+    paths = git(repo, "diff", "--name-status", f"{case['base']}...{case['before']}").strip()
+    return ("You are consulted before a change is written. None of it exists yet: this checkout is the code "
+            "it starts from. Read only; edit nothing.\n\n"
+            f"The change: {pr['title']}\n\n<ticket>\n{ticket}\n</ticket>\n\n"
+            f"The paths the author expects to touch (A is a new file, M an existing one):\n{paths}\n\n"
+            "Read the existing code behind those paths and its callers. Then name the hazards this "
+            "implementation is most likely to get wrong: a race between concurrent actors, a stale read, an "
+            "edge case in the input or the stored state, a failure path. For each one give what goes wrong "
+            "and for whom, the interleaving or input that triggers it, where in the code it would live, and "
+            "the simplest design that avoids it. Report at most 8, the likeliest first, each traced to this "
+            "code or this ticket: a hazard any change could have is noise.\n")
+
+
+def prompt_for(case, repo, kind="review"):
+    pr = gh_json(case, "pr", "view", str(case["pr"]), "--json", "title,closingIssuesReferences")
+    if kind == "consult":
+        return consult_prompt(case, repo, pr)
+    title = pr["title"]
     commits = git(repo, "log", "--oneline", "--no-merges", f"{case['base']}..{case['before']}").strip()
     brief = correctness_brief().replace("<the project's hotspots>", hotspots(repo, case["before"]))
     return (f"Before anything else, read `~/.agents/workflow/agents/reviewer.md` and follow it. "
@@ -167,21 +201,21 @@ def ensure(case):
     return repo
 
 
-def review(args):
+def review(args, kind="review"):
     cases = load_cases(args.get("cases"))
     models = parse_models(args.get("models", "opus,sol,luna"), args.get("effort", "medium"))
     repeats = int(args.get("repeats", 2))
     out = args["out"]
     os.makedirs(out, exist_ok=True)
-    prompts = {c["id"]: prompt_for(c, ensure(c)) for c in cases}
+    prompts = {c["id"]: prompt_for(c, ensure(c), kind) for c in cases}
     asked = [f"{c['id']}.{m}.{k}" for c in cases for m in models for k in range(1, repeats + 1)]
-    claim(out, models, {i: hashlib.sha256(p.encode()).hexdigest() for i, p in prompts.items()}, asked)
+    claim(out, models, {i: hashlib.sha256(p.encode()).hexdigest() for i, p in prompts.items()}, asked, kind)
     tmp = tempfile.mkdtemp(prefix="reviewer-recall-")
     jobs, worktrees = [], []
     for case in cases:
         repo = ensure(case)
         wt = os.path.join(tmp, case["id"])
-        git(repo, "worktree", "add", "-q", "--detach", wt, case["before"])
+        git(repo, "worktree", "add", "-q", "--detach", wt, case["before" if kind == "review" else "base"])
         worktrees.append((repo, wt))
         prompt = prompts[case["id"]]
         for model in models:
@@ -191,7 +225,7 @@ def review(args):
                     os.remove(path + ".err")  # a failed run is retried
                 if not os.path.exists(path):
                     jobs.append((models[model], model, prompt, wt, path))
-    print(f"{len(jobs)} reviews to run", flush=True)
+    print(f"{len(jobs)} {kind}s to run", flush=True)
     try:
         with concurrent.futures.ThreadPoolExecutor(int(args.get("jobs", 4))) as pool:
             for path, status in pool.map(lambda j: run_one(*j), jobs):
@@ -227,16 +261,23 @@ def run_one(spec, alias, prompt, wt, path):
 def grade(args):
     out = args["out"]
     cases = {c["id"]: c for c in load_cases(None)}
+    consult = json.load(open(os.path.join(out, "manifest.json"))).get("kind") == "consult"
     todo = [f for f in sorted(os.listdir(out)) if f.endswith(".md") and not os.path.exists(os.path.join(out, f[:-3] + ".json"))]
 
     def judge(name):
         case = cases[name.split(".")[0]]
         text = open(os.path.join(out, name), encoding="utf-8").read()
+        rule = ("The review below was written before the change existed, as a list of hazards to design "
+                "out; the bug is what the change then shipped. found is true only when a hazard warns of "
+                "this bug: the same failure from the same cause, specific enough that an implementer who "
+                "read it would have avoided the bug, even in other words. A different hazard in the same "
+                "area, or a vague worry with no path to this failure, is false.\n\n" if consult else
+                "found is true only when the review reports this bug: the same failure from the same "
+                "cause, in the same place, even in other words. A different problem in the same file, "
+                "or a vague worry with no path to this failure, is false.\n\n")
         prompt = ("You grade a code review against one known bug. Reply with JSON only: "
                   '{"found": true|false, "evidence": "<the review\'s matching sentence, or empty>"}.\n'
-                  "found is true only when the review reports this bug: the same failure from the same "
-                  "cause, in the same place, even in other words. A different problem in the same file, "
-                  "or a vague worry with no path to this failure, is false.\n\n"
+                  + rule +
                   f"Known bug: {case['bug']}\nFiles: {', '.join(case['files'])}\n\n"
                   f"<review>\n{text}\n</review>\n")
         try:
@@ -319,7 +360,7 @@ def load_cases(ids):
 
 
 def main(argv):
-    if not argv or argv[0] not in ("review", "grade", "report"):
+    if not argv or argv[0] not in ("review", "consult", "grade", "report"):
         sys.exit(__doc__)
     args, rest = {}, argv[1:]
     while rest:
@@ -329,7 +370,7 @@ def main(argv):
         else:
             args["out"] = a
     args.setdefault("out", os.path.expanduser(f"~/.local/state/reviewer-recall/{datetime.date.today()}"))
-    {"review": review, "grade": grade, "report": report}[argv[0]](args)
+    {"review": review, "consult": lambda a: review(a, "consult"), "grade": grade, "report": report}[argv[0]](args)
 
 
 if __name__ == "__main__":

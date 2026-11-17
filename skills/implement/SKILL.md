@@ -52,30 +52,38 @@ Write a comment only for intent or a constraint the code cannot show: the review
 the **Comments** entry of the `code-review` skill's smell baseline.
 
 **Speculative hardening** is complexity (a lock, a retry, a second validation, a new state) added
-against a race or an edge case that is unlikely to happen. Leave it out, and bring it to the final
-report as an **ask** in plain words someone outside the code can rule on: what breaks and for whom,
-how likely it is, and what the fix costs. The user rules on it. A traced `critical` finding is never
-speculative, and neither is validating input where it enters from outside the system (a user, the
-network, another service).
+against a race or an edge case that is unlikely to happen. Leave it out. A traced `critical` finding
+is never speculative, and neither is validating input where it enters from outside the system (a
+user, the network, another service).
 
-A race the change itself brings in is fixed. A race it only finds, at any severity, a traced
-`critical` one included, is decided for or against by weighing three things:
+A race the change itself brings in is fixed. A race or an edge case it only finds or leaves
+unguarded, at any severity, a traced `critical` one included, is weighed on three things:
 
 - its **likelihood**: who the concurrent actors are (roles and the surfaces they act through), how
   wide the window is (inside one transaction, or between a page load and a submit), and how often
-  each side runs, so how often the window actually opens;
-- what a **hit** costs: silent loss outweighs an error the user sees and retries, and a hit
-  nobody notices outweighs one someone does;
+  each side runs, so how often the window actually opens; for an edge case, how often normal use
+  produces the input or the stored state that triggers it;
+- what a **hit** costs: a **silent** hit (data lost or wrong, and nobody notices) outweighs a
+  **loud** one (an error someone sees and retries, with nothing lost or half-written);
 - what the **fix** costs: the locks, states and tests it adds, and the deadlocks or races those
   can bring in.
 
 Take the actors and their frequencies from `docs/agents/review.md` § Hotspots, measured the way it
 says. Where it names none, read them off the entry points that reach each side (which roles,
-which surfaces), and mark it a guess. The weighing ends in a recommendation, and the user rules on
-it as on speculative hardening: fix it, park it with the condition that would raise its
-likelihood, or close it as not planned when its hits cost less than its fix. A follow-up or an
-issue for a race states all three and the recommendation, and triage decides by
-`docs/agents/issue-tracker.md` § Labels.
+which surfaces), and mark it a guess.
+
+The weighing ends in one of two rulings:
+
+- **Drop**, when the hit is loud and unlikely: it takes two rare actions overlapping (admin-only
+  ones, a manual correction), or an input normal use never produces. The ruling is yours. The
+  drop is one line in the final report (what it is, why it is unlikely, what the person sees), and
+  it ends there, with no ask, issue or question behind it.
+- **Ask**, in every other case: a silent hit, a likely one, or a likelihood you could not ground.
+  State it in plain words someone outside the code can rule on (what breaks and for whom, how
+  likely it is, what the fix costs) with your pick: fix it, park it with the condition that would
+  raise its likelihood, or close it as not planned when its hits cost less than its fix. An issue
+  for it is opened once the user rules for one; it states all three and the pick, and triage
+  decides by `docs/agents/issue-tracker.md` § Labels.
 
 Validate as you go: run `docs/agents/validation.md` § As you go for the slice each time it goes
 green.
@@ -135,13 +143,13 @@ branch, running the test or the call when reading does not settle it, then give 
   code to one that adds a guard, a helper or an option.
 - **decline**: the code disproves it. Keep the disproof (a `file:line`, a test, the invariant
   that covers it) for the final report. A claim that holds but whose fix lies outside the
-  change's goal is declined too, as out of scope: the final report lists it as a follow-up, with
-  its weighing when it is a race (step 2).
+  change's goal is declined too, as out of scope: the final report lists it as a follow-up, or,
+  when it is a race or an edge case, under its step 2 ruling (a **drop** or an **ask**).
 - **ask**: the call is the user's. That is every finding that touches an area in
   `docs/agents/review.md` § Always ask, a migration, a destructive data path or a `GLOSSARY.md`
   term and that you cannot settle from the issue, every finding that needs a product decision, and
-  every finding whose fix is **speculative hardening** (step 2). Bring it to them in the final
-  report.
+  every finding whose fix is **speculative hardening** that step 2 does not **drop**. Bring it to
+  them in the final report.
 
 When the spec and a documented standard disagree, the standard wins unless the spec names the
 exception in so many words: a spec that points at a nonconforming file as its model asks for the
@@ -215,6 +223,6 @@ What needs the user first: every **ask**, one bullet each however many there are
 your pick, the evidence behind it, its risk (a low one too) and its link when there is one, so the
 user can decide from the report alone; then every check you could not run and why, and every
 § Heavy command with where it ran, its commit and its result ([HEAVY.md](HEAVY.md)). Then what
-changed, then what was found. Label each claim about behaviour **measured** (you ran it: paste the
+changed, then what was found, each **drop** as its one line. Label each claim about behaviour **measured** (you ran it: paste the
 failing-then-passing output), **inferred** (from reading the code: give the `file:line`) or
 **guess**.

@@ -1,0 +1,21 @@
+[
+  {"repo": "en-escena", "issue": 1732, "ruling": "drop", "how": "closed as not planned"},
+  {"repo": "en-escena", "issue": 1733, "ruling": "drop", "how": "closed as not planned"},
+  {"repo": "rubens", "issue": 283, "ruling": "ask", "how": "parked with a wake-up trigger"},
+  {"repo": "rubens", "issue": 329, "ruling": "ask", "how": "parked"},
+  {"repo": "en-escena", "issue": 1797, "ruling": "ask", "how": "fixed"},
+  {"repo": "en-escena", "issue": 1689, "ruling": "ask", "how": "fixed"},
+  {"repo": "en-escena", "issue": 1331, "ruling": "ask", "how": "fixed"},
+  {"repo": "en-escena", "issue": 1250, "ruling": "ask", "how": "fixed"},
+  {"repo": "en-escena", "issue": 1246, "ruling": "ask", "how": "fixed"},
+  {"repo": "rubens", "issue": 239, "ruling": "ask", "how": "fixed"},
+  {"repo": "rubens", "issue": 250, "ruling": "ask", "how": "fixed"},
+  {"repo": "rubens", "issue": 105, "ruling": "ask", "how": "fixed"},
+  {"repo": "rubens", "issue": 128, "ruling": "ask", "how": "open, priority:next"},
+  {"repo": "en-escena", "issue": 1805, "ruling": null, "how": "open, not ruled"},
+  {"repo": "en-escena", "issue": 1804, "ruling": null, "how": "open, not ruled"},
+  {"repo": "en-escena", "issue": 1677, "ruling": null, "how": "open, not ruled"},
+  {"repo": "rubens", "issue": 391, "ruling": null, "how": "open, not ruled"},
+  {"repo": "rubens", "issue": 224, "ruling": null, "how": "open, not ruled"},
+  {"repo": "rubens", "issue": 257, "ruling": null, "how": "open, not ruled"}
+]

@@ -23,7 +23,8 @@ no tracker issue to read.
      never runs two such tickets at once, so the next migration number is yours.
    - Use the names the notes file fixes for anything another ticket also touches.
    - **Speculative hardening** (the `implement` skill's step 2) stays out of the code and goes
-     under `risks`, in plain words: what breaks and for whom, how likely it is, and what the fix costs.
+     under `risks` with that step's ruling: a **drop** as its one line, an **ask** in plain words
+     (what breaks and for whom, how likely it is, what the fix costs).
    - A worktree holds only what git tracks. A test that skips here for want of gitignored fixtures,
      a local database or credentials is no pass: name it under `risks`, for the orchestrator to run
      in its checkout.
