@@ -6,8 +6,8 @@ replays issues the user already ruled on through that rule, to see who drops wha
 dropped and who drops what the user went on to fix.
 
 Each case in [`cases.json`](cases.json) is an issue and its ruling: `drop` when the user closed it
-as not planned, `ask` when they fixed or parked it, `null` when they have not ruled. `run.py`
-checks out the default branch as it stood when the issue was opened and hands each model the
+as not planned, `ask` when they fixed it, parked it or kept it open as worth raising, `null` when
+they have not ruled. `run.py` checks out the default branch as it stood when the issue was opened and hands each model the
 issue's title and body with step 2's rule, read from this checkout, so a reworded rule is measured
 by rerunning.
 
@@ -23,8 +23,12 @@ the repo.
 
 - **The two errors differ in cost.** Raising what the user dropped costs them one ask; dropping
   what the user fixed hides a bug. Read the second number first.
-- **Few cases are drops.** The user closes few issues as not planned, so a model's score on them
-  moves a lot with one ruling. Read the replies, `<repo>-<issue>.<model>.<run>.md`.
+- **Few cases are drops, and most share a source.** Six of the eight are from one rubens audit,
+  so a model's score on them moves a lot with one ruling and leans on how that audit wrote. Read
+  the replies, `<repo>-<issue>.<model>.<run>.md`.
+- **An audit's issue carries its finder's weighing.** Rubens #405 to #418 state the actors, the
+  window and the cost of a hit under `## Weighing`, which a person's issue may leave for the model
+  to find: read them as the easier cases.
 - **The unruled cases have no score.** Their rows show how each model rules, for the user to
   compare with their own call.
 - **An issue is an ask that was already raised.** What a session dropped in its thread never
@@ -38,5 +42,6 @@ the repo.
 ## Adding a case
 
 An issue for a race or an edge case found beside other work, whose body states the problem and not
-the ruling: the body is cut at a `Wake-up trigger` heading, and comments are never read. Take the
+the ruling: the body is cut at a `Wake-up trigger` or a `Recommendation` heading (the filer's own
+pick), and comments are never read. Take the
 ruling from how the user closed it, not from its labels at filing.

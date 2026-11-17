@@ -50,13 +50,13 @@ def repo_for(name):
 
 
 def prepare(case):
-    """The commit the finder stood on and the prompt. The body is cut at its wake-up trigger, which
-    records the ruling; comments stay out for the same reason."""
+    """The commit the finder stood on and the prompt. The body is cut at its wake-up trigger or its
+    recommendation, which record a ruling; comments stay out for the same reason."""
     repo = repo_for(case["repo"])
     issue = recall.gh_json(case, "issue", "view", str(case["issue"]), "--json", "title,body,createdAt")
     head = recall.git(repo, "rev-parse", "--abbrev-ref", "origin/HEAD").strip()
     sha = recall.git(repo, "rev-list", "-1", "--first-parent", f"--before={issue['createdAt']}", head).strip()
-    body = re.split(r"^#+ Wake-up trigger", issue["body"], flags=re.M)[0].strip()
+    body = re.split(r"^#+ (?:Wake-up trigger|Recommendation)", issue["body"], flags=re.M)[0].strip()
     prompt = ("A session working in this repo found the problem below beside the change it was making. This "
               "checkout is the code as it stood then. Read only; edit nothing.\n\n"
               f"<problem>\n# {issue['title']}\n\n{body}\n</problem>\n\n"
