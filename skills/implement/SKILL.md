@@ -71,9 +71,9 @@ three things:
 
 Take the actors and their frequencies from `docs/agents/review.md` § Hotspots, measured the way it
 says. Where it names none, read them off the entry points that reach each side (which roles,
-which surfaces), and mark it a guess. A guess that names both sides and the window is grounded;
-the likelihood is ungrounded only when you could not find who reaches a side, or how wide the
-window is.
+which surfaces), and mark it a guess. A guess is grounded when it names a race's two sides and its
+window, or what produces an edge case's input or stored state; the likelihood is ungrounded only
+when you could not find one of those.
 
 The weighing ends in one of two rulings:
 
