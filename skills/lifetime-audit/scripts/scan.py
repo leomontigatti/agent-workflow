@@ -107,13 +107,13 @@ def read(repo, path):
 
 
 def fix_counts(repo):
-    log = git(repo, "log", "--since=8 months ago", "--format=@@%s", "--name-only")
-    counts, in_fix = collections.Counter(), False
-    for line in log.splitlines():
-        if line.startswith("@@"):
-            in_fix = re.match(r"@@fix\b", line) is not None
-        elif line and in_fix:
-            counts[line] += 1
+    # NUL-separated, so a path with a tab, a newline or U+2028 in it stays one name.
+    log = git(repo, "log", "--since=8 months ago", "-z", "--format=%x01%s", "--name-only")
+    counts = collections.Counter()
+    for record in log.split("\x01")[1:]:
+        subject, _, files = record.partition("\n")
+        if re.match(r"fix\b", subject):
+            counts.update(p.strip("\n") for p in files.split("\0") if p.strip("\n"))
     return counts
 
 
