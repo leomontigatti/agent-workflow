@@ -55,7 +55,7 @@ def prepare(case):
     repo = repo_for(case["repo"])
     issue = recall.gh_json(case, "issue", "view", str(case["issue"]), "--json", "title,body,createdAt")
     head = recall.git(repo, "rev-parse", "--abbrev-ref", "origin/HEAD").strip()
-    sha = recall.git(repo, "rev-list", "-1", f"--before={issue['createdAt']}", head).strip()
+    sha = recall.git(repo, "rev-list", "-1", "--first-parent", f"--before={issue['createdAt']}", head).strip()
     body = re.split(r"^#+ Wake-up trigger", issue["body"], flags=re.M)[0].strip()
     prompt = ("A session working in this repo found the problem below beside the change it was making. This "
               "checkout is the code as it stood then. Read only; edit nothing.\n\n"

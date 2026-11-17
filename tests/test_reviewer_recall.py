@@ -68,6 +68,13 @@ class Manifest(unittest.TestCase):
         self.assertEqual(sorted(manifest["models"]), ["fable", "opus"])
         self.assertEqual(manifest["runs"], ["c.fable.1", "c.opus.1"])
 
+    def test_a_directory_of_reviews_refuses_a_consult(self):
+        # `grade` picks its judge prompt by the directory's kind: mixed, it would grade one as the other.
+        out = tempfile.mkdtemp()
+        recall.claim(out, {"opus": {"model": "claude-opus-5-5", "effort": "medium"}}, {"c": "h"}, ["c.opus.1"])
+        with self.assertRaises(SystemExit):
+            recall.claim(out, {"sol": {"model": "gpt-6.1-sol", "effort": "medium"}}, {"d": "h"}, ["d.sol.1"], "consult")
+
 
 class Measure(unittest.TestCase):
     def test_claude_output_gives_the_review_and_its_cost(self):

@@ -113,7 +113,7 @@ def normalize(manifest):
     return manifest
 
 
-def claim(out, models, prompts, asked, kind):
+def claim(out, models, prompts, asked, kind="review"):
     """Record what this directory measures: a review on disk is reused only when its model, effort
     and prompt are the ones asked for now. The lock makes the check and the write one step, so two
     runs started together on one directory cannot both pass it."""

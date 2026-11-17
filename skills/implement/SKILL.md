@@ -56,8 +56,9 @@ against a race or an edge case that is unlikely to happen. Leave it out. A trace
 is never speculative, and neither is validating input where it enters from outside the system (a
 user, the network, another service).
 
-A race the change itself brings in is fixed. A race or an edge case it only finds or leaves
-unguarded, at any severity, a traced `critical` one included, is weighed on three things:
+A race the change itself brings in is fixed. A race it only finds, and an edge case it finds or
+leaves unguarded in its own code, at any severity, a traced `critical` one included, is weighed on
+three things:
 
 - its **likelihood**: who the concurrent actors are (roles and the surfaces they act through), how
   wide the window is (inside one transaction, or between a page load and a submit), and how often
