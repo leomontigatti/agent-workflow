@@ -1,0 +1,237 @@
+[
+  {
+    "id": "rubens-issue405",
+    "repo": "rubens",
+    "issue": 405,
+    "pr": 53,
+    "base": "c74d583c9537b5b23fcd06bc5fded3130de45c9e",
+    "before": "526de7043430d7734f67ae010cd9f1404380589e",
+    "severity": "critical",
+    "found_by": "lifetime-audit",
+    "bug": "When a receptionist cancels the booking's embedded patient registration while its save is pending and picks another patient, the save's `onSaved` still runs after the form unmounted and the picker's captured callback replaces the picked patient with the registered one, so the booking goes to the wrong patient.",
+    "files": [
+      "src/components/patient-form.tsx",
+      "src/routes/_app/agenda/-patient-picker.tsx",
+      "src/components/admin-form.tsx"
+    ]
+  },
+  {
+    "id": "rubens-issue406",
+    "repo": "rubens",
+    "issue": 406,
+    "pr": 53,
+    "base": "c74d583c9537b5b23fcd06bc5fded3130de45c9e",
+    "before": "526de7043430d7734f67ae010cd9f1404380589e",
+    "severity": "critical",
+    "found_by": "lifetime-audit",
+    "bug": "The booking's embedded patient registration keeps its fields editable while the save is pending, so a correction typed during the wait is discarded: the submitted snapshot is saved and success closes the form.",
+    "files": [
+      "src/components/patient-form.tsx"
+    ]
+  },
+  {
+    "id": "rubens-issue407",
+    "repo": "rubens",
+    "issue": 407,
+    "pr": 53,
+    "base": "c74d583c9537b5b23fcd06bc5fded3130de45c9e",
+    "before": "526de7043430d7734f67ae010cd9f1404380589e",
+    "severity": "warning",
+    "found_by": "lifetime-audit",
+    "bug": "An appointment status change keeps the `onDone` it captured (the page's shared `setPicked(null)`), so when the request answers after its dialog closed and another appointment's dialog opened, it closes that other dialog.",
+    "files": [
+      "src/routes/_app/agenda/-appointment-status.tsx",
+      "src/routes/_app/agenda/index.tsx"
+    ]
+  },
+  {
+    "id": "rubens-issue408",
+    "repo": "rubens",
+    "issue": 408,
+    "pr": 109,
+    "base": "6c998e7dd957558fdf9b0de6caa90efda8806532",
+    "before": "66933b6b731bf77168e926be32732f67090d4d58",
+    "severity": "warning",
+    "found_by": "lifetime-audit",
+    "bug": "`useFormPage`'s guard compares only the current pathname with the one the save started on, so a save pending across a visit A → B → A of the same reused edit route still owns navigation and `leave()` sends the user back to B's page.",
+    "files": [
+      "src/components/form-page.tsx",
+      "src/components/form-page-location.ts"
+    ]
+  },
+  {
+    "id": "rubens-issue409",
+    "repo": "rubens",
+    "issue": 409,
+    "pr": 223,
+    "base": "fcd560889f295b2395bc56d574644684ddb73814",
+    "before": "ed6ad2d1e14fe242fba99c661f2f16fa78592514",
+    "severity": "warning",
+    "found_by": "lifetime-audit",
+    "bug": "The notifications page keeps one pending id (`marking`) and every mark-read request's `finally` clears it, so when one request fails while another is in flight the other's button is re-enabled and a second click sends a duplicate request.",
+    "files": [
+      "src/routes/_app/notificaciones/index.tsx"
+    ]
+  },
+  {
+    "id": "rubens-issue410",
+    "repo": "rubens",
+    "issue": 410,
+    "pr": 322,
+    "base": "5b514ff15567c145195143af89a6f6dc17cf751b",
+    "before": "73cdceca7d002a755f14042c63269bca95f3acb3",
+    "severity": "warning",
+    "found_by": "lifetime-audit",
+    "bug": "The daily opt-out reminder reuses the notification row (unread again, new `createdAt`) while `markNotificationRead` matches only id and recipient, so a mark-read sent before the refresh lands after it and marks the refreshed reminder read although the member never saw it.",
+    "files": [
+      "src/organization/notifications.ts",
+      "src/organization/opt-out-holds.ts"
+    ]
+  },
+  {
+    "id": "rubens-issue411",
+    "repo": "rubens",
+    "issue": 411,
+    "pr": 248,
+    "base": "05257d05fcd77f70be81411054e2165d1833d989",
+    "before": "87ff8aaf5766e81c77a5b8a3b5cbab6d91af61a8",
+    "severity": "warning",
+    "found_by": "lifetime-audit",
+    "bug": "A model retry that fails past the hand-off time calls `retryOrHandOff` with the turn's original message ids without checking whether a receptionist closed the handoff and judged those messages meanwhile, so it opens a new `modelUnavailable` handoff for messages already settled.",
+    "files": [
+      "src/organization/assistant.ts",
+      "src/organization/turn-retries.ts",
+      "src/organization/handoffs.ts"
+    ]
+  },
+  {
+    "id": "rubens-issue412",
+    "repo": "rubens",
+    "issue": 412,
+    "pr": 203,
+    "base": "9725fe8c93195ccb30efb23dde78d96178baf1b5",
+    "before": "cb461e60d1f0b3d20fa867220ad2fef1306c2dc3",
+    "severity": "critical",
+    "found_by": "lifetime-audit",
+    "bug": "The WhatsApp webhook resolves each number's organization, then awaits the next number's lookup and dispatches the grouped events without their number, and `storeWhatsappEvents` checks only that the organization exists, so an organization that disconnected a number during the call still stores its messages.",
+    "files": [
+      "src/server/whatsapp-webhook.ts",
+      "src/organization/organization-whatsapp.ts"
+    ]
+  },
+  {
+    "id": "rubens-issue413",
+    "repo": "rubens",
+    "issue": 413,
+    "pr": 395,
+    "base": "89403392ee9d318b3d4693c061935dc3838283d9",
+    "before": "1ec4f2e774839c3785121ff8bd3f6b9a0dd7c9bc",
+    "severity": "critical",
+    "found_by": "lifetime-audit",
+    "bug": "`confirmTapped` checks the appointment once and the reply then waits through its typing pause with only a reachability check after it, so a patient whose appointment reception cancelled or rescheduled during the pause is still told \"Genial, te esperamos!\".",
+    "files": [
+      "src/organization/button-taps.ts",
+      "src/organization/turn-replies.ts"
+    ]
+  },
+  {
+    "id": "rubens-issue414",
+    "repo": "rubens",
+    "issue": 414,
+    "pr": 197,
+    "base": "8de376b1f1fd0a197a40ea41d9fe5cab48a1b867",
+    "before": "ef2e3f43ebd074a77008de2425163428a6d8d9b8",
+    "severity": "warning",
+    "found_by": "lifetime-audit",
+    "bug": "A template submission stores its version only after Meta's creation response, and `storeTemplateStatus` drops a verdict for an id it does not know, so an approval webhook that arrives before the response is lost and the template stays pending.",
+    "files": [
+      "src/organization/whatsapp-templates.ts"
+    ]
+  },
+  {
+    "id": "rubens-issue391",
+    "repo": "rubens",
+    "issue": 391,
+    "pr": 270,
+    "base": "f5fee4001072bca3421466f9e253b9c9c136f19d",
+    "before": "5832aa168cb3d571e51f514a97cae455ee53ccc2",
+    "severity": "critical",
+    "found_by": "lifetime-audit",
+    "bug": "`deliver()` checks that a late reply is still waiting, awaits Meta's send, then marks it `delivered` without reading its state again, so a withdrawal by its writer during the send is overwritten: the patient got the message while the audit log says it was withdrawn.",
+    "files": [
+      "src/organization/late-replies.ts"
+    ]
+  },
+  {
+    "id": "rubens-issue263",
+    "repo": "rubens",
+    "issue": 263,
+    "pr": 199,
+    "base": "10081cdec73e44691c7df2054ef0c41da2952218",
+    "before": "187dd4daf4b2f908eb1b947837d312085fb4177d",
+    "severity": "warning",
+    "found_by": "lifetime-audit",
+    "bug": "`storeOutgoing` creates the conversation on the first message sent to a number without a `conversation_patient` link, so a conversation the booking confirmation opens shows no patient to reception and is not found by the patient's name until the patient writes.",
+    "files": [
+      "src/organization/whatsapp-messages.ts"
+    ]
+  },
+  {
+    "id": "rubens-issue283",
+    "repo": "rubens",
+    "issue": 283,
+    "pr": 281,
+    "base": "6ef00d5ce5616e4293bdd9ea7bd3129083c872ec",
+    "before": "c2818122ddfac13627ad6e96f7920a62dad2208f",
+    "severity": "critical",
+    "found_by": "lifetime-audit",
+    "bug": "Undoing \"attended\" and marking it again while the first aftercare message is in flight to Meta queues a second aftercare message, because the send does not claim the message before the Graph call, so the patient gets it twice.",
+    "files": [
+      "src/organization/template-messages.ts",
+      "src/organization/outbox.ts"
+    ]
+  },
+  {
+    "id": "rubens-issue302",
+    "repo": "rubens",
+    "issue": 302,
+    "pr": 300,
+    "base": "1c4bce3a93e03ab9cd3971985f1d4d440b24aa7f",
+    "before": "3915620fa20ce83e6105dc9a952c03da9f451924",
+    "severity": "warning",
+    "found_by": "lifetime-audit",
+    "bug": "A failed reply reopens the handoff it closed unless one of its kind is open, so when two failed replies are reported in separate webhook calls, the older one first, the older handoff reopens and the newer one stays closed.",
+    "files": [
+      "src/organization/failed-replies.ts"
+    ]
+  },
+  {
+    "id": "en-escena-issue1824",
+    "repo": "en-escena",
+    "issue": 1824,
+    "pr": 1247,
+    "base": "93e4327d65e668d2bc97f28a06aec4766d1cbde2",
+    "before": "cb6a0bdbed4a56de75a9d44f2f1da3759fa60bab",
+    "severity": "warning",
+    "found_by": "lifetime-audit",
+    "bug": "Ticking a dancer while the choreography wizard's category resolves only resets the resolution and leaves the request live, and its response is applied unconditionally, so the wizard advances on the category of the earlier roster and the summary and save carry the wrong category and schedule.",
+    "files": [
+      "app/features/portal/choreographies/create/use-create-choreography-wizard.ts",
+      "app/features/portal/choreographies/create/steps.tsx"
+    ]
+  },
+  {
+    "id": "en-escena-issue1825",
+    "repo": "en-escena",
+    "issue": 1825,
+    "pr": 1185,
+    "base": "c332a6d2fdfca18e9e9c723d72e9c642a14589f5",
+    "before": "76ea1fe7065e6105ded7195bd4eba9adebedc570",
+    "severity": "warning",
+    "found_by": "lifetime-audit",
+    "bug": "`startRecording` acquires the microphone stream with `getUserMedia` and then builds the `MediaRecorder` and `AudioContext` in the same `try`, whose `catch` never stops the stream's tracks or closes the context, so a recorder setup that throws leaves the microphone on.",
+    "files": [
+      "app/features/judging/score/feedback-recorder.tsx"
+    ]
+  }
+]
