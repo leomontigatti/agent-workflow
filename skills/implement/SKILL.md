@@ -71,7 +71,9 @@ three things:
 
 Take the actors and their frequencies from `docs/agents/review.md` § Hotspots, measured the way it
 says. Where it names none, read them off the entry points that reach each side (which roles,
-which surfaces), and mark it a guess.
+which surfaces), and mark it a guess. A guess is grounded when it names a race's two sides and its
+window, or what produces an edge case's input or stored state; the likelihood is ungrounded only
+when you could not find one of those.
 
 The weighing ends in one of two rulings:
 
@@ -79,7 +81,7 @@ The weighing ends in one of two rulings:
   ones, a manual correction), or an input normal use never produces. The ruling is yours. The
   drop is one line in the final report (what it is, why it is unlikely, what the person sees), and
   it ends there, with no ask, issue or question behind it.
-- **Ask**, in every other case: a silent hit, a likely one, or a likelihood you could not ground.
+- **Ask**, in every other case: a silent hit, a likely one, or an ungrounded likelihood.
   State it in plain words someone outside the code can rule on (what breaks and for whom, how
   likely it is, what the fix costs) with your pick: fix it, park it with the condition that would
   raise its likelihood, or close it as not planned when its hits cost less than its fix. An issue
