@@ -494,7 +494,9 @@ T3 source paths below are in pingdotgg/t3code.
   Source: `packages/contracts/src/orchestratorMcp.ts`. Read-only review
   is a prompt rule (`agents/reviewer.md`), not something T3 enforces. Since pingdotgg/t3code#37901 (0.1.11-nightly.20261117.4825) a child's answer given after an awaited Monitor ends reaches the parent as the result, and since #37942 (same build) a later run that ends without text keeps the earlier report as `summary`. Since #37728 (0.1.11-nightly.20261117.4814) a Claude request that gets no answer fails the turn after 10 minutes (`claude_request_unanswered`) instead of hanging the child, and since #37943 (0.1.11-nightly.20261117.4825) a fresh Claude session that times out at startup or MCP registration is retried once.
 - **Used by:** `agents/models.md` § Reaching each model; `skills/code-review/SKILL.md` § Spawning
-  a reviewer; `agents/reviewer.md`; `agents/research.md`
+  a reviewer; `skills/lifetime-audit/SKILL.md` steps 3 and 4 (one judge per candidate, one prover per
+  claim); `agents/reviewer.md`;
+  `agents/research.md`
 - **Breaks if:** `summary` stops carrying the child's report, a child's question stops waking
   the parent (it would wait forever), `clientRequestId` stops
   deduplicating a retry, the `target` shape or live model ids change, or children stop sharing
@@ -530,7 +532,8 @@ T3 source paths below are in pingdotgg/t3code.
   `delegate-task-reviews`) and § 4 step 3; `agents/implementer.md`;
   `agents/models.md` (Reaching each model); `skills/implement/THREADS.md` ("Work where you
   started"); `skills/implement/SKILL.md` § 4 (the approved variant, captured by a child that
-  checks out its `prototype/<n>` branch detached)
+  checks out its `prototype/<n>` branch detached); `skills/lifetime-audit/SKILL.md` step 4 (each
+  prover writes its test in a checkout of the audited commit)
 - **Breaks if:** the checkout stops starting at the parent's local commit or skips setup, an
   async child's completion stops waking the parent, or storage cleanup starts removing a child's
   checkout before the orchestrator merged its branch.
