@@ -529,7 +529,8 @@ T3 source paths below are in pingdotgg/t3code.
 - **Used by:** `skills/implement-spec/SKILL.md` § 2, § 3, § Route change (`task_cancel`, under
   `delegate-task-reviews`) and § 4 step 3; `agents/implementer.md`;
   `agents/models.md` (Reaching each model); `skills/implement/THREADS.md` ("Work where you
-  started")
+  started"); `skills/implement/SKILL.md` § 4 (the approved variant, captured by a child that
+  checks out its `prototype/<n>` branch detached)
 - **Breaks if:** the checkout stops starting at the parent's local commit or skips setup, an
   async child's completion stops waking the parent, or storage cleanup starts removing a child's
   checkout before the orchestrator merged its branch.

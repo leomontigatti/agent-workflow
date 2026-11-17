@@ -95,7 +95,10 @@ When the change alters anything a user sees or drives, prove it by `docs/agents/
 launch, drive the flows its § Feature map names for the area (in a T3 thread, with the browser CLI
 § Drive names, or T3's preview tools as [PREVIEW.md](PREVIEW.md) says when it names none), and capture the **after** on the
 same screen, data and account as the reference: the before, or the approved variant captured from
-its branch in a worktree of its own. Clean up what you launched, then check that each
+its branch by a `delegate_task` child with `isolation: "worktree"` (outside T3, a
+`git worktree add --detach` you remove after): it checks out `origin/prototype/<n>` detached,
+reruns `t3.json`'s setup when the lockfile differs, and saves each capture at the absolute path
+you give it. Clean up what you launched, then check that each
 capture is still at its path: step 7 embeds it from there. A check you can run is
 never handed to the user: run it and show the result. Skip this step for changes with no surface a
 user reaches, and say so.
