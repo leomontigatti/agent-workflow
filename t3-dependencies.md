@@ -1123,6 +1123,10 @@ T3 source paths below are in pingdotgg/t3code.
 
 ## Ready
 
+None.
+
+## Resolved
+
 ### issue-linked-by-tool
 
 - **Workaround:** a thread names the issue it works on only in its messages and PR body
@@ -1143,13 +1147,10 @@ T3 source paths below are in pingdotgg/t3code.
   Forgejo and Linear. An issue is named by `url`, or by `key` in the thread's project. Tried
   2026-11-17: `list_issues` on rubens returned its GitHub issues; `list_thread_issues` on this
   review's thread returned none.
-- **Adopting means:** `THREADS.md` gains "link the issue a thread works on or files with
-  `link_issue`", and a lost-context recovery reads `list_thread_issues` beside
-  `list_thread_pull_requests`. The tracker CLI in each project's `issue-tracker.md` stays for
-  what the tools lack (sub-issues, blocking edges, label creation), so no contract file changes.
-  Proposed in the 2026-11-17 review; the user decides.
-
-## Resolved
+- **Adopted:** 2026-11-17; `THREADS.md` ("One thread, one branch, one PR") links each issue a
+  thread works on or files with `link_issue`, by its URL, and "A lost context is recovered from
+  T3" reads `list_thread_issues`. Each project's tracker CLI (`docs/agents/issue-tracker.md`)
+  keeps what the tools lack: sub-issues, blocking edges, label creation. No contract file changes.
 
 ### storage-cleanup-renamed-branches
 
