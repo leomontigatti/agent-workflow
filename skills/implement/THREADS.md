@@ -24,7 +24,9 @@ while it is clean and on that branch.
   ran it, shows its status and settles the thread when it merges. A PR opened another way (`gh
   api`, a loop creating several) is linked with the `link_pull_request` tool, as is one missing
   from `list_thread_pull_requests`. To keep working on an existing PR, start the thread on
-  that branch (or link the PR) instead of checking it out in another worktree.
+  that branch (or link the PR) instead of checking it out in another worktree. Link each issue the
+  thread works on or files with the `link_issue` tool, by its URL, so T3 shows it beside the
+  thread.
 - **A launched thread reports to its own inbox.** A thread started with `t3_thread_launch`
   babysits its own PR, merges it when the merge is the agent's (the `babysit-pr` skill) and
   otherwise hands back to the user; its `unwatch_pull_request` wakes nobody else, so the launcher
@@ -43,7 +45,8 @@ while it is clean and on that branch.
   item marked `textTruncated` is read to its end with its `itemId` and each `nextTextOffset` as
   `textOffset` before the next page. Only
   the cursorless read carries `pullRequests`, at most five open PRs, watched first;
-  `list_thread_pull_requests` gives every one with its state, a page per `nextCursor`. An open PR
+  `list_thread_pull_requests` gives every one with its state, a page per `nextCursor`, and
+  `list_thread_issues` the issues the thread works on. An open PR
   with `watching: true` is one you were babysitting: pick `babysit-pr` up at its read of the
   round, and end the turn on the watch already running.
 - **Read-only threads** (writing issues, triage, reviewing a PR without editing code) change no

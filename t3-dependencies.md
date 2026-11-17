@@ -29,7 +29,7 @@ T3 source paths below are in pingdotgg/t3code.
   (`ProjectSetupScriptRunner.ts`); linked environments are a Labs beta, off by default
   (`linkedEnvironmentsEnabled`), and no workflow here uses them. Since pingdotgg/t3code#31857
   (0.1.8-nightly.20261106.4262) a script may set `stopOnSettle`, which stops its terminal and child
-  processes when the thread settles; it defaults to false and no project's `t3.json` sets it.
+  processes when the thread settles; it defaults to false and no project's `t3.json` sets it. Since pingdotgg/t3code#37924 (0.1.11-nightly.20261117.4825) the terminal shell is a setting, and project scripts are run with `T3CODE_TERMINAL_SHELL` cleared, so they keep the default shell; the result of an `async: true` script is now recorded when it exits, not after the agent starts (`ThreadLaunchService.ts`).
 - **Used by:** `skills/implement/THREADS.md`; `agents/implementer.md` step 1 (T3 set up the
   implementer's checkout before it started)
 - **Breaks if:** T3 stops applying `defaultThreadEnvMode` or running create-time scripts, starts
@@ -198,7 +198,7 @@ T3 source paths below are in pingdotgg/t3code.
   base that no longer resolves falls back to the remote's default branch, then the checked-out
   branch; since #31662 (same build) parallel worktree launches each get their branch renamed off
   `t3/<id>`, where all but one kept it; since #36760 (20261114.4695) cancelling worktree setup
-  removes its unclaimed worktree and branch.
+  removes its unclaimed worktree and branch. Since pingdotgg/t3code#31279 (0.1.11-nightly.20261117.4814) a `worktree` launch whose explicit `branch` already exists locally (exact name, `t3/…` included) is refused up front with "Pass a branch name that does not exist yet, or omit branch", where it used to return a thread that then failed with `branch_already_exists`; so a launch cannot check out an existing branch such as `prototype/<n>`: it takes it as `baseRef` and gets a new branch. Since #37538 (0.1.10-nightly.20261116.4800) branch-name generation gives up after 20 s. In this range a launch's first message is refused (`runtime_mode_escalation_denied`, `interaction_mode_escalation_denied`) when it would run above the launching thread's modes (`OrchestratorMcpService.ts`); every thread here runs in Full access.
 - **Used by:** `skills/implement/THREADS.md` ("Work where you started", "A launched thread
   reports to its own inbox")
 - **Breaks if:** the tool or its `workspaceStrategy` shape changes, or a launched thread stops
@@ -286,7 +286,7 @@ T3 source paths below are in pingdotgg/t3code.
   many are open; `list_thread_pull_requests` pages 50 at a time (`cursor`, `nextCursor`) and takes
   `states`. A `pullRequestCount` above the preview's length no longer means the rest merged or
   closed; since 2026-11-14 `THREADS.md` reads its thread from the start (`afterPosition: -1`) and
-  takes every linked PR from `list_thread_pull_requests`, and `housekeeping` pages the list. `t3_thread_search` returns `currentThreadId` too (`apps/server/src/mcp/toolkits/thread/handlers.ts`).
+  takes every linked PR from `list_thread_pull_requests`, and `housekeeping` pages the list. `t3_thread_search` returns `currentThreadId` too (`apps/server/src/mcp/toolkits/thread/handlers.ts`). Since pingdotgg/t3code#37915 (0.1.11-nightly.20261117.4825) `t3_thread_read` loads only the recent runs (`runLimit`) and the active ones, with `runCount` counted apart; the timeline of messages is read as before.
 - **Used by:** `skills/implement/THREADS.md` ("A lost context is recovered from T3", "One thread,
   one branch, one PR"); `skills/housekeeping/SKILL.md` step 2 (pages `t3_thread_list`)
 - **Breaks if:** `currentThreadId` is dropped from the list result, a thread's timeline stops
@@ -361,7 +361,7 @@ T3 source paths below are in pingdotgg/t3code.
   a PR wakes the watch (no project here uses a merge queue); since #35109
   (0.1.10-nightly.20261112.4603) one sweep that changes several watched PRs wakes their thread
   once; since #33389 (0.1.10-nightly.20261113.4616) a watch is refused when the host's
-  dependencies are unavailable, instead of starting one that never reads.
+  dependencies are unavailable, instead of starting one that never reads. Since pingdotgg/t3code#37741 (0.1.10-nightly.20261116.4800) a new watch reads its PR at once instead of at the next 2-minute sweep, so its silent baseline no longer swallows a CI pass that lands in the first minutes (seen upstream on 9 PRs in a row whose CI took about 40 s); a check that finishes before the `watch_pull_request` call is still baseline.
 - **Used by:** `skills/babysit-pr/SKILL.md` § 2 and § 5; `skills/implement/SKILL.md` § 7;
   `skills/implement/THREADS.md` ("A launched thread reports to its own inbox");
   `skills/fan-out/SKILL.md` § 4
@@ -492,7 +492,7 @@ T3 source paths below are in pingdotgg/t3code.
   (0.1.10-nightly.20261113.4656, 20261114.4669) a follow-up task to a child reports
   `waiting_for_children` while that child's own subagents or awaited background work run.
   Source: `packages/contracts/src/orchestratorMcp.ts`. Read-only review
-  is a prompt rule (`agents/reviewer.md`), not something T3 enforces.
+  is a prompt rule (`agents/reviewer.md`), not something T3 enforces. Since pingdotgg/t3code#37901 (0.1.11-nightly.20261117.4825) a child's answer given after an awaited Monitor ends reaches the parent as the result, and since #37942 (same build) a later run that ends without text keeps the earlier report as `summary`. Since #37728 (0.1.11-nightly.20261117.4814) a Claude request that gets no answer fails the turn after 10 minutes (`claude_request_unanswered`) instead of hanging the child, and since #37943 (0.1.11-nightly.20261117.4825) a fresh Claude session that times out at startup or MCP registration is retried once.
 - **Used by:** `agents/models.md` § Reaching each model; `skills/code-review/SKILL.md` § Spawning
   a reviewer; `agents/reviewer.md`; `agents/research.md`
 - **Breaks if:** `summary` stops carrying the child's report, a child's question stops waking
@@ -529,7 +529,8 @@ T3 source paths below are in pingdotgg/t3code.
 - **Used by:** `skills/implement-spec/SKILL.md` § 2, § 3, § Route change (`task_cancel`, under
   `delegate-task-reviews`) and § 4 step 3; `agents/implementer.md`;
   `agents/models.md` (Reaching each model); `skills/implement/THREADS.md` ("Work where you
-  started")
+  started"); `skills/implement/SKILL.md` § 4 (the approved variant, captured by a child that
+  checks out its `prototype/<n>` branch detached)
 - **Breaks if:** the checkout stops starting at the parent's local commit or skips setup, an
   async child's completion stops waking the parent, or storage cleanup starts removing a child's
   checkout before the orchestrator merged its branch.
@@ -540,7 +541,7 @@ T3 source paths below are in pingdotgg/t3code.
   turns, and `t3_background_wait` with its task ID holds the turn until it exits; T3's injected
   instructions name it the way to wait for a background command (0.1.8-nightly.20261109.4399).
   Since pingdotgg/t3code#34343 (0.1.10-nightly.20261112.4564) the tool is marked read-only, so
-  Claude's Plan mode runs it without asking.
+  Claude's Plan mode runs it without asking. Since pingdotgg/t3code#31840 (0.1.11-nightly.20261117.4814) a failed Claude turn on a live process keeps its background tasks, so `t3_background_wait` still finds them and their completion still wakes the thread.
 - **Used by:** `skills/implement/HEAVY.md` § 3 (`gh run watch` on the § Heavy CI run)
 - **Breaks if:** `t3_background_wait` goes away or stops returning when the command exits, so the
   session has to poll the run.
@@ -872,7 +873,7 @@ T3 source paths below are in pingdotgg/t3code.
   pingdotgg/t3code#29450 (0.1.7-nightly.20261103.4106) a watch stopped for good after eight failed
   host reads, so a network outage ended it silently; it now keeps reading through `failed` host
   errors. That may explain the missed wakes above (not checked against their logs); the one-time
-  re-read stays for the never-reporting check. Outside T3 the background
+  re-read stays for the never-reporting check. pingdotgg/t3code#37741 (0.1.10-nightly.20261116.4800) is a likely cause of the missed wakes above (every check passed, no wake): a pass before the watch's first sweep was taken as its baseline. A watch now reads at once; the backstop stays for the never-reporting check. Outside T3 the background
   `gh pr checks --watch` loop stays. Chosen by the user on 2026-11-01.
 - **Used by:** `skills/babysit-pr/SKILL.md` § 2 (the T3 and outside-T3 waits and the state table)
   and § 5 (deleting the backstop); `skills/housekeeping/SKILL.md` (the scheduled-task sweep)
@@ -1126,6 +1127,31 @@ T3 source paths below are in pingdotgg/t3code.
 None.
 
 ## Resolved
+
+### issue-linked-by-tool
+
+- **Workaround:** a thread names the issue it works on only in its messages and PR body
+  (`Closes #N`, `pr` skill); T3 shows no issue beside the thread, and a session reads and comments
+  on issues through the tracker's CLI as `docs/agents/issue-tracker.md` says.
+- **Used by:** `skills/implement/SKILL.md` § 1 (the issue a change starts from);
+  `skills/implement-spec/SKILL.md` (the PRD and its sub-issues); `skills/to-spec/SKILL.md` and
+  `to-tickets` (the issues they file); `skills/implement/THREADS.md` ("A lost context is recovered
+  from T3")
+- **Would improve if:** T3 links an issue to a thread, shows it there, and gives it back on a
+  thread read, as it does a PR.
+- **Met in:** 0.1.11-nightly.20261117.4825 (pingdotgg/t3code#19259, #19270, #19261, #19274,
+  #37930). A new issues toolkit (`apps/server/src/mcp/toolkits/issues/tools.ts`): `link_issue`
+  ("Link an issue to a thread so T3 Code shows it beside the thread. Link every issue you work on
+  or file."), `unlink_issue` and `list_thread_issues`, each defaulting to the caller's thread;
+  `list_issues`, `read_issue` (body, state, labels, comments, `linkedPullRequests`),
+  `create_issue`, `comment_on_issue` and `set_issue_state`, for GitHub, GitLab, Azure DevOps,
+  Forgejo and Linear. An issue is named by `url`, or by `key` in the thread's project. Tried
+  2026-11-17: `list_issues` on rubens returned its GitHub issues; `list_thread_issues` on this
+  review's thread returned none.
+- **Adopted:** 2026-11-17; `THREADS.md` ("One thread, one branch, one PR") links each issue a
+  thread works on or files with `link_issue`, by its URL, and "A lost context is recovered from
+  T3" reads `list_thread_issues`. Each project's tracker CLI (`docs/agents/issue-tracker.md`)
+  keeps what the tools lack: sub-issues, blocking edges, label creation. No contract file changes.
 
 ### storage-cleanup-renamed-branches
 
