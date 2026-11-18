@@ -45,7 +45,9 @@ code to pass it, repeat. The `tdd` skill also follows the project's `docs/agents
 for the kind of code the change touches.
 
 With a prototype, copy the winner's markup and layout from its branch and rewrite its data,
-mutations and behaviour test-first. Each project style rule the winner comment says the pick
+mutations and behaviour test-first. Its casts, bare data access and absent error handling are
+the prototype's shortcuts: write them to the project's standards, in copied markup and in a
+lifted logic module alike. Each project style rule the winner comment says the pick
 overrules changes in this same branch, citing the comment.
 
 Write a comment only for intent or a constraint the code cannot show: the review holds the code to

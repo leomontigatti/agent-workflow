@@ -55,6 +55,15 @@
       "reviewedAt": "2026-11-16"
     },
     {
+      "id": "cvm",
+      "repo": "mattpocock/course-video-manager",
+      "branch": "main",
+      "paths": [".oxlintrc.json", "CODING_STANDARDS.md", "docs/FRONTEND_STATE.md", "scripts/check-*.ts", ".husky/pre-commit"],
+      "license": "none (no LICENSE file): ideas in our own words only, no text carried over",
+      "reviewed": "811243471a00089b6cc6cd64dc0060f1915871e1",
+      "reviewedAt": "2026-11-18"
+    },
+    {
       "id": "agent-browser",
       "repo": "vercel-labs/agent-browser",
       "branch": "main",
