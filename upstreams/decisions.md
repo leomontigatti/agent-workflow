@@ -257,3 +257,16 @@ The checker and its `formal-verification` skill at github.com/mattzcarey/everyst
 | Id | Idea | Verdict | Where or why |
 | -- | ---- | ------- | ------------ |
 | `everystate:formal-verification` | Model a protocol in TLA+ and check every interleaving: before a `lifetime-audit` to find races more cheaply, as a prover step, or when designing a fix for a race. | declined | In the trial it found only what the judges already had, and it costs more per line read: a model covers one protocol, and someone must first pick which one and which promise (the trial's were picked for it; in an audit they are the judges' output), and it checks the model, not the code, so a red test still has to back the bug. Most `lifetime-audit` findings (stale responses, unreleased claims, blind writes) are two-step bugs a test settles. Its one gain is checking that a fix's design holds in every order, worth it only for a core protocol with several actors around one claim or queue (rubens's outbox, handoffs). Reopen there with a new reason: a fix to such a protocol that broke again in an order its tests missed. That route is `pstack:formal-verification-skill`, which stays `later` as a project skill for one costly property; everystate would be its checker. |
+
+## caldoai prune-tests, a skill that prunes tests guarding no behaviour (2026-11-18)
+
+The `prune-tests` skill at github.com/caldoai/skills (MIT), read at `d5b68da` on the user's request. It is not a watched source, so the rows carry `caldoai:`. It sorts a dead test by what it depends on (the past, nothing, the implementation) and prunes the whole suite. The ideas are taken in our own words; no text is carried over.
+
+| Id | Idea | Verdict | Where or why |
+| -- | ---- | ------- | ------------ |
+| `caldoai:guards-the-past` | A test that asserts removed code stays gone guards a decision, not a behaviour. | adopted | `skills/tdd/SKILL.md` § Anti-patterns (Guarding the past), with removals made for safety kept. |
+| `caldoai:tests-the-platform` | A test of what the browser, framework or type system guarantees can never fail on this code. | adopted | `skills/tdd/SKILL.md` § Anti-patterns (Testing the platform). |
+| `caldoai:rewrite-against-behaviour` | A test coupled to the implementation that still covers relied-on behaviour is rewritten against that behaviour, not kept or deleted. | adopted | `skills/test-audit/SKILL.md` step 2, the **rewrite** verdict. |
+| `caldoai:delete-test-only-code` | Delete production code that existed only for the deleted tests. | adopted in part | `skills/test-audit/SKILL.md` step 3 lists it as an ask: the audit edits only test files, so the user's merge decides only test changes. |
+| `caldoai:whole-suite` | Prune the whole suite in one pass, with no window, protected areas, validation or review. | declined | `test-audit`'s window, protected areas and review rounds are what make a weekly unattended run safe. |
+| `caldoai:no-overlap` | No two tests guard the same behaviour; no production code exists only for tests. | declined | Too strict: a unit test and a seam test overlap on purpose (`skills/tdd/SKILL.md` § Keeping the suite lean deletes only what a better test made redundant), and a test seam is design (`codebase-design`). |

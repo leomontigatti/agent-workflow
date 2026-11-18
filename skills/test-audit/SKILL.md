@@ -5,8 +5,8 @@ description: "Audit the tests a project gained since the last audit and open a P
 
 A suite grows one reasonable test at a time, and most of the growth is tests that cannot name the
 bug they catch. This audit reads only the tests added or grown since the last audit, judges each
-against the test rules, and opens one PR that deletes or folds the **low-signal** ones and
-retitles the **overstated** ones. The user's merge is the verdict: a test the user wants kept is
+against the test rules, and opens one PR that deletes, folds or rewrites the **low-signal** ones
+and retitles the **overstated** ones. The user's merge is the verdict: a test the user wants kept is
 restored on the PR, or the PR is closed.
 
 It runs in a fresh thread on the project, in its own worktree from the default branch. It reads
@@ -21,7 +21,8 @@ A test is judged by the bar the project already holds new tests to:
 - the coding standards and test notes `AGENTS.md` routes to, which win where they differ.
 
 A test is **kept** when you can name the bug it catches: the wrong implementation that makes it
-fail. A test named for a real bug stays whatever its assertion looks like. A test is **protected**
+fail. A test named for a real bug stays, rewritten when its assertion is one of the anti-patterns
+and the test is not protected. A test is **protected**
 when it covers an area in `docs/agents/review.md` § Full review or § Always ask: the audit never
 edits a protected test beyond renaming it, and lists a low-signal one as an ask.
 
@@ -43,6 +44,9 @@ edits a protected test beyond renaming it, and lists a low-signal one as an ask.
    - **delete**: name the anti-pattern or the rule it breaks, or the existing case that already
      catches its bug.
    - **fold**: its one new assertion belongs in an existing case; name that case.
+   - **rewrite**: it names a real bug no other case catches, but its assertion is one of the
+     anti-patterns (implementation-coupled, tautological, pass-through). Rewrite it to assert what a
+     caller sees, against an independent expected value. Name the anti-pattern and the bug.
    - **retitle**: a keep whose name is **overstated**: it promises a clause no assertion checks.
      Add the assertion when the clause names a real bug, it costs a line or two and the test is
      not protected; otherwise rename the test to what it asserts. Name the clause.
@@ -50,16 +54,19 @@ edits a protected test beyond renaming it, and lists a low-signal one as an ask.
 
    Done when every case in the window carries a verdict and a reason.
 
-3. **Apply.** On a `test/audit-<YYYY-MM-DD>` branch, make every delete, fold and retitle, and
-   remove a fixture, helper or import only the deleted tests used. Run `docs/agents/validation.md`
-   § Before committing until clean; a case whose removal breaks it is a keep after all, so restore
+3. **Apply.** On a `test/audit-<YYYY-MM-DD>` branch, make every delete, fold, rewrite and retitle,
+   and remove a fixture, helper or import only the deleted tests used. Production code only the
+   deleted tests used (a `_resetForTests` export, a test-only flag) stays: list it as an ask.
+   Run `docs/agents/validation.md` § Before committing until clean; a case whose removal breaks it is a keep after all, so restore
    it and move its verdict. An added assertion that fails has found a bug in the code: drop it,
-   rename the test to what it asserts, and list the bug as an ask.
-   - Nothing to delete, fold or retitle → write the new watermark, reply with the report from
+   rename the test to what it asserts, and list the bug as an ask. A rewrite that fails: check its
+   expected value against the spec. A wrong one is fixed; a right one has found a bug in the code,
+   so restore the original test and list the bug as an ask.
+   - Nothing to delete, fold, rewrite or retitle → write the new watermark, reply with the report from
      step 5 and open no PR.
 
 4. **Review.** Commit as
-   `test: delete <n> low-signal tests and retitle <m> added since <short sha>`, leaving out a part
+   `test: delete <n> low-signal tests, rewrite <k> and retitle <m> added since <short sha>`, leaving out a part
    that is zero, then review the branch as step 5 of `~/.agents/workflow/skills/implement/SKILL.md`
    says, tier and fix round included. The spec any axis asks for is this skill and the step 2
    verdicts. A reviewer's finding that a deleted case does catch a bug restores it as a keep.
@@ -74,6 +81,7 @@ edits a protected test beyond renaming it, and lists a low-signal one as an ask.
    ## Asks       (protected or user's call: file, test, reason, your pick)
    ## Deleted    (file, test, reason)
    ## Folded     (file, test, the case it went into)
+   ## Rewritten  (file, test, the anti-pattern it dropped)
    ## Retitled   (file, old name → new name, or the assertion added)
    ## Kept       (count, and one line per kept case only when the bug it names is not obvious from its title)
    ```
