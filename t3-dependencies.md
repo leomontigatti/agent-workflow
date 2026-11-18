@@ -118,7 +118,9 @@ T3 source paths below are in pingdotgg/t3code.
   checkout is kept as "thread has no branch", not as busy. Since #24140 (20261114.4709) each sweep
   deletes the checkpoint refs (`refs/t3/checkpoints/…`) of deleted threads, and since #30829
   (20261115.4723) the unpushed-commit check skips `refs/t3/*`, so checkpoints alone no longer hold a
-  worktree; every thread deletion requests a sweep, whatever the rules.
+  worktree; every thread deletion requests a sweep, whatever the rules. Since #38174
+  (0.1.11-nightly.20261117.4851) the merge check's fetch of a PR's tracking branch waits up to 5
+  minutes, not 30 s, and passes `--no-auto-gc`, so a slow fetch no longer keeps a merged worktree.
 - **Used by:** `skills/housekeeping/SKILL.md` (its table, and step 1 reads the settings);
   `skills/implement/THREADS.md` ("Leaving a worktree behind is fine")
   Since 2026-10-16 the user also runs `worktreeAfterDays: 5`, `worktreeSettledAfterDays: 5`,
@@ -198,7 +200,7 @@ T3 source paths below are in pingdotgg/t3code.
   base that no longer resolves falls back to the remote's default branch, then the checked-out
   branch; since #31662 (same build) parallel worktree launches each get their branch renamed off
   `t3/<id>`, where all but one kept it; since #36760 (20261114.4695) cancelling worktree setup
-  removes its unclaimed worktree and branch. Since pingdotgg/t3code#31279 (0.1.11-nightly.20261117.4814) a `worktree` launch whose explicit `branch` already exists locally (exact name, `t3/…` included) is refused up front with "Pass a branch name that does not exist yet, or omit branch", where it used to return a thread that then failed with `branch_already_exists`; so a launch cannot check out an existing branch such as `prototype/<n>`: it takes it as `baseRef` and gets a new branch. Since #37538 (0.1.10-nightly.20261116.4800) branch-name generation gives up after 20 s. In this range a launch's first message is refused (`runtime_mode_escalation_denied`, `interaction_mode_escalation_denied`) when it would run above the launching thread's modes (`OrchestratorMcpService.ts`); every thread here runs in Full access.
+  removes its unclaimed worktree and branch. Since pingdotgg/t3code#31279 (0.1.11-nightly.20261117.4814) a `worktree` launch whose explicit `branch` already exists locally (exact name, `t3/…` included) is refused up front with "Pass a branch name that does not exist yet, or omit branch", where it used to return a thread that then failed with `branch_already_exists`; so a launch cannot check out an existing branch such as `prototype/<n>`: it takes it as `baseRef` and gets a new branch. Since #37538 (0.1.10-nightly.20261116.4800) branch-name generation gives up after 20 s. In this range a launch's first message is refused (`runtime_mode_escalation_denied`, `interaction_mode_escalation_denied`) when it would run above the launching thread's modes (`OrchestratorMcpService.ts`); every thread here runs in Full access. Since #38261 (0.1.11-nightly.20261117.4851) a launch with no `workspaceStrategy` from outside any thread follows the project's `defaultThreadEnvMode` (a worktree from the checkout's current branch); a launch from inside a thread, as every one here is, is unchanged.
 - **Used by:** `skills/implement/THREADS.md` ("Work where you started", "A launched thread
   reports to its own inbox")
 - **Breaks if:** the tool or its `workspaceStrategy` shape changes, or a launched thread stops
@@ -492,10 +494,10 @@ T3 source paths below are in pingdotgg/t3code.
   (0.1.10-nightly.20261113.4656, 20261114.4669) a follow-up task to a child reports
   `waiting_for_children` while that child's own subagents or awaited background work run.
   Source: `packages/contracts/src/orchestratorMcp.ts`. Read-only review
-  is a prompt rule (`agents/reviewer.md`), not something T3 enforces. Since pingdotgg/t3code#37901 (0.1.11-nightly.20261117.4825) a child's answer given after an awaited Monitor ends reaches the parent as the result, and since #37942 (same build) a later run that ends without text keeps the earlier report as `summary`. Since #37728 (0.1.11-nightly.20261117.4814) a Claude request that gets no answer fails the turn after 10 minutes (`claude_request_unanswered`) instead of hanging the child, and since #37943 (0.1.11-nightly.20261117.4825) a fresh Claude session that times out at startup or MCP registration is retried once.
+  is a prompt rule (`agents/reviewer.md`), not something T3 enforces. Since pingdotgg/t3code#37901 (0.1.11-nightly.20261117.4825) a child's answer given after an awaited Monitor ends reaches the parent as the result, and since #37942 (same build) a later run that ends without text keeps the earlier report as `summary`. Since #37728 (0.1.11-nightly.20261117.4814) a Claude request that gets no answer fails the turn after 10 minutes (`claude_request_unanswered`) instead of hanging the child, and since #37943 (0.1.11-nightly.20261117.4825) a fresh Claude session that times out at startup or MCP registration is retried once. Since #38436 (0.1.11-nightly.20261118.4877) a `target` sent as JSON text is parsed as the object, and since #38112 (0.1.11-nightly.20261117.4838) a child run that waits on a question marks its parent's task card `waiting`.
 - **Used by:** `agents/models.md` § Reaching each model; `skills/code-review/SKILL.md` § Spawning
-  a reviewer; `skills/lifetime-audit/SKILL.md` steps 3 and 4 (one judge per candidate, one prover per
-  claim); `agents/reviewer.md`;
+  a reviewer; `skills/lifetime-audit/SKILL.md` steps 3 and 5 (one judge per slice, one prover per
+  ask); `agents/reviewer.md`;
   `agents/research.md`
 - **Breaks if:** `summary` stops carrying the child's report, a child's question stops waking
   the parent (it would wait forever), `clientRequestId` stops
@@ -532,7 +534,7 @@ T3 source paths below are in pingdotgg/t3code.
   `delegate-task-reviews`) and § 4 step 3; `agents/implementer.md`;
   `agents/models.md` (Reaching each model); `skills/implement/THREADS.md` ("Work where you
   started"); `skills/implement/SKILL.md` § 4 (the approved variant, captured by a child that
-  checks out its `prototype/<n>` branch detached); `skills/lifetime-audit/SKILL.md` step 4 (each
+  checks out its `prototype/<n>` branch detached); `skills/lifetime-audit/SKILL.md` step 5 (each
   prover writes its test in a checkout of the audited commit)
 - **Breaks if:** the checkout stops starting at the parent's local commit or skips setup, an
   async child's completion stops waking the parent, or storage cleanup starts removing a child's
@@ -655,12 +657,18 @@ T3 source paths below are in pingdotgg/t3code.
   (0.1.10-nightly.20261112.4603) the schema says what the server has done since #15219: an omitted
   `bindToCurrentThread` binds only when the caller schedules into its own thread's project, so
   `babysit-pr`'s re-read binds and a task made from another project's thread starts new threads. A run's outcome now reaches `lastRunStatus`
-  (`scheduled-run-status`, `scheduled-missed-runs`).
+  (`scheduled-run-status`, `scheduled-missed-runs`). Since pingdotgg/t3code#37991
+  (0.1.11-nightly.20261117.4838) a `once` task whose run ends `completed` is deleted, its thread
+  kept (`recordRunOutcome` in `ScheduledTaskService.ts`), and since #38463
+  (0.1.11-nightly.20261118.4877) only when that run started at or after its `runAt`, so a task
+  paused and run by hand early stays. A `once` task whose run failed, was stopped or was never
+  run stays listed, and so do a settled or archived thread's bound tasks.
 - **Used by:** `skills/upstream-review/SKILL.md` § Cadence; `skills/t3-update-review/SKILL.md`
   § Cadence; `skills/test-audit/SKILL.md` § Cadence; `skills/housekeeping/SKILL.md` (it removes
   only spent or orphaned `once` tasks, never these recurring ones)
 - **Would improve if:** T3 deletes a `once` task after it runs, or deletes a thread's bound tasks
-  when the thread is settled or archived.
+  when the thread is settled or archived. The first half is met for a run that completes
+  (pingdotgg/t3code#37991, above); what that changes is under `pr-watch-unreported-checks`.
 - **Breaks if:** scheduled runs stop starting when no thread is open, stop getting a worktree of
   their own, the MCP default base stops following the project's default branch, or the scheduler
   drops `fixed_time` tasks. A task stored before that build on a project whose default branch
@@ -863,8 +871,13 @@ T3 source paths below are in pingdotgg/t3code.
   `babysit-pr` makes one per PR on its first wait and moves it 20 minutes out (`schedule_task`
   with its `scheduledTaskId`, found again with `list_scheduled_tasks` by its prompt when the
   session lost the id) before each later turn it ends on the watch; its run re-reads the
-  round (rubens #220, 2026-11-09: the watch missed a wake and the backstop's run merged it). T3
-  never removes it by itself: a `once` task that ran stays listed with `nextRunAt` null
+  round (rubens #220, 2026-11-09: the watch missed a wake and the backstop's run merged it).
+  Since pingdotgg/t3code#37991 and #38463 (0.1.11-nightly.20261117.4838, 20261118.4877) T3
+  deletes a backstop once its run completes at or after its `runAt`; then `schedule_task` with
+  its `scheduledTaskId`, and `delete_scheduled_task`, fail with `task_not_found` ("Scheduled task
+  <id> was not found.", `loadScheduledTask` in `OrchestratorMcpService.ts`), and `babysit-pr`
+  § 2 still says to move it "even after it has run". Until that build T3
+  never removed it by itself: a `once` task that ran stayed listed with `nextRunAt` null
   (`nextRunAfterRun`; `nextScheduledRunAt` in `apps/server/src/scheduledTasks/Schedule.ts`),
   `enabled: false` keeps the row, and `ScheduledTaskService.deleteForThread`
   (`apps/server/src/scheduledTasks/ScheduledTaskService.ts`) runs only when its thread is deleted
@@ -885,6 +898,8 @@ T3 source paths below are in pingdotgg/t3code.
   checks passing; then those two cases need no handling of their own. It would also improve if
   T3 deletes a `once` task after it runs, or deletes a thread's bound tasks when the thread is
   settled or archived; then neither the § 5 delete nor the housekeeping sweep is needed.
+  Deletion after a completed run is met (above); a backstop whose run failed or was stopped, one
+  disabled before it ran, and one still due on a settled or archived thread are still left.
 - **Partly met in:** 0.1.3-nightly.20261023.3566. T3 now wakes once the other checks finish after
   the required ones passed early (pingdotgg/t3code#23904), and once when a GitHub head has had no
   checks for 15 minutes or more (pingdotgg/t3code#23863; on time since #25437). Still no wake
