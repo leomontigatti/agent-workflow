@@ -18,7 +18,7 @@ hands T3 everything T3 can do, and sweeps only what T3 leaves by design:
 | a stack layer merged into another PR's branch | T3 counts only merges into the default branch                       | this sweep, until T3 fixes it    |
 | a folder in T3's folder that no thread uses   | T3 lists it under Last run but never removes it                     | this sweep, until T3 fixes it    |
 | per-worktree resources (a database, a cache)  | T3 runs no script when it removes a worktree                        | this sweep, by `docs/agents/housekeeping.md` |
-| a spent or orphaned one-time scheduled task (`babysit-pr`'s backstop) | T3 keeps a `once` task after it runs, and deletes a thread's tasks only with the thread | this sweep, until T3 fixes it |
+| a spent or orphaned one-time scheduled task (`babysit-pr`'s backstop) | T3 keeps a `once` task whose run failed or never ran, and deletes a thread's tasks only with the thread | this sweep, until T3 fixes it |
 
 The "until T3 fixes it" rows are watched in the shared `t3-dependencies.md`; when one is fixed,
 its row moves to T3 here.

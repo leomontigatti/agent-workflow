@@ -97,8 +97,8 @@ turn, set the PR's one **backstop**, so a wake the watch misses costs twenty min
 wait, `schedule_task` with `schedule: {type: "once", runAt: <now + 20 minutes, ISO 8601>}` and a
 prompt to read PR #<n>'s round again by this skill, and keep the `scheduledTaskId` it returns
 (`list_scheduled_tasks` finds it again by that prompt); on every later wait, move that same task
-with `schedule_task`, its `scheduledTaskId` and a new `runAt`, even after it has run.
-Step 5 deletes it.
+with `schedule_task`, its `scheduledTaskId` and a new `runAt`, or, on `task_not_found` (T3
+deletes one whose run completed), schedule a new one. Step 5 deletes it.
 
 **A check still running, outside T3**: wait for the rest in the background, with a timeout of
 1500000 ms, then read the round again:
@@ -205,8 +205,9 @@ Before reporting READY, run the same `review.py check` as step 4c: a failure is 
 even when the project's CI does not run the check yet.
 
 In T3, first remove the PR's backstop (step 2) with `delete_scheduled_task`, however the watch
-ended, a merge or close on a wake included: a backstop that ran, or one set `enabled: false`, stays
-listed. Then call `unwatch_pull_request` on the PR, so the thread returns to the user's inbox. If
+ended, a merge or close on a wake included: one whose run failed or set `enabled: false` stays
+listed; `task_not_found` means it is gone. Then call `unwatch_pull_request` on the PR, so the
+thread returns to the user's inbox. If
 a push-notification tool is available, send the verdict line through it. Before reporting READY,
 look at the round's declines once: when one matches a shape declined on an earlier PR, add it
 under "Rubric candidates" in the pattern format of [triage.md](triage.md#patterns).
