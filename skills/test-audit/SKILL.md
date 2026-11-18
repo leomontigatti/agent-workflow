@@ -21,7 +21,8 @@ A test is judged by the bar the project already holds new tests to:
 - the coding standards and test notes `AGENTS.md` routes to, which win where they differ.
 
 A test is **kept** when you can name the bug it catches: the wrong implementation that makes it
-fail. A test named for a real bug stays, rewritten when its assertion is one of the anti-patterns. A test is **protected**
+fail. A test named for a real bug stays, rewritten when its assertion is one of the anti-patterns
+and the test is not protected. A test is **protected**
 when it covers an area in `docs/agents/review.md` § Full review or § Always ask: the audit never
 edits a protected test beyond renaming it, and lists a low-signal one as an ask.
 
@@ -55,11 +56,12 @@ edits a protected test beyond renaming it, and lists a low-signal one as an ask.
 
 3. **Apply.** On a `test/audit-<YYYY-MM-DD>` branch, make every delete, fold, rewrite and retitle,
    and remove a fixture, helper or import only the deleted tests used. Production code only the
-   deleted tests used (a `_resetForTests` export, a test-only flag) stays: list it as an ask. Run `docs/agents/validation.md`
-   § Before committing until clean; a case whose removal breaks it is a keep after all, so restore
+   deleted tests used (a `_resetForTests` export, a test-only flag) stays: list it as an ask.
+   Run `docs/agents/validation.md` § Before committing until clean; a case whose removal breaks it is a keep after all, so restore
    it and move its verdict. An added assertion that fails has found a bug in the code: drop it,
-   rename the test to what it asserts, and list the bug as an ask. A rewrite that fails has found
-   one too: restore the original test and list the bug as an ask.
+   rename the test to what it asserts, and list the bug as an ask. A rewrite that fails: check its
+   expected value against the spec. A wrong one is fixed; a right one has found a bug in the code,
+   so restore the original test and list the bug as an ask.
    - Nothing to delete, fold, rewrite or retitle → write the new watermark, reply with the report from
      step 5 and open no PR.
 
