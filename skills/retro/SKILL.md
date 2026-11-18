@@ -57,7 +57,7 @@ Every finding gets one.
 Propose each fix at the highest level that makes it durable, highest first:
 
 1. Architecture: change the code or the tooling so the mistake cannot be written (a type that cannot hold the bad value, a module that owns the only path).
-2. A type or lint rule whose message names the fix, or a hook. Every **mechanical** finding (a fixed pattern, a banned call, a file-location rule) lands here or above. A rule the code already breaks lands as a **ratchet**: the existing breaks go in a per-file allowlist of counts, and one check fails when a file's count differs from its entry (a fix lowers the entry in the same change), when a file joins the list, and on a disable comment naming the rule, so the list only shrinks.
+2. A type or lint rule whose message names the fix, or a hook. Every **mechanical** finding (a fixed pattern, a banned call, a file-location rule) lands here or above. A rule the code already breaks lands as a **ratchet**: the existing breaks go in a per-file allowlist of counts, and one check fails when a file's count differs from its entry, when the list has a new file or a higher entry than the base branch's, and on a disable comment naming the rule, so the list only shrinks.
 3. A test or CI job that goes red on the mistake.
 4. A tool or script change: better output, a missing command.
 5. Sharper wording on an existing pointer or rule.
