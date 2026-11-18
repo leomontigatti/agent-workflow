@@ -76,6 +76,70 @@ class Manifest(unittest.TestCase):
             recall.claim(out, {"sol": {"model": "gpt-6.1-sol", "effort": "medium"}}, {"d": "h"}, ["d.sol.1"], "consult")
 
 
+    def test_a_directory_refuses_another_brief_or_cases_file(self):
+        # One directory's recall is one brief on one case set: mixed, the report would average both.
+        out = tempfile.mkdtemp()
+        opus = {"opus": {"model": "claude-opus-5-5", "effort": "medium"}}
+        recall.claim(out, opus, {"c": "h"}, ["c.opus.1"], setup={"brief": "briefs/lifetime.md", "cases": "cases.json"})
+        for setup in ({"brief": "CORRECTNESS.md", "cases": "cases.json"},
+                      {"brief": "briefs/lifetime.md", "cases": "cases-lifetime.json"}):
+            with self.assertRaises(SystemExit):
+                recall.claim(out, opus, {"c": "h"}, ["c.opus.1"], setup=setup)
+        manifest = json.load(open(os.path.join(out, "manifest.json")))
+        self.assertEqual((manifest["brief"], manifest["cases"]), ("briefs/lifetime.md", "cases.json"))
+
+    def test_a_directory_refuses_an_edited_brief_under_the_same_name(self):
+        out = tempfile.mkdtemp()
+        opus = {"opus": {"model": "claude-opus-5-5", "effort": "medium"}}
+        setup = {"brief": "briefs/lifetime.md", "cases": "cases.json"}
+        recall.claim(out, opus, {"a": "h"}, ["a.opus.1"], setup=dict(setup, brief_sha="1"))
+        with self.assertRaises(SystemExit):
+            recall.claim(out, opus, {"b": "h"}, ["b.opus.1"], setup=dict(setup, brief_sha="2"))
+        recall.claim(out, opus, {"b": "h"}, ["b.opus.1"], setup=dict(setup, brief_sha="1"))
+
+    def test_an_old_manifest_takes_the_brief_hash_asked_for(self):
+        out = tempfile.mkdtemp()
+        json.dump({"models": {}, "prompts": {}, "runs": ["c.opus.1"]}, open(os.path.join(out, "manifest.json"), "w"))
+        recall.claim(out, {}, {}, [], setup={"brief_sha": "1"})
+        self.assertEqual(json.load(open(os.path.join(out, "manifest.json")))["brief_sha"], "1")
+
+    def test_an_old_manifest_measured_the_current_brief_on_the_baseline(self):
+        out = tempfile.mkdtemp()
+        json.dump({"models": {}, "prompts": {}, "runs": ["c.opus.1"]}, open(os.path.join(out, "manifest.json"), "w"))
+        with self.assertRaises(SystemExit):
+            recall.claim(out, {}, {}, [], setup={"brief": "briefs/lifetime.md", "cases": "cases.json"})
+        self.assertEqual(recall.setup_of({"models": {}}), {"brief": "CORRECTNESS.md", "cases": "cases.json"})
+
+
+class Cases(unittest.TestCase):
+    KEYS = {"id", "repo", "pr", "base", "before", "severity", "found_by", "bug", "files"}
+
+    def test_every_cases_file_holds_whole_cases_with_unique_ids(self):
+        ids = []
+        names = sorted(f for f in os.listdir(os.path.join(ROOT, "evals/reviewer-recall"))
+                       if f.startswith("cases") and f.endswith(".json"))
+        self.assertIn("cases-lifetime.json", names)
+        for name in names:
+            for case in recall.load_cases(None, name):
+                self.assertLessEqual(self.KEYS, set(case), case["id"])
+                self.assertIn(case["severity"], ("critical", "warning"))
+                ids.append(case["id"])
+        self.assertEqual(len(ids), len(set(ids)))
+
+    def test_lifetime_cases_name_the_audit(self):
+        cases = recall.load_cases(None, "cases-lifetime.json")
+        self.assertTrue(cases)
+        self.assertEqual({c["found_by"] for c in cases}, {"lifetime-audit"})
+
+    def test_a_variant_brief_is_read_from_its_quoted_lines(self):
+        brief = recall.correctness_brief("briefs/lifetime.md")
+        self.assertIn("<the project's hotspots>", brief)
+        self.assertIn("async start", brief)
+        self.assertFalse([line for line in brief.splitlines() if line.startswith(">")])
+        self.assertNotIn("Only the `>` lines reach the reviewer", brief)
+        self.assertNotIn("async start", recall.correctness_brief())
+
+
 class Measure(unittest.TestCase):
     def test_claude_output_gives_the_review_and_its_cost(self):
         text, meta = recall.parse_output("claude", json.dumps(CLAUDE_OUT), None)

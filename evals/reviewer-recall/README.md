@@ -29,6 +29,36 @@ whether a change turns misses into catches, rerun only the cases each model miss
 (`--models sol --cases id,id`), one repeat first: it spares the Codex quota, which a full run at
 high effort can exhaust.
 
+## A brief change: the lifetime lens
+
+[`briefs/lifetime.md`](briefs/lifetime.md) is `CORRECTNESS.md`'s brief with a lifetime lens folded
+in: for every async start in the diff, its premise, whether it still holds when it lands, and
+whether what it acquired is given back on every exit. The question is whether the lens catches more
+async lifetime bugs without costing the baseline the attention it takes from the brief's other
+checks. Reviews run on Sol at medium, the correctness role's effort. Each of the four runs gets a
+directory of its own, since a directory holds one brief on one case set:
+
+```sh
+r=~/.local/state/reviewer-recall
+for cases in cases.json cases-lifetime.json; do
+  python3 -I evals/reviewer-recall/run.py review --models sol --repeats 2 --cases-file $cases --out $r/current-$cases
+  python3 -I evals/reviewer-recall/run.py review --models sol --repeats 2 --cases-file $cases --brief briefs/lifetime.md --out $r/lifetime-$cases
+done
+```
+
+Then `grade` and `report` each directory. To spare the quota, run one repeat first, then repeat
+only the cases each brief missed (`--cases id,id`). Two numbers decide it:
+
+- **Recall on [`cases-lifetime.json`](cases-lifetime.json) should rise.** Those cases were found
+  by the lifetime audit after the PRs that brought them in had merged, so they test what review
+  missed: every one went through a correctness review, and only `rubens-issue283` and
+  `rubens-issue302` were raised there (and parked). The current brief's recall there is the floor.
+- **Recall on `cases.json` must hold.** A lens that gains lifetime bugs and loses the baseline's
+  spent attention the brief's other checks needed.
+
+A lifetime case has an `issue` and no `fix`: most are still open, and the grader matches the
+`bug` sentence, taken from the issue.
+
 ## Foresight: `consult`
 
 `run.py consult` takes the same options and asks a different question: would the model have warned
@@ -59,6 +89,9 @@ Every case is a bug the review caught anyway, so a consult moves a fix earlier a
 
 ## Adding a case
 
-A case needs the commit the reviewer saw (`before`), the PR's merge-base (`base`), the fix commit,
-and a one-sentence bug a grader can match against a review: what goes wrong, and where. Take it
-from a `## Review` line that names a fixed finding, and confirm the bug in the fix's diff.
+A case needs the commit the reviewer saw (`before`), the PR's merge-base (`base`), and a
+one-sentence bug a grader can match against a review: what goes wrong, and where. A case in
+`cases.json` also names its fix commit: take it from a `## Review` line that names a fixed finding,
+and confirm the bug in the fix's diff. A case in `cases-lifetime.json` starts from an issue the
+audit filed instead: `git blame` the lines the issue names on the commit it was found at, take
+the PR their squash commit names, and check that its head already has the bug.

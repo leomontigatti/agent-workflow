@@ -6,13 +6,18 @@ eval checks out the commit before the fix, hands each model the prompt `implemen
 correctness reviewer, and asks a judge whether the review reports that bug.
 
 Usage, from anywhere:
-  python3 -I run.py review [--models opus,sol,luna] [--repeats 2] [--cases id,id] [--effort medium] [--jobs 4] [--out DIR]
+  python3 -I run.py review [--models opus,sol,luna] [--repeats 2] [--cases id,id] [--effort medium] [--jobs 4]
+                            [--cases-file cases.json] [--brief FILE] [--out DIR]
   python3 -I run.py consult ...      the same options; asks for the hazards before the change exists
   python3 -I run.py grade DIR        judge every review in DIR that has no verdict yet
   python3 -I run.py report DIR       print recall, time and cost per model, and recall per case
 
 A model in --models may name its own effort, `fable:low,opus:medium`; a bare one takes --effort.
 Each review's wall time, cost and tokens go beside it in `<case>.<model>.<k>.meta.json`.
+
+--cases-file picks the case set (a file beside run.py), --brief a variant of CORRECTNESS.md's brief
+(a file whose `>` lines are the brief, like CORRECTNESS.md's own). A directory records both and holds
+one of each, so its recall is one brief on one case set; `grade` and `report` read them from it.
 
 DIR defaults to ~/.local/state/reviewer-recall/<today>. `review` skips a review already on disk, so
 a stopped run resumes. Repos are read from ~/.t3/projects/<repo>, else cloned once into ~/.cache/reviewer-recall; a missing commit is fetched from
@@ -113,10 +118,19 @@ def normalize(manifest):
     return manifest
 
 
-def claim(out, models, prompts, asked, kind="review"):
-    """Record what this directory measures: a review on disk is reused only when its model, effort
-    and prompt are the ones asked for now. The lock makes the check and the write one step, so two
-    runs started together on one directory cannot both pass it."""
+DEFAULT_SETUP = {"brief": "CORRECTNESS.md", "cases": "cases.json"}
+
+
+def setup_of(manifest):
+    """The brief and case set a directory measures; one from before they were recorded measured
+    CORRECTNESS.md's brief on cases.json."""
+    return {k: manifest.get(k, v) for k, v in DEFAULT_SETUP.items()}
+
+
+def claim(out, models, prompts, asked, kind="review", setup=None):
+    """Record what this directory measures: a review on disk is reused only when its model, effort,
+    prompt, brief and case set are the ones asked for now. The lock makes the check and the write
+    one step, so two runs started together on one directory cannot both pass it."""
     manifest_path = os.path.join(out, "manifest.json")
     with open(os.path.join(out, ".lock"), "w") as lock:
         fcntl.flock(lock, fcntl.LOCK_EX)
@@ -124,6 +138,15 @@ def claim(out, models, prompts, asked, kind="review"):
                     else {"models": {}, "prompts": {}, "runs": []})
         if manifest.setdefault("kind", "review" if manifest["runs"] else kind) != kind:
             sys.exit(f"{out} holds {manifest['kind']}s: use a new directory")
+        # The brief's hash catches an edited brief under the same name, which the per-case prompt
+        # hashes miss when the new run asks for other cases. A manifest from before it was recorded
+        # takes the one asked for now.
+        wanted = dict(DEFAULT_SETUP, **(setup or {}))
+        held = dict(setup_of(manifest), brief_sha=manifest.get("brief_sha")) if manifest["runs"] else wanted
+        clash = [f"{k} {held[k]}" for k, v in wanted.items() if held.get(k) not in (None, v)]
+        if clash:
+            sys.exit(f"{out} holds the {', '.join(clash)}: use a new directory")
+        manifest.update({k: v if held.get(k) is None else held[k] for k, v in wanted.items()})
         for key, wanted in (("models", models), ("prompts", prompts)):
             clash = [k for k, v in wanted.items() if manifest[key].get(k, v) != v]
             if clash:
@@ -137,8 +160,10 @@ def git(repo, *args):
     return subprocess.run(["git", "-C", repo, *args], check=True, capture_output=True, text=True).stdout
 
 
-def correctness_brief():
-    text = open(os.path.join(ROOT, "skills", "code-review", "CORRECTNESS.md"), encoding="utf-8").read()
+def correctness_brief(path=None):
+    """The `>` lines of CORRECTNESS.md, or of a variant brief beside run.py."""
+    path = os.path.join(HERE, path) if path else os.path.join(ROOT, "skills", "code-review", "CORRECTNESS.md")
+    text = open(path, encoding="utf-8").read()
     return "\n".join(re.sub(r"^\s*>\s?", "", line) for line in text.splitlines() if line.lstrip().startswith(">"))
 
 
@@ -175,13 +200,13 @@ def consult_prompt(case, repo, pr):
             "code or this ticket: a hazard any change could have is noise.\n")
 
 
-def prompt_for(case, repo, kind="review"):
+def prompt_for(case, repo, kind="review", brief_path=None):
     pr = gh_json(case, "pr", "view", str(case["pr"]), "--json", "title,closingIssuesReferences")
     if kind == "consult":
         return consult_prompt(case, repo, pr)
     title = pr["title"]
     commits = git(repo, "log", "--oneline", "--no-merges", f"{case['base']}..{case['before']}").strip()
-    brief = correctness_brief().replace("<the project's hotspots>", hotspots(repo, case["before"]))
+    brief = correctness_brief(brief_path).replace("<the project's hotspots>", hotspots(repo, case["before"]))
     return (f"Before anything else, read `~/.agents/workflow/agents/reviewer.md` and follow it. "
             f"Axis: correctness.\n\nDiff: `git diff {case['base']}...{case['before']}`\n\n"
             f"Commits:\n{commits}\n\nWhat the change is meant to do: {title}\n\n{brief}\n")
@@ -202,14 +227,25 @@ def ensure(case):
 
 
 def review(args, kind="review"):
-    cases = load_cases(args.get("cases"))
+    if kind == "consult" and "brief" in args:
+        sys.exit("--brief is a review's: a consult has no correctness brief")
+    setup = {"brief": args.get("brief", DEFAULT_SETUP["brief"]), "cases": args.get("cases-file", DEFAULT_SETUP["cases"])}
+    for key, path in setup.items():
+        if path != DEFAULT_SETUP[key] and not os.path.isfile(os.path.join(HERE, path)):
+            sys.exit(f"--{'brief' if key == 'brief' else 'cases-file'}: no file {path} beside run.py")
+    cases = load_cases(args.get("cases"), setup["cases"])
+    if not cases:
+        sys.exit(f"no case in {setup['cases']} matches --cases")
     models = parse_models(args.get("models", "opus,sol,luna"), args.get("effort", "medium"))
     repeats = int(args.get("repeats", 2))
     out = args["out"]
     os.makedirs(out, exist_ok=True)
-    prompts = {c["id"]: prompt_for(c, ensure(c), kind) for c in cases}
+    brief = None if setup["brief"] == DEFAULT_SETUP["brief"] else setup["brief"]
+    if kind == "review":
+        setup["brief_sha"] = hashlib.sha256(correctness_brief(brief).encode()).hexdigest()
+    prompts = {c["id"]: prompt_for(c, ensure(c), kind, brief) for c in cases}
     asked = [f"{c['id']}.{m}.{k}" for c in cases for m in models for k in range(1, repeats + 1)]
-    claim(out, models, {i: hashlib.sha256(p.encode()).hexdigest() for i, p in prompts.items()}, asked, kind)
+    claim(out, models, {i: hashlib.sha256(p.encode()).hexdigest() for i, p in prompts.items()}, asked, kind, setup)
     tmp = tempfile.mkdtemp(prefix="reviewer-recall-")
     jobs, worktrees = [], []
     for case in cases:
@@ -260,8 +296,9 @@ def run_one(spec, alias, prompt, wt, path):
 
 def grade(args):
     out = args["out"]
-    cases = {c["id"]: c for c in load_cases(None)}
-    consult = json.load(open(os.path.join(out, "manifest.json"))).get("kind") == "consult"
+    manifest = json.load(open(os.path.join(out, "manifest.json")))
+    cases = {c["id"]: c for c in load_cases(None, setup_of(manifest)["cases"])}
+    consult = manifest.get("kind") == "consult"
     todo = [f for f in sorted(os.listdir(out)) if f.endswith(".md") and not os.path.exists(os.path.join(out, f[:-3] + ".json"))]
 
     def judge(name):
@@ -301,7 +338,9 @@ def report(args):
     manifest = normalize(json.load(open(os.path.join(out, "manifest.json"))))
     models = sorted(manifest["models"])
     label = {m: f"{m} ({manifest['models'][m]['effort']})" for m in models}
-    cases = {c["id"]: c for c in load_cases(None) if c["id"] in manifest["prompts"]}
+    setup = setup_of(manifest)
+    cases = {c["id"]: c for c in load_cases(None, setup["cases"]) if c["id"] in manifest["prompts"]}
+    print(f"brief: {setup['brief']}; cases: {setup['cases']}\n")
     # Every run asked for is True, False, or missing (failed, timed out, or not graded yet), so a
     # model that failed half its runs shows it instead of reporting recall on the rest.
     runs = {case: {m: [] for m in models} for case in cases}
@@ -324,7 +363,7 @@ def report(args):
               + (f"; {missing} runs missing, so this is incomplete" if missing else ""))
     # Every case was caught once, by the model in `found_by`: a model's recall on its own family's
     # cases is inflated, so compare on the cases the other family first found.
-    for m in models:
+    for m in models if any(FAMILY.get(c["found_by"].lower()) for c in cases.values()) else ():
         other = [v for case, by in runs.items() for v in by[m]
                  if v is not None and FAMILY.get(cases[case]["found_by"].lower()) not in (None, FAMILY[m])]
         print(f"{m} on the other family's cases: {sum(other)}/{len(other)}")
@@ -354,8 +393,8 @@ def report(args):
               f"tokens mean {statistics.mean(tokens):,.0f} in, {statistics.mean(outs):,.0f} out")
 
 
-def load_cases(ids):
-    cases = json.load(open(os.path.join(HERE, "cases.json"), encoding="utf-8"))
+def load_cases(ids, path="cases.json"):
+    cases = json.load(open(os.path.join(HERE, path), encoding="utf-8"))
     return [c for c in cases if not ids or c["id"] in ids.split(",")]
 
 
