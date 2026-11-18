@@ -183,8 +183,8 @@ T3 source paths below are in pingdotgg/t3code.
   prefix of the branch plus a digest of the shared git directory and branch (this review's own:
   `~/.t3/worktrees/agent-workflow/t3-b9f99963-6a1fe677a1bd3922`), still under
   `<managed folder>/<repo>/`; existing and explicit paths keep theirs. Folder names stay unique
-  and keep their name on a branch rename, which rubens' and enescena's
-  `worktree-folder-names-unique` rely on. Since pingdotgg/t3code#34781 (0.1.10-nightly.20261112.4580)
+  and keep their name on a branch rename, which rubens'
+  `worktree-folder-names-unique` relies on. Since pingdotgg/t3code#34781 (0.1.10-nightly.20261112.4580)
   a new worktree thread's agent starts only once T3's branch rename has landed, so
   `git branch --show-current` gives the final name from the first command; a rename that fails
   leaves the temporary `t3/<id>` name and, since #34813 (same build), a "Branch not renamed"
@@ -679,9 +679,8 @@ T3 source paths below are in pingdotgg/t3code.
 
 - **Relies on:** `t3_project_list` returns every project with its `id`, `workspaceRoot` and
   `repositoryIdentity` (null for "No project"; else `canonicalKey`, the same for two entries of one
-  repo). The list holds stale entries beside current ones (on 2026-11-11, `en-escena` at
-  `~/projects/en-escena` beside `enescena` at `~/.t3/projects/enescena`, two repos with different
-  keys). `t3_thread_launch` with another project's `projectId` and a `worktree`
+  repo). The list can hold stale entries beside current ones (seen 2026-11-11), so match a project by
+  `canonicalKey` and `workspaceRoot`, never by a similar title. `t3_thread_launch` with another project's `projectId` and a `worktree`
   `workspaceStrategy` creates that project's checkout and runs its setup, which `delegate_task`
   refuses for a local `target.projectId` other than the parent's (`delegate-task-reviews`). The
   launch itself is `thread-launch-workspace`; a child's PR comes from `list_thread_pull_requests`
@@ -1085,7 +1084,7 @@ T3 source paths below are in pingdotgg/t3code.
   evidence, and `PREVIEW.md` covers a look at a page and a project whose § Drive names no CLI. Step
   one of **Would improve if** ran from 2026-10-26 and is undone. Counted from T3's store for
   2026-10-26 to 2026-11-02, every project: 28 of 125 `preview_act` clicks and 23 of 213
-  `preview_snapshot` calls failed. Eleven merged PRs in en-escena, rubens and enescena took
+  `preview_snapshot` calls failed. Eleven merged PRs took
   captures with `preview_snapshot`: rubens #20, #29, #43, #69, #72, #73, #74, #75, #76, #81, #83.
   None counts toward step two: #20, #29, #43, #69, #72 and #83 lost clicks; #74 and #76 had
   timed-out snapshots; #75 and #76 report blurred captures; #73 and #81 made no `preview_act` click.
