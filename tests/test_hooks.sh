@@ -106,6 +106,7 @@ check blocked "pkill --signal TERM -f node"
 check blocked "pkill -u t3 --full node"
 check blocked "sleep 1; pkill -u t3 -f node"
 check blocked $'echo hi\npkill -u t3 -f node'
+# shellcheck disable=SC2016 # the hook must see the literal `$(...)`, unexpanded
 check blocked 'pkill -u "$(id -u)" -f node'
 check allowed "pkill node"
 check allowed "pkill -u t3 node"
