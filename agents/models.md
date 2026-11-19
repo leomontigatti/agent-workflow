@@ -45,11 +45,12 @@ running Y"), and its tier and family are the review's; null keeps the requested 
 | Design runners        | `codebase-design`'s design-it-twice, `prototype` variants | both families, alternating: Opus, Sol, Opus…             | high    | one family, at the same count                |
 | Research              | primary sources outside the repo (`research` agent)       | Codex `gpt-6.1-terra`                                    | low     | Claude `research` on Sonnet                  |
 | Miners                | slices of transcripts or diffs (`retro`, `upstream-review`, `t3-update-review`) | Codex `gpt-6.1-terra`              | low     | Claude Sonnet                                |
-| Implementer           | one ticket (`implement-spec`)                             | the author's family: Opus (`claudeAgent`) in Claude Code, `gpt-6.1-sol` (`codex`) in Codex | medium in Codex | none                     |
+| Implementer           | one ticket (`implement-spec`)                             | the author's family: Opus (`claudeAgent`) in Claude Code, `gpt-6.2-sol` (`codex`) in Codex | medium in Codex | none                     |
 | Codebase mapping      | a narrow read of 4+ files for the session                 | the harness's own explorer (Claude's `Explore`, Codex's default agent) | default | inline                       |
 
-Model ids: Sol is `gpt-6.1-sol`, Terra is `gpt-6.1-terra`, Luna is `gpt-6-luna` (Codex); Opus is
-`claude-opus-5-5`, Sonnet is `claude-sonnet-5-5` (Claude).
+Model ids: Sol is `gpt-6.2-sol`, Terra is `gpt-6.1-terra`, Luna is `gpt-6-luna` (Codex); Opus is
+`claude-opus-5-5`, Sonnet is `claude-sonnet-5-5` (Claude). Sol moved from `gpt-6.1-sol` on 2026-11-19
+unmeasured: every Sol number below was taken on 6.1.
 
 Why each effort:
 

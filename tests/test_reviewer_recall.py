@@ -35,7 +35,7 @@ class Models(unittest.TestCase):
                           "opus": {"model": "claude-opus-5-5", "effort": "medium"}})
 
     def test_a_bare_model_takes_the_run_effort(self):
-        self.assertEqual(recall.parse_models("opus,sol", "high")["sol"], {"model": "gpt-6.1-sol", "effort": "high"})
+        self.assertEqual(recall.parse_models("opus,sol", "high")["sol"], {"model": "gpt-6.2-sol", "effort": "high"})
 
     def test_unknown_model_or_effort_stops(self):
         for spec_ in ("gemini:low", "opus:extreme"):
@@ -48,10 +48,10 @@ class Models(unittest.TestCase):
 
 class Manifest(unittest.TestCase):
     def test_old_manifest_reads_as_one_effort_for_every_model(self):
-        old = {"models": {"opus": "claude-opus-5-5", "sol": "gpt-6.1-sol"}, "effort": "high", "prompts": {}, "runs": ["a.opus.1"]}
+        old = {"models": {"opus": "claude-opus-5-5", "sol": "gpt-6.2-sol"}, "effort": "high", "prompts": {}, "runs": ["a.opus.1"]}
         self.assertEqual(recall.normalize(old)["models"],
                          {"opus": {"model": "claude-opus-5-5", "effort": "high"},
-                          "sol": {"model": "gpt-6.1-sol", "effort": "high"}})
+                          "sol": {"model": "gpt-6.2-sol", "effort": "high"}})
         self.assertNotIn("effort", old)
 
     def test_old_manifest_without_effort_measured_medium(self):
@@ -73,7 +73,7 @@ class Manifest(unittest.TestCase):
         out = tempfile.mkdtemp()
         recall.claim(out, {"opus": {"model": "claude-opus-5-5", "effort": "medium"}}, {"c": "h"}, ["c.opus.1"])
         with self.assertRaises(SystemExit):
-            recall.claim(out, {"sol": {"model": "gpt-6.1-sol", "effort": "medium"}}, {"d": "h"}, ["d.sol.1"], "consult")
+            recall.claim(out, {"sol": {"model": "gpt-6.2-sol", "effort": "medium"}}, {"d": "h"}, ["d.sol.1"], "consult")
 
 
     def test_a_directory_refuses_another_brief_or_cases_file(self):
