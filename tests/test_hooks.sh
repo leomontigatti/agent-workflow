@@ -106,6 +106,7 @@ check blocked "pkill --signal TERM -f node"
 check blocked "pkill -u t3 --full node"
 check blocked "sleep 1; pkill -u t3 -f node"
 check blocked $'echo hi\npkill -u t3 -f node'
+check blocked 'pkill -u "$(id -u)" -f node'
 check allowed "pkill node"
 check allowed "pkill -u t3 node"
 check allowed "pgrep -f node"
@@ -114,5 +115,6 @@ check allowed "pkill node; grep -f x y"
 check allowed "pkill -u t3 node && grep -f x y"
 check allowed "pkill node | grep -f x"
 check allowed $'pkill node\ngrep -f x y'
+check allowed "pkill -u t3 node # inspect with pgrep -f node"
 
 exit "$fail"
