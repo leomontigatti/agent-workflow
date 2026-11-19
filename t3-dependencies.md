@@ -27,7 +27,7 @@ T3 source paths below are in pingdotgg/t3code.
   Import from t3.json). Since 0.1.4-nightly.20261027.3796 the runner skips the script
   (`skipped-for-link`) for a thread a linked environment started under a link below full access
   (`ProjectSetupScriptRunner.ts`); linked environments are a Labs beta, off by default
-  (`linkedEnvironmentsEnabled`), and no workflow here uses them. Since pingdotgg/t3code#31857
+  (`linkedEnvironmentsEnabled`); the user's coordinator machine delegates to its workers over them since 2026-11-18 (`remote-preview-annotations`). Since pingdotgg/t3code#31857
   (0.1.8-nightly.20261106.4262) a script may set `stopOnSettle`, which stops its terminal and child
   processes when the thread settles; it defaults to false and no project's `t3.json` sets it. Since pingdotgg/t3code#37924 (0.1.11-nightly.20261117.4825) the terminal shell is a setting, and project scripts are run with `T3CODE_TERMINAL_SHELL` cleared, so they keep the default shell; the result of an `async: true` script is now recorded when it exits, not after the agent starts (`ThreadLaunchService.ts`).
 - **Used by:** `skills/implement/THREADS.md`; `agents/implementer.md` step 1 (T3 set up the
@@ -756,6 +756,29 @@ T3 source paths below are in pingdotgg/t3code.
   creation. A run that completes without its report is still `succeeded`.
 - **Watch:** PR pingdotgg/t3code#23131 (open: scheduled runs record how their turn ended); a
   completed run without its result has no issue of its own
+
+### remote-preview-annotations
+
+- **Workaround:** a prototype, or any page the user reviews by picking elements, drawing regions
+  and commenting in the preview pane, runs in a thread on the user's own machine (their global
+  instructions, § Offloading to workers), though their other threads run on the coordinator. A
+  tab an agent opens in a thread on another environment is a streamed picture of that host's
+  headless browser: the user sees and drives it, but it has no element picker, region selection
+  or annotations. Measured on 0.1.11-nightly.20261118.4903, 2026-11-18, desktop app to the
+  coordinator over Tailscale: the agent's `preview_open` tab showed and took clicks and typing
+  (reporting `visible: false`), its toolbar had no annotation tools, and a tab the user opened
+  on the host's tailnet name ran locally with the tools but was refused, the dev server
+  listening on loopback only. The host needed `t3 browser setup` as root first, twice (fonts and
+  the sandbox profile, then Chrome's libraries).
+- **Used by:** `skills/prototype/UI.md` § 6 (the hand-over), through `preview-tab-review`
+- **Would improve if:** a `localhost` tab of a thread on another environment renders in the
+  desktop's own webview with the element picker and annotations, so the prototype's thread can
+  run on the coordinator. Then test the next hop too: a dev server on a worker the coordinator
+  delegates to, which the desktop app is not connected to.
+- **Watch:** pingdotgg/t3code#37947 (server: `/api/preview/tunnel` to an environment's loopback
+  ports) and #37948 (desktop: other environments' localhost tabs render locally; its body says the
+  picker, screenshots and annotations work there), both merged 2026-11-19T01:50Z and absent from
+  20261118.4903 (no `preview/tunnel` in either machine's build)
 
 ### t3json-manual-import
 
