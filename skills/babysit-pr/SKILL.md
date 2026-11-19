@@ -13,8 +13,7 @@ merge is yours.
 launching thread's when the user hands it over (the `implement` skill's
 [THREADS.md](../implement/THREADS.md)):
 
-- the user asked for this merge in this thread: the platform refuses a merge nobody asked for, so
-  without that ask every PR ends at READY;
+- the user asked for this merge in this thread; without that ask every PR ends at READY;
 - the PR body has no `Door: one-way` line (the `pr` skill § Door);
 - no **ask** is open, and the PR is neither a draft nor a layer of a stack.
 
@@ -39,11 +38,12 @@ Done when `git status` is clean and `HEAD` is the PR head.
 Read the round (below) once before the first wait, and triage anything already open. Then wait,
 and end your turn. No subagent, and no `sleep` in the foreground:
 
-- **A PR opened with the platform's PR tool** wakes this thread when its checks finish. A PR
-  opened another way is first subscribed to with the platform's subscribe tool.
-- **Comments, reviews and conflicts wake nobody**: they surface when you read the round, which
-  is why the round is read before the first wait and on every wake. A subagent is not woken, so
-  the babysit stays in the session that owns the PR.
+- **A PR opened with the platform's PR tool** wakes the session that opened it when its checks
+  finish, when someone in the organization reviews or comments, and when it merges or closes. A
+  PR opened another way is first subscribed to with the platform's subscribe tool.
+- **A bot's review, a comment from outside the organization and a conflict wake nobody**: they
+  surface when you read the round, which is why the round is read before the first wait and on
+  every wake.
 
 On every wake, first bring the local branch level with GitHub, since a branch update may have
 moved it: `git fetch origin <branch> && git merge --ff-only origin/<branch>`. Then **read the

@@ -1,6 +1,6 @@
 ---
 name: implement-spec
-description: "Implement a PRD's sub-issues in parallel: background implementer children, one T3 worktree per ticket, merged onto this thread's branch and one draft PR, reviewed once at the end."
+description: "Implement a PRD's sub-issues in parallel: implementer subagents, one machine per ticket, merged onto this thread's branch and one draft PR, reviewed once at the end."
 disable-model-invocation: true
 ---
 
@@ -12,8 +12,8 @@ PR that closes the chain, reviewed and babysat once.
 
 The sub-issues are a **task graph**, not a list: their blocking edges decide what can start, and
 the **frontier** is every open ticket whose blockers have all merged onto the integration branch.
-Every ticket on the frontier runs at once, each in an implementer child with its own
-worktree, except the first lone ticket (step 2). Talk to the implementers through pointers (the ticket, the PRD, the notes file, a
+Every ticket on the frontier runs at once, each in an implementer subagent on its own
+machine, except the first lone ticket (step 2). Talk to the implementers through pointers (the ticket, the PRD, the build notes, a
 commit), never pasted summaries.
 
 ## 1. Read the graph
@@ -32,44 +32,42 @@ Two edges the tracker does not hold, added by you:
   version a migration hangs on, would take the same number or fork the migration chain, so treat
   every pair of such tickets as blocked one on the other, in list order. A ticket whose text does
   not settle whether it touches the schema counts as one.
-- **Shared names are fixed up front.** Worktrees postpone collisions to the merge. When two
-  frontier tickets add to the same file, type, route or copy, either serialise them or fix the
-  exact names in the notes file before spawning them.
+- **Shared names are fixed up front.** Separate machines postpone collisions to the merge. When
+  two frontier tickets add to the same file, type, route or copy, either serialise them or fix
+  the exact names in the build notes before starting them.
 
-An implementer child has nobody to pick a design, so **every ticket the prototype gate of
+An implementer has nobody to pick a design, so **every ticket the prototype gate of
 `implement` step 1 catches has its winner before it runs**: its `## Design` section, or a winner
 comment on the PRD for its screen. When one has neither, run the prototype pass for those screens
 now, as `to-spec` step 4 says, and stop for the user's pick; the frontier waits for it.
 
-Write the graph, those decisions and the names to `/tmp/implement-spec-<PRD>/notes.md`, outside
-the repo, where every implementer can read it. Done when every ticket has its blockers listed.
+Write the graph, those decisions and the names as the **build notes**: one comment on the PRD
+opening `## Build notes`, edited in place from then on, since an implementer's machine sees
+only GitHub. Keep what only you need (which subagent runs which ticket, each attempt's branch)
+in `/tmp/implement-spec-<PRD>/state.md`. Done when every ticket has its blockers listed.
 
 If the PRD alters anything a user sees, its reference comes as `implement` step 1 says: the
 approved variants of the PRD's prototype pass (`to-spec`), or a **before** captured now, from this
-worktree.
+checkout.
 
 ## 2. Run the frontier
 
-Spawn one implementer per frontier ticket, all in one message: `delegate_task` with
-`isolation: "worktree"`, `mode: "async"`, `role: "implementation"`, the `target` of the
-Implementer row in `~/.agents/workflow/agents/models.md`, the ticket as `title`, and a
-`clientRequestId` of `implement-spec-<PRD>-<n>-<attempt>`. T3 gives each child a prepared
-checkout of this worktree's commit, with uncommitted edits left out. The task is pointers only:
+Push the integration branch, then start one implementer per frontier ticket, all at once: a
+subagent on its own machine with a clean checkout, on the model and effort of the Implementer row
+in `~/.agents/workflow/agents/models.md`, titled with the ticket. Count them first, as that
+file's fan-out rule says. The task is pointers only:
 
 ```
 Before anything else, read `~/.agents/workflow/agents/implementer.md` and follow it.
 
 Ticket #<n>, part of PRD #<PRD>. Integration branch: <branch>.
-Orchestrator worktree (not yours): <this worktree's path>.
-Notes: /tmp/implement-spec-<PRD>/notes.md
+Your branch: <branch>-t<n> (a later attempt: <branch>-t<n>-a<attempt>).
 ```
 
-Keep each attempt's `taskId` in the notes file, and its report's branch and worktree once it
-arrives, then end your turn: each child's completion wakes this
-thread. This step needs `delegate_task`; outside a T3 thread, build every ticket yourself, one at
-a time, as the lone ticket below.
+Note each attempt's subagent and branch in the state file, then end your turn: each report wakes
+this thread.
 
-An implementer pays for itself (a fresh read of the ticket and the code, a worktree and its
+An implementer pays for itself (a fresh read of the ticket and the code, a machine and its
 setup) through **parallelism** or a **fresh context**. A frontier of one ticket, with no
 implementer running, offers no parallelism: build it yourself, by the implementer's step 2,
 committing to the integration branch, then do step 3's comment, push and frontier recomputation
@@ -78,26 +76,26 @@ send every later lone ticket to an implementer, whose fresh context keeps this s
 
 ## 3. Merge each report
 
-For each child's report (its result's `summary`) with `status: done`, unless the notes file marks
+For each implementer's report with `status: done`, unless the state file marks
 its ticket retired (a report that crossed § Route change: discard its branch as that section does):
 
-1. Check the branch builds on the tip: `git merge --ff-only <its branch>` in this worktree. When
-   it is not a fast-forward (another ticket merged meanwhile), send the ticket back: a new child as
-   in step 2, its task adding `Earlier branch: <its branch>`, and move on.
+1. Check the branch builds on the tip: `git fetch origin <its branch>`, then
+   `git merge --ff-only origin/<its branch>` here. When it is not a fast-forward (another ticket
+   merged meanwhile), send the ticket back: a new implementer as in step 2, its task adding
+   `Earlier branch: <its branch>`, and move on.
 2. Comment `Implemented in <sha>. Part of #<PRD>.` on the sub-issue, which stays open
    (`docs/agents/issue-tracker.md` § PRD workflow). This comment and every other one this skill
    posts opens with the agent note of the `pr` skill § Rules.
 3. Push. After the first merge, open the PR as a **draft** with the PRD PR body of the `pr` skill
-   (§ PRD PRs there), linked to the thread as the `implement` skill's
+   (§ PRD PRs there), with the platform's PR tool as the `implement` skill's
    [THREADS.md](../implement/THREADS.md) says; after that, tick the sub-issue's box in its body.
    The chain pays one review at the end instead of one per slice.
-4. Remove the implementer's worktree and branch (`git worktree remove <path>`,
-   `git branch -d <branch>`), and every earlier attempt's: the child's thread opens no PR, so T3's
-   storage cleanup has no merge to remove them on.
+4. Delete the implementer's branch on the remote (`git push origin --delete <branch>`), and
+   every earlier attempt's: no PR will ever merge them.
 5. Recompute the frontier from what has merged onto the integration branch, never from GitHub's
    `blockedBy`, which drops only when a blocker closes, at the end. Spawn, as in step 2, only
    the tickets on it that are not already running: keep the merged and running tickets in the
-   notes file, so neither starts twice.
+   state file, so neither starts twice.
 
 A `blocked` report carries a question: answer it from the PRD if it settles it and send the ticket
 back as in step 1, with the answer in the task; otherwise bring it to the user, and keep the rest of the graph running.
@@ -108,24 +106,20 @@ When a decision is replaced mid-build (a `blocked` question's answer, or the use
 destination stays the same, the spec gets its `## Changed during the build` line (`to-spec`
 § A snapshot, not a source) and the graph changes with it:
 
-1. **Retire** each unmerged ticket the change replaces: cancel its running child with
-   `task_cancel`, discard its work and every earlier attempt's (`git worktree remove --force
-   <path>`, `git branch -D <branch>`: unmerged by design, so step 3's safe removal refuses), mark
-   it retired in the notes file, and close it as
+1. **Retire** each unmerged ticket the change replaces: stop its running subagent, delete its
+   branch and every earlier attempt's on the remote (`git push origin --delete <branch>`), mark
+   it retired in the state file, and close it as
    `docs/agents/issue-tracker.md` § Closing an issue says for work that will not be done. A
    ticket already merged is not retired: what the change undoes in it is a new ticket in item 2.
-   Before either forced command, check its target: the path must be a worktree in
-   `git worktree list` other than this one (`git rev-parse --show-toplevel`), and the branch must
-   be neither the integration branch nor the branch of this worktree. An implementer that found
-   itself in this checkout reports it as its own (`agents/implementer.md` step 1): skip the
-   discard for such a target, never force it.
+   Before deleting, check the target: a branch named `<integration branch>-t<n>…`, never the
+   integration branch itself.
 2. **Replace** it: draft the new tickets with the user as `to-tickets` does (its § 4 quiz, then
    § 5's publishing as sub-issues of the PRD). Comment the replacement's number on each retired
    ticket, and in the PR body's `## Sub-issues` strike each retired line
    (`- [x] ~~#<n> <title>~~ replaced by #<m>`) and add each new ticket.
 3. **Re-point the edges**: every open ticket a retired one blocked is now blocked by that
    ticket's replacements, in the tracker (`docs/agents/issue-tracker.md` § Ticket operations) and
-   in the notes file, so nothing waits on a retired ticket or respawns it.
+   in the build notes, so nothing waits on a retired ticket or respawns it.
 4. Recompute the frontier as step 3 item 5 does.
 
 ## 4. Close out, once
@@ -137,7 +131,7 @@ When every ticket that is not retired has merged:
    PRD and every sub-issue that is not retired into the Spec axis's prompt. Reviewing earlier reads every unbuilt
    ticket as a finding.
 3. Send every **fix** to one `implementer`, spawned as in step 2 with the findings in place of
-   the ticket number. Land it with step 3's fast-forward, push and worktree removal; there is no
+   the ticket number. Land it with step 3's fast-forward, push and branch removal; there is no
    sub-issue to comment on or tick. Then re-run only the checks the findings named and step 5's
    fix round over the fixes: no second broad review.
 4. Run `implement` step 4 now that the code is final, then step 7's screen approval: an **after**
@@ -146,6 +140,6 @@ When every ticket that is not retired has merged:
 5. Add the `## Review` record to the PR body (the `pr` skill), then `gh pr ready <n>`, then push
    one empty commit: a PR marked ready on the commit it was drafted on reports `BLOCKED` with every
    required check green until a new commit lands, and the reviewed commit in the record stands.
-   Then call the Skill tool with "babysit-pr".
-6. Remove any implementer worktree still listed in `git worktree list`, its branch, and
-   `/tmp/implement-spec-<PRD>/`.
+   Then follow the `babysit-pr` skill.
+6. Delete any implementer branch still on the remote (`git ls-remote --heads origin
+   '<integration branch>-t*'`).

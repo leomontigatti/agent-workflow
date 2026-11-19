@@ -87,9 +87,9 @@ field: `{model_id, reasoning_mode}`, where `reasoning_mode` is the table's effor
 the provider, a slash, then the model: `openai` for Sol (`gpt-6.2-sol`), Terra (`gpt-6.1-terra`) and
 Luna (`gpt-6-luna`); `anthropic` for Opus (`claude-opus-5-5`) and Sonnet (`claude-sonnet-5-5`).
 
-- **A subagent shares the thread's machine and checkout.** A judging role reads there and writes
-  nothing. Two roles that write never share a checkout: the second is a thread of its own, which
-  gets its own machine.
+- **A subagent shares the thread's machine and checkout, or gets a machine of its own** with a
+  clean checkout. A judging role shares: it reads there, uncommitted work included, and writes
+  nothing. A role that writes gets its own machine, so two writers never share a checkout.
 - **Each family runs on the user's connected subscription** for it. A start that is refused (a
   model id, an effort, an exhausted subscription) is reported with its exact error, then the role
   runs on the fallback column and the report says so. When an id is refused, list the platform's
@@ -97,8 +97,15 @@ Luna (`gpt-6-luna`); `anthropic` for Opus (`claude-opus-5-5`) and Sonnet (`claud
 - **Size a fan-out before starting it.** Count the children and their rounds first. More than 8
   on one family run in batches of 8, each batch read before the next starts, so a subscription
   limit stops a batch and not the whole run.
-- **The Implementer** is a thread of its own in the same project, for its machine and checkout;
-  it pushes its branch, since the orchestrator's machine cannot see its files.
+- **The Implementer** is a subagent on its own machine; it pushes its branch, since the
+  orchestrator's machine cannot see its files.
+- **Work in another project** is a thread started in that project, on the row's model. It boots
+  on that project's Setup and its result comes back as a message that wakes this thread. A
+  thread started in this same project reports only when its prompt tells it to message this
+  one.
+- **Nothing shows how much of a subscription is left.** A limit shows as a failed model call:
+  stop the fan-out there, report what ran and what did not, and leave the rest for the user's
+  word.
 
 A role run above its row (the ladder, the hardest work) is the same start with the higher model or
 effort in `model`.

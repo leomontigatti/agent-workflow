@@ -9,17 +9,17 @@ project's Setup before the agent starts. Nothing is shared between threads but w
 - **One thread, one branch, one PR.** Before the first edit, start current (`git fetch origin`,
   then branch from `origin/<default branch>`) on a branch named `feat/`, `fix/`, `docs/`,
   `chore/`, `refactor/`, `research/` or `prototype/`. Open the PR with the platform's PR tool,
-  never `gh pr create`: the thread is then woken when its checks finish. To keep working on an existing PR, check out its branch in a new thread.
-- **One writer per checkout.** A subagent shares this machine and this checkout: a subagent that
-  judges reads there and writes nothing. A second writer is a thread of its own in the project,
-  which gets its own machine and sees only what is pushed, so push before starting it and have
-  it push before it reports.
+  never `gh pr create`: the thread is then woken when its checks finish, when someone in the
+  organization reviews or comments, and when it merges or closes. To keep working on an existing PR, check out its branch in a new thread.
+- **One writer per checkout.** A subagent that judges shares this machine and this checkout,
+  reads there and writes nothing. A second writer is a subagent on its own machine, which sees
+  only what is pushed: push before starting it, and have it push before it reports.
 - **A thread you start owns its PR.** It follows `babysit-pr` on it and hands back to the user;
   the thread that started it reads that PR's state from GitHub, never from the child's word.
 - **A machine that slept kept its disk and lost its processes.** After a pause, restart what the
   task needs (a dev server, a watcher) before relying on it.
 - **Merging is the user's.** Merge a PR, or turn on auto-merge, only when the user asks for that
-  merge in this thread.
+  merge in this thread. Nothing blocks a merge nobody asked for; this rule does.
 - **Issues live on GitHub**, as the project's `docs/agents/issue-tracker.md` says, not in the
   platform's own tracker.
 - **Read-only threads** (writing issues, triage, reviewing a PR without editing code) change no

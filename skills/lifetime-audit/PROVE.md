@@ -26,6 +26,7 @@ Answer exactly one of:
 - `rejected`: the test stays green, or the sequence cannot happen; say which, and why.
 
 Run each test in the foreground and wait for it to finish; your final message is the verdict,
-never a promise to report later. Your checkout is throwaway: change nothing outside it, and leave
-it as it is for the audit to remove. Report as your final message, under 500 words, with the test
+never a promise to report later. Your machine is throwaway and the audit
+cannot read it: push nothing, and put everything the audit needs (the test, the fix as a diff)
+in the report. Report as your final message, under 500 words, with the test
 text in a code block.
