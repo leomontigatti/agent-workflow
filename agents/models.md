@@ -49,8 +49,7 @@ running Y"), and its tier and family are the review's; null keeps the requested 
 | Codebase mapping      | a narrow read of 4+ files for the session                 | the harness's own explorer (Claude's `Explore`, Codex's default agent) | default | inline                       |
 
 Model ids: Sol is `gpt-6.2-sol`, Terra is `gpt-6.1-terra`, Luna is `gpt-6-luna` (Codex); Opus is
-`claude-opus-5-5`, Sonnet is `claude-sonnet-5-5` (Claude). Sol moved from `gpt-6.1-sol` on 2026-11-19
-unmeasured: every Sol number below was taken on 6.1.
+`claude-opus-5-5`, Sonnet is `claude-sonnet-5-5` (Claude).
 
 Why each effort:
 
@@ -76,7 +75,7 @@ Why each effort:
 
 Why correctness runs on both families in the full tier: on 15 known bugs
 ([reviewer-recall](../evals/reviewer-recall/README.md), 2026-10-27), Opus caught 63% of its
-reviews' bugs and Sol 40%, each finding bugs the other missed, and the two together caught 14
+reviews' bugs and Sol 40% (on `gpt-6.1-sol`; 6.2 is unmeasured), each finding bugs the other missed, and the two together caught 14
 of 15. A diff outside the full tier keeps one reviewer, to spare the quota.
 
 ## Reaching each model
