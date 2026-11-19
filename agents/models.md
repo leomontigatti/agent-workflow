@@ -1,14 +1,12 @@
 # Roles and models
 
 The one place that says which model each agent role runs on. A skill names a role; this table
-names its model. The harness wrappers in `claude/` and `codex/` repeat a model only where their
-harness reads it from nowhere else, and a change here changes them in the same commit.
+names its model, and nothing else names one.
 
 ## The rule
 
 **A different family from the author, whenever both are reachable.** The author is the family of
-the session that wrote the code or the text being judged: Claude when Claude Code orchestrates,
-Codex (Sol) when Codex does. A role that judges, reviews or hunts runs on the other family, so it
+the session that wrote the code or the text being judged: Claude when the thread runs on a Claude model, Codex when it runs on a GPT model. A role that judges, reviews or hunts runs on the other family, so it
 does not share the author's blind spots. A role that produces alternatives runs on both, so the
 panel is diverse. Only a role that does the author's own work (implementing, mapping the codebase
 for it) stays on the author's family. When only one family is reachable, the role runs on its
@@ -31,25 +29,25 @@ A task can run on a different model than its row names when that model fits it b
 judgment too hard for the light model, say). The family rule still holds, and the report names
 the model and why, as it does for a fallback.
 
-A provider can run another model than the one asked for. The report names the model that ran (a
-child's `executedModel`, or its result's opening "Requested model X; the provider reported
-running Y"), and its tier and family are the review's; null keeps the requested model.
+A provider can run another model than the one asked for. When the platform reports the model
+that ran, the report names it, and its tier and family are the review's; otherwise the requested
+model stands.
 
 | Role                  | What it does                                              | Model                                                    | Effort  | Fallback                                     |
 | --------------------- | --------------------------------------------------------- | -------------------------------------------------------- | ------- | -------------------------------------------- |
-| Standards, Spec       | `code-review`'s two axes                                  | the other family: Sol, or Opus when Codex wrote it       | medium  | `reviewer-opus` (Claude) / `reviewer` (Codex) |
+| Standards, Spec       | `code-review`'s two axes                                  | the other family: Sol, or Opus when Codex wrote it       | medium  | the author's family, recorded                |
 | Correctness           | the bug hunt, `code-review`'s correctness brief          | full tier: both, Opus and Sol; else the other family: Sol, or Opus when Codex wrote it | medium  | one family, recorded                         |
-| Lifetime judges       | one candidate area each (`lifetime-audit`)                | the other family: Sol, or Opus when Codex runs the audit | medium  | `reviewer-opus` (Claude) / `reviewer` (Codex) |
-| Lifetime provers      | one claim each, a failing test (`lifetime-audit`)         | the audit's own family: Opus in Claude Code, Sol in Codex | medium  | inline                                       |
-| Readback              | restates a diff                                           | Codex `gpt-6.1-terra`, or Claude Sonnet when Codex wrote it | low     | same-family, recorded                        |
+| Lifetime judges       | one candidate area each (`lifetime-audit`)                | the other family: Sol, or Opus when Codex runs the audit | medium  | the author's family, recorded                |
+| Lifetime provers      | one claim each, a failing test (`lifetime-audit`)         | the audit's own family: Opus or Sol                       | medium  | inline                                       |
+| Readback              | restates a diff                                           | Terra, or Sonnet when Codex wrote it                     | low     | same-family, recorded                        |
 | Design runners        | `codebase-design`'s design-it-twice, `prototype` variants | both families, alternating: Opus, Sol, Opus…             | high    | one family, at the same count                |
-| Research              | primary sources outside the repo (`research` agent)       | Codex `gpt-6.1-terra`                                    | low     | Claude `research` on Sonnet                  |
-| Miners                | slices of transcripts or diffs (`retro`, `upstream-review`, `t3-update-review`) | Codex `gpt-6.1-terra`              | low     | Claude Sonnet                                |
-| Implementer           | one ticket (`implement-spec`)                             | the author's family: Opus (`claudeAgent`) in Claude Code, `gpt-6.2-sol` (`codex`) in Codex | medium in Codex | none                     |
-| Codebase mapping      | a narrow read of 4+ files for the session                 | the harness's own explorer (Claude's `Explore`, Codex's default agent) | default | inline                       |
+| Research              | primary sources outside the repo ([`research.md`](research.md)) | Terra                                              | low     | Sonnet                                       |
+| Miners                | slices of transcripts or diffs (`retro`, `upstream-review`) | Terra                                  | low     | Sonnet                                       |
+| Implementer           | one ticket (`implement-spec`)                             | the author's family: Opus or Sol                          | medium  | none                     |
+| Codebase mapping      | a narrow read of 4+ files for the session                 | a subagent on the thread's own model                      | low     | inline                       |
 
-Model ids: Sol is `gpt-6.2-sol`, Terra is `gpt-6.1-terra`, Luna is `gpt-6-luna` (Codex); Opus is
-`claude-opus-5-5`, Sonnet is `claude-sonnet-5-5` (Claude).
+Sol, Terra and Luna are the Codex family; Opus and Sonnet the Claude family. Their ids are under
+[Reaching each model](#reaching-each-model).
 
 Why each effort:
 
@@ -83,33 +81,31 @@ of 15. A diff outside the full tier keeps one reviewer, to spare the quota.
 Every role starts fresh, from its brief alone, never as a fork of this session: a fork inherits the
 author's reasoning, the blind spot a judging role exists to escape.
 
-- **Claude Code in a T3 thread**: the main session calls `delegate_task` once per Codex role,
-  with `target: {providerInstanceId: "codex", model, options: {reasoningEffort}}` from the table.
-  A Claude role is the Agent tool: `reviewer-opus` for a review, the general agent with the
-  model set for the rest.
-- **Codex**: a Claude role goes through T3's `delegate_task` with
-  `target: {providerInstanceId: "claudeAgent", model}`; a Codex role is a native agent
-  (`reviewer`, `reviewer-terra`, `research`).
-- **The Implementer**, from either harness, is a `delegate_task` child with
-  `isolation: "worktree"`, for the checkout T3 prepares; it has no harness wrapper.
-- **Outside T3** (no `delegate_task`): the fallback column.
+A session runs as a Capy thread, and the author's family is the family of the thread's model. Each
+role is a **subagent** of that thread, started with the row's model and effort in its `model`
+field: `{model_id, reasoning_mode}`, where `reasoning_mode` is the table's effort. A model id is
+the provider, a slash, then the model: `openai` for Sol (`gpt-6.2-sol`), Terra (`gpt-6.1-terra`) and
+Luna (`gpt-6-luna`); `anthropic` for Opus (`claude-opus-5-5`) and Sonnet (`claude-sonnet-5-5`).
 
-The table's effort goes in `target.options` under the provider's own name: `reasoningEffort` for
-Codex, `effort` for Claude. `delegate_task` runs a child in this thread's project, or on a linked
-machine with `target.environmentId`; work in another project on this machine is a
-`t3_thread_launch` in that project.
+- **A subagent shares the thread's machine and checkout.** A judging role reads there and writes
+  nothing. Two roles that write never share a checkout: the second is a thread of its own, which
+  gets its own machine.
+- **Each family runs on the user's connected subscription** for it. A start that is refused (a
+  model id, an effort, an exhausted subscription) is reported with its exact error, then the role
+  runs on the fallback column and the report says so. When an id is refused, list the platform's
+  models and fix the table.
+- **Size a fan-out before starting it.** Count the children and their rounds first. More than 8
+  on one family run in batches of 8, each batch read before the next starts, so a subscription
+  limit stops a batch and not the whole run.
+- **The Implementer** is a thread of its own in the same project, for its machine and checkout;
+  it pushes its branch, since the orchestrator's machine cannot see its files.
 
-A wrapper pins its row's model and effort. A role run above them (the ladder, the hardest work)
-is a `delegate_task` with the model and effort in `target`, on the role's own provider, and its
-task opens with the brief line below. In Claude Code the Agent tool's `model` and `effort` do the
-same. Outside T3, a harness with no such override ends the ladder at rung 1.
-
-When a call refuses a model id, `orchestrator_capabilities` lists the live ones; fix the table
-and the wrappers together.
+A role run above its row (the ladder, the hardest work) is the same start with the higher model or
+effort in `model`.
 
 ## The briefs
 
 Each role's instructions are one file here, read by every way the role runs:
 [`reviewer.md`](reviewer.md), [`research.md`](research.md), [`implementer.md`](implementer.md).
-A `delegate_task` child is told to read the brief at its installed path,
+A subagent's task opens by telling it to read the brief at its installed path,
 `~/.agents/workflow/agents/<brief>.md`, before anything else.
