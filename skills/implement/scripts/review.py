@@ -46,6 +46,8 @@ HEAVY = {"sol", "opus"}  # the models that may run the correctness axis
 MODELS = {"sol", "opus", "terra", "luna", "sonnet"}
 LINE = "- <axis> (<model>): <outcome>"
 FAMILY = {"sol": "codex", "terra": "codex", "luna": "codex", "opus": "claude", "sonnet": "claude"}
+FLAGS = {"tier": set(), "check": {"--pr", "--body", "--base"}}
+USAGE = "usage: review.py tier [base] | check [--pr <n> | --body <file> [--base <ref>]]"
 
 
 def git(*args):
@@ -233,6 +235,10 @@ def run_check(args, rules):
 def main(argv):
     if not argv or argv[0] not in ("tier", "check"):
         sys.exit(__doc__)
+    unknown = [a for a in argv[1:] if a.startswith("-") and a not in FLAGS[argv[0]]]
+    if unknown:
+        print(f"{USAGE} (unknown option {unknown[0]})", file=sys.stderr)
+        return 2
     rules = load_rules(git("rev-parse", "--show-toplevel"))
     if argv[0] == "tier":
         print_tier(argv[1] if len(argv) > 1 else default_base(), rules)
