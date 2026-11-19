@@ -216,7 +216,7 @@ that closes it unless the user says otherwise.
 Done when `gh pr view` shows it open.
 
 Then follow the `babysit-pr` skill: this session judges the review rounds, and the platform does
-the waiting, waking the thread when the PR's checks finish or a comment lands. Stop only at the
+the waiting, waking the thread when the PR's checks finish. Stop only at the
 skill's report.
 
 ## The final report

@@ -9,8 +9,7 @@ project's Setup before the agent starts. Nothing is shared between threads but w
 - **One thread, one branch, one PR.** Before the first edit, start current (`git fetch origin`,
   then branch from `origin/<default branch>`) on a branch named `feat/`, `fix/`, `docs/`,
   `chore/`, `refactor/`, `research/` or `prototype/`. Open the PR with the platform's PR tool,
-  never `gh pr create`: the thread is then woken when its checks finish and when someone
-  comments. To keep working on an existing PR, check out its branch in a new thread.
+  never `gh pr create`: the thread is then woken when its checks finish. To keep working on an existing PR, check out its branch in a new thread.
 - **One writer per checkout.** A subagent shares this machine and this checkout: a subagent that
   judges reads there and writes nothing. A second writer is a thread of its own in the project,
   which gets its own machine and sees only what is pushed, so push before starting it and have
