@@ -240,8 +240,9 @@ T3 source paths below are in pingdotgg/t3code.
   `link_pull_requests` takes `urls` and links several in one call (pingdotgg/t3code#27994), and
   `unlink_pull_requests` drops every PR in the given `states` (pingdotgg/t3code#27925); no skill
   uses either. T3's runtime instructions (`packages/provider-core/src/server/runtimeInstructions.ts`)
-  still say "Host tools do not link for you", beside the auto-link `pr-auto-link` records; the
-  extra call returns `alreadyLinked`. Since pingdotgg/t3code#32162 (0.1.8-nightly.20261106.4288)
+  say "Host tools don't link for you", and since 0.1.11-nightly.20261119.4928 also
+  "pull_request_create links for you" (`pr-mcp-tools`), beside the auto-link `pr-auto-link`
+  records; the extra call returns `alreadyLinked`. Since pingdotgg/t3code#32162 (0.1.8-nightly.20261106.4288)
   the PR sync's git reads run as background git work, so they no longer delay git status after a
   restart; what it links and reports is unchanged. Since pingdotgg/t3code#30071 (0.1.7-nightly.20261104.4151)
   the sync stops polling a link whose PR closed over a day ago; a requested sync or a seen state
@@ -363,7 +364,7 @@ T3 source paths below are in pingdotgg/t3code.
   a PR wakes the watch (no project here uses a merge queue); since #35109
   (0.1.10-nightly.20261112.4603) one sweep that changes several watched PRs wakes their thread
   once; since #33389 (0.1.10-nightly.20261113.4616) a watch is refused when the host's
-  dependencies are unavailable, instead of starting one that never reads. Since pingdotgg/t3code#37741 (0.1.10-nightly.20261116.4800) a new watch reads its PR at once instead of at the next 2-minute sweep, so its silent baseline no longer swallows a CI pass that lands in the first minutes (seen upstream on 9 PRs in a row whose CI took about 40 s); a check that finishes before the `watch_pull_request` call is still baseline.
+  dependencies are unavailable, instead of starting one that never reads. Since pingdotgg/t3code#37741 (0.1.10-nightly.20261116.4800) a new watch reads its PR at once instead of at the next 2-minute sweep, so its silent baseline no longer swallows a CI pass that lands in the first minutes (seen upstream on 9 PRs in a row whose CI took about 40 s); a check that finishes before the `watch_pull_request` call is still baseline. Since pingdotgg/t3code#26271 (0.1.11-nightly.20261119.4928) a merge or close of a watched PR wakes the thread once ("Pull request #N (…) was merged into main by <login> as <sha>, so T3 Code stopped watching it."; a close adds "If it is reopened, call watch_pull_request to watch it again."), then the watch ends; before, a merge ended it silently. A merge or close the thread's own agent ran with `gh pr merge` (or `gh pr close`) ends it without a wake; whether `pull_request_merge` counts as the agent's own is unread. Since #38926 (same build) `watch_pull_request` takes `until`: `"checks"`, the default, keeps the #33214 rule; `"merged"` holds the thread in Working until the PR merges or closes or is unwatched, for a PR the agent will act on itself (merging after someone else approves); a re-watch without `until` keeps the current value. No skill passes it yet: `babysit-pr`, when the merge is its own and it waits on a reviewer, could. `ci_rerun` (`pr-mcp-tools`) reopens a watch's finished checks.
 - **Used by:** `skills/babysit-pr/SKILL.md` § 2 and § 5; `skills/implement/SKILL.md` § 7;
   `skills/implement/THREADS.md` ("A launched thread reports to its own inbox");
   `skills/fan-out/SKILL.md` § 4
@@ -753,32 +754,13 @@ T3 source paths below are in pingdotgg/t3code.
   refusal keeps its user-facing reason as `lastRunError`, `run_scheduled_task_now` returns why a
   started run failed, and the scheduled tasks a thread read lists carry `lastRunError`;
   `list_scheduled_tasks` takes a `scheduledTaskId` (#27716) and returns a webhook URL only on
-  creation. A run that completes without its report is still `succeeded`.
+  creation. A run that completes without its report is still `succeeded`. Since
+  pingdotgg/t3code#38906 (0.1.11-nightly.20261119.4928) a recurring task whose earlier
+  occurrence is held in the thread's queue sets `lastRunStatus: failed` with "A previous
+  occurrence is held in the thread queue. Resume or remove it to run this task again." on each
+  skipped tick, instead of leaving the last dispatch's `succeeded`.
 - **Watch:** PR pingdotgg/t3code#23131 (open: scheduled runs record how their turn ended); a
   completed run without its result has no issue of its own
-
-### remote-preview-annotations
-
-- **Workaround:** a prototype, or any page the user reviews by picking elements, drawing regions
-  and commenting in the preview pane, runs in a thread on the user's own machine (their global
-  instructions, § Offloading to workers), though their other threads run on the coordinator. A
-  tab an agent opens in a thread on another environment is a streamed picture of that host's
-  headless browser: the user sees and drives it, but it has no element picker, region selection
-  or annotations. Measured on 0.1.11-nightly.20261118.4903, 2026-11-18, desktop app to the
-  coordinator over Tailscale: the agent's `preview_open` tab showed and took clicks and typing
-  (reporting `visible: false`), its toolbar had no annotation tools, and a tab the user opened
-  on the host's tailnet name ran locally with the tools but was refused, the dev server
-  listening on loopback only. The host needed `t3 browser setup` as root first, twice (fonts and
-  the sandbox profile, then Chrome's libraries).
-- **Used by:** `skills/prototype/UI.md` § 6 (the hand-over), through `preview-tab-review`
-- **Would improve if:** a `localhost` tab of a thread on another environment renders in the
-  desktop's own webview with the element picker and annotations, so the prototype's thread can
-  run on the coordinator. Then test the next hop too: a dev server on a worker the coordinator
-  delegates to, which the desktop app is not connected to.
-- **Watch:** pingdotgg/t3code#37947 (server: `/api/preview/tunnel` to an environment's loopback
-  ports) and #37948 (desktop: other environments' localhost tabs render locally; its body says the
-  picker, screenshots and annotations work there), both merged 2026-11-19T01:50Z and absent from
-  20261118.4903 (no `preview/tunnel` in either machine's build)
 
 ### t3json-manual-import
 
@@ -827,7 +809,9 @@ T3 source paths below are in pingdotgg/t3code.
   no live thread's `worktreePath` (from `t3_thread_read`) names. Since pingdotgg/t3code#25883
   (0.1.8-nightly.20261108.4353) the report also finds a project worktree nested deeper in a plain
   folder (`<repo>/replay/<n>`), from each project's `git worktree list`, and lists it as "No thread
-  uses this worktree" instead of listing its holding folder; still not removed.
+  uses this worktree" instead of listing its holding folder; still not removed. Since
+  pingdotgg/t3code#39017 (0.1.11-nightly.20261119.4928) a manual cleanup re-measures the kept
+  orphans' sizes, and the 30-second measuring budget starts after discovery; still not removed.
 - **Used by:** `skills/housekeeping/SKILL.md` (the orphan-folder row, and step 1's orphan rule)
 - **Would improve if:** T3's cleanup removes an orphan folder by the same rules as a thread's
   worktree, or offers it to the user to remove.
@@ -1164,7 +1148,81 @@ T3 source paths below are in pingdotgg/t3code.
 
 ## Ready
 
-None.
+### remote-preview-annotations
+
+- **Workaround:** a prototype, or any page the user reviews by picking elements, drawing regions
+  and commenting in the preview pane, runs in a thread on the user's own machine (their global
+  instructions, § Offloading to workers), though their other threads run on the coordinator. A
+  tab an agent opens in a thread on another environment is a streamed picture of that host's
+  headless browser: the user sees and drives it, but it has no element picker, region selection
+  or annotations. Measured on 0.1.11-nightly.20261118.4903, 2026-11-18, desktop app to the
+  coordinator over Tailscale: the agent's `preview_open` tab showed and took clicks and typing
+  (reporting `visible: false`), its toolbar had no annotation tools, and a tab the user opened
+  on the host's tailnet name ran locally with the tools but was refused, the dev server
+  listening on loopback only. The host needed `t3 browser setup` as root first, twice (fonts and
+  the sandbox profile, then Chrome's libraries).
+- **Used by:** `skills/prototype/UI.md` § 6 (the hand-over), through `preview-tab-review`
+- **Would improve if:** a `localhost` tab of a thread on another environment renders in the
+  desktop's own webview with the element picker and annotations, so the prototype's thread can
+  run on the coordinator. Then test the next hop too: a dev server on a worker the coordinator
+  delegates to, which the desktop app is not connected to.
+- **Watch:** pingdotgg/t3code#37947 (server: `/api/preview/tunnel` to an environment's loopback
+  ports) and #37948 (desktop: other environments' localhost tabs render locally; its body says the
+  picker, screenshots and annotations work there), both merged 2026-11-19T01:50Z and absent from
+  20261118.4903 (no `preview/tunnel` in either machine's build)
+- **Met in:** 0.1.11-nightly.20261119.4918 (pingdotgg/t3code#37947, #37948; both in the
+  installed 20261119.4928 by `compare`). The desktop app gives each remote environment's preview
+  session a local SOCKS5 listener whose connections tunnel to the server's
+  `/api/preview/tunnel`, so a `localhost` tab of that environment renders in the desktop's own
+  webview at its `localhost` origin; #37948's body: "The element picker, screenshots and
+  annotations work there as they do for local tabs, and it works over LAN, Tailscale, T3
+  Connect and SSH." A port the environment doesn't serve fails closed
+  (`ERR_SOCKS_CONNECTION_FAILED`), never falling back to the laptop's own port. Not verified
+  upstream: Connect, SSH, macOS, Windows. Names that resolve to loopback (`lvh.me`, hosts file)
+  still go direct. Untried here: it needs the laptop's desktop app on 20261119.4918 or later,
+  and a coordinator thread's dev server on loopback.
+- **Adopting means:** on the laptop's updated desktop app, open a coordinator thread's
+  `localhost` dev server tab and pick an element, draw a region and send an annotation. If they
+  reach the agent, `skills/prototype/UI.md` § 6 drops the "run on your own machine" hand-over,
+  the user's global instructions (§ Offloading to workers) stop sending prototypes to the
+  laptop, and `preview-tab-review` records the tunnel. Then try the next hop: a worker's dev
+  server, which the desktop app is not connected to.
+
+### pr-mcp-tools
+
+- **Capability:** since 0.1.11-nightly.20261119.4928 the PR toolkit
+  (`apps/server/src/mcp/toolkits/pullRequests/tools.ts`) adds `pull_request_read` (summary,
+  checks, conversation, diff, paged by `cursor`), `pull_request_list`, `pull_request_create`
+  (links the PR it opens), `pull_request_update` (title, body, ready or draft, labels,
+  reviewers, close or reopen), `pull_request_respond` (reply to, resolve or reopen a review
+  thread, or comment on the PR), `pull_request_review` (verdict and line comments),
+  `pull_request_merge` (`expectedHeadSha` required, `auto`, and `stack: true` for a GitHub
+  stack's atomic merge), `ci_logs` (tail of failing check logs) and `ci_rerun`
+  (pingdotgg/t3code#26751, #26752, #38973). They use T3's own forge sign-in rather than the
+  user's `gh` quota, and are listed only to a thread whose project is on a forge T3 reads. T3's
+  runtime instructions now end `<pull_request_linking>` with "When pull_request_* tools are
+  listed, use them, not gh or cafe, to read, list, open, edit, review, reply on, close, or merge
+  PRs, and ci_logs and ci_rerun for their checks. pull_request_create links for you."
+  (`runtimeInstructions.ts`). `ci_rerun` reopens a watch's finished checks, so the thread keeps
+  working until a read sees them run, which `gh run rerun` does not do. Tried 2026-11-19:
+  `pull_request_read` on this repo's #151 returned `headSha`, `mergeability`, each check with
+  `required: true`, and the review threads.
+- **Gaps against `babysit-pr`'s round:** the summary has `mergeability` (`mergeable`,
+  `conflicting`, `unknown`) and `behindBy`, but no `mergeStateStatus` (`BLOCKED`, `BEHIND`,
+  `DIRTY`) and no `reviewDecision` (only `pull_request_list` gives that); `required` marks
+  reported checks only, so a required context not yet reported still needs branch protection
+  (pingdotgg/t3code#28200, open); there is no update-branch tool.
+- **Conflicts today:** `skills/babysit-pr/SKILL.md` and `triage.md`, `skills/pr/SKILL.md`
+  (`gh pr create`, and its GraphQL-budget fallback), `skills/implement/SKILL.md` § 7,
+  `skills/implement/HEAVY.md`, `skills/implement-spec/SKILL.md` and
+  `skills/housekeeping/SKILL.md` prescribe `gh` for PR work the instruction above sends to the
+  tools, so a session in T3 gets both.
+- **Adopting means:** in T3, those skills read, reply, resolve, rerun, read logs and merge through
+  the tools, keeping `gh` for what they lack (`mergeStateStatus`, `reviewDecision`, branch
+  protection's required contexts, `gh pr update-branch`) and outside T3. `babysit-pr`'s
+  "after a `gh run rerun`" BLOCKED rule goes once reruns go through `ci_rerun`. The projects'
+  `docs/agents/pull-requests.md` say to run their title check "before `gh pr create`"; that
+  becomes "before opening the PR".
 
 ## Resolved
 
