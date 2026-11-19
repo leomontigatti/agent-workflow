@@ -1,60 +1,32 @@
-# Branches, worktrees and T3 Code threads
+# Branches, machines and threads
 
-The rules every shared skill assumes about where a session works. Local sessions run inside T3
-Code, and every thread gets its own git worktree and branch: `t3.json` sets
-`defaultThreadEnvMode` to `worktree`, and its `runOnWorktreeCreate` script prepares a new worktree
-before the agent starts. A worktree T3 rebuilt on resume, after its storage cleanup removed it,
-gets no setup: it holds the tracked files and nothing setup or first use made. New work on a
-merged thread goes in a new thread, which gets a set-up worktree. The main checkout stays on the
-default branch and is nobody's working directory: T3's Automatically pull keeps it current only
-while it is clean and on that branch.
+The rules every shared skill assumes about where a session works. A session is a Capy thread, and
+every thread gets its own machine with its own clone of the project's repos, prepared by the
+project's Setup before the agent starts. Nothing is shared between threads but what is pushed.
 
-- **Work where you started.** The thread's worktree is the working directory. Never `git checkout`
-  or `git switch` in the main checkout, and never create a worktree of your own (`git worktree
-  add`, Claude's `EnterWorktree`): T3 tracks only the branch and PR of the worktree it created,
-  so a private worktree loses the PR badge, the settling of the thread and T3's storage cleanup. A
-  session that needs another checkout gets it from T3: `t3_thread_launch` with a
-  `workspaceStrategy`, or `delegate_task` with `isolation: "worktree"` for a child whose branch
-  merges into the thread's.
-- **Branch names.** T3 names the branch when it creates the thread and may rename it once the
-  thread starts, so read it with `git branch --show-current`, never from the worktree's folder
-  name. A session that renames it or creates one uses `feat/`, `fix/`, `docs/`, `chore/`,
-  `refactor/`, `research/` or `prototype/`.
-- **One thread, one branch, one PR.** T3 links a PR that `gh pr create` opens to the thread that
-  ran it, shows its status and settles the thread when it merges. A PR opened another way (`gh
-  api`, a loop creating several) is linked with the `link_pull_request` tool, as is one missing
-  from `list_thread_pull_requests`. To keep working on an existing PR, start the thread on
-  that branch (or link the PR) instead of checking it out in another worktree. Link each issue the
-  thread works on or files with the `link_issue` tool, by its URL, so T3 shows it beside the
-  thread.
-- **A launched thread reports to its own inbox.** A thread started with `t3_thread_launch`
-  babysits its own PR, merges it when the merge is the agent's (the `babysit-pr` skill) and
-  otherwise hands back to the user; its `unwatch_pull_request` wakes nobody else, so the launcher
-  never hears that the PR is ready. When the user hands a merge that is theirs to the launcher,
-  the child still babysits and the launcher owns only the wait: `list_thread_pull_requests` with
-  the child's `threadId` gives the child's PR, the launcher calls `watch_pull_request` on it, and
-  merges when its own read of the round (the `babysit-pr` state table) says READY. That list is
-  the only source for a child PR's state. A launcher turn that ends before a child has opened its
-  PR names that child in its report, since nothing will wake the launcher for it.
-- **A lost context is recovered from T3.** When a turn starts without the goal, branch or PR of
-  the work (a failed compaction, or a summary that left them out), rebuild them from the thread
-  before searching logs or GitHub: `t3_thread_list` returns `currentThreadId`, and
-  `t3_thread_read` on it gives the user's requests and your earlier reports. A read with no cursor
-  starts at the newest items, cut to 500 characters each: read from the start with
-  `afterPosition: -1`, then each `nextPosition`, and a `maxCharsPerItem` of a few thousand; an
-  item marked `textTruncated` is read to its end with its `itemId` and each `nextTextOffset` as
-  `textOffset` before the next page. Only
-  the cursorless read carries `pullRequests`, at most five open PRs, watched first;
-  `list_thread_pull_requests` gives every one with its state, a page per `nextCursor`, and
-  `list_thread_issues` the issues the thread works on. An open PR
-  with `watching: true` is one you were babysitting: pick `babysit-pr` up at its read of the
-  round, and end the turn on the watch already running.
+- **Check the machine first.** `ls ~/.agents/skills` lists the shared skills and
+  `~/.agents/workflow` resolves. When either is missing the Setup did not run: stop and say so.
+- **One thread, one branch, one PR.** Before the first edit, start current (`git fetch origin`,
+  then branch from `origin/<default branch>`) on a branch named `feat/`, `fix/`, `docs/`,
+  `chore/`, `refactor/`, `research/` or `prototype/`. Open the PR with the platform's PR tool,
+  never `gh pr create`: the thread is then woken when its checks finish and when someone
+  comments. To keep working on an existing PR, check out its branch in a new thread.
+- **One writer per checkout.** A subagent shares this machine and this checkout: a subagent that
+  judges reads there and writes nothing. A second writer is a thread of its own in the project,
+  which gets its own machine and sees only what is pushed, so push before starting it and have
+  it push before it reports.
+- **A thread you start owns its PR.** It follows `babysit-pr` on it and hands back to the user;
+  the thread that started it reads that PR's state from GitHub, never from the child's word.
+- **A machine that slept kept its disk and lost its processes.** After a pause, restart what the
+  task needs (a dev server, a watcher) before relying on it.
+- **Merging is the user's.** Merge a PR, or turn on auto-merge, only when the user asks for that
+  merge in this thread.
+- **Issues live on GitHub**, as the project's `docs/agents/issue-tracker.md` says, not in the
+  platform's own tracker.
 - **Read-only threads** (writing issues, triage, reviewing a PR without editing code) change no
   branch.
-- **Leaving a worktree behind is fine; abandoning a branch is not.** Push the branch or delete it.
-  T3's storage cleanup removes a worktree T3 created once its PR merges or its last thread is
-  deleted, and keeps the branch; the branches, and the worktrees it skips, go with the
-  `housekeeping` skill.
+- **Push the branch or delete it** before the thread ends: the machine is cleared after it has
+  slept long enough, and an unpushed branch goes with it.
 - **Investigate before implementing.** A request to investigate, review, diagnose, audit or
   explain is a request for findings: return them with the options, their trade-offs and a
   recommended next step, then wait. Editing starts when the user asks to implement, fix, apply or
