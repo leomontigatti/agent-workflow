@@ -42,9 +42,9 @@ to the project; the issues it files are its output.
 
    Done when the slices are fixed and, past 20, the user agreed to them.
 
-3. **Judge.** Spawn one judge per slice, all in one message: a `delegate_task` child in the
-   Lifetime judges role of `~/.agents/workflow/agents/models.md` (outside T3, its fallback), in
-   this checkout. The task reads: "Read `~/.agents/workflow/skills/lifetime-audit/JUDGE.md` and
+3. **Judge.** Start one judge per slice, counted and batched as the fan-out rule of
+   `~/.agents/workflow/agents/models.md` says: a subagent in its Lifetime judges role, sharing
+   this machine and checkout. The task reads: "Read `~/.agents/workflow/skills/lifetime-audit/JUDGE.md` and
    follow it. Checkout `<path>` at `<sha>`. Slice `<n>`:" followed by the slice's lines from the
    scan, each file with its score and signals.
 
@@ -59,16 +59,15 @@ to the project; the issues it files are its output.
 
    Done when every claim is a drop or an ask.
 
-5. **Prove.** Spawn one prover per ask, in batches the machine's test runs can hold: a
-   `delegate_task` child with `isolation: "worktree"`, in the Lifetime provers role. Its task gives
+5. **Prove.** Start one prover per ask, batched the same way: a subagent on its own machine,
+   in the Lifetime provers role, on a checkout of the audited commit. Its task gives
    the claim only (where, the sequence, what goes wrong, the backstop) and reads: "Read
    `~/.agents/workflow/skills/lifetime-audit/PROVE.md` and follow it."
 
    A `rejected` claim goes once to a fresh prover, with the first prover's reason and the
    instruction to try another sequence before rejecting; the second answer is final. A prover
-   that ends without a verdict and left a test in its checkout: run that test yourself, without
-   and then with its fix, and record that you did; one that left no test is spawned once more,
-   fresh. A proof that changes the weighing (the hit turns out loud, or the backstop catches it)
+   that ends without a verdict but reported a test: run that test yourself, without and then
+   with its fix, and record that you did; one that reported no test is started once more, fresh. A proof that changes the weighing (the hit turns out loud, or the backstop catches it)
    is weighed again as step 4 does: it becomes a drop only when it is now loud and unlikely.
 
    Done when every ask is `demonstrated`, `confirmed-by-reading` or finally `rejected`.
@@ -76,7 +75,7 @@ to the project; the issues it files are its output.
 6. **Record and report.** Write the state file:
    `{"judged": [{"file": …, "blob": …, "commit": …, "bug": …, "shape": …}]}`, one entry per
    judged file, `blob` from `git rev-parse <commit>:<file>`, merged with the entries already
-   there. Copy each prover's diff out of its checkout before T3 removes it. Reply with the report
+   there. Keep each prover's diff from its report: its machine is not yours to read. Reply with the report
    below: each proven ask in the plain words step 2 asks for (what breaks and for whom, how
    likely, what the fix costs) with your pick, and each drop as its line. An issue is filed only
    for an ask the user rules for, as step 2 says, carrying the prover's test and its failing

@@ -16,7 +16,6 @@ moment it merges, so each change goes through a PR and nothing is committed to `
 - `hooks/`: the hooks that depend on no project.
 - `lib/`: Python modules more than one skill's script imports, by its real path:
   [`parts.py`](lib/parts.py) cuts a review script's output into parts that each fit one Read.
-- [`t3-dependencies.md`](t3-dependencies.md): what the shared files assume about T3 Code.
 - `upstreams/`: the watched upstream repos, their watermarks, and every verdict on an idea from
   them ([`decisions.md`](upstreams/decisions.md)). Upstream URLs live there and in `NOTICE`
   only.
@@ -28,11 +27,11 @@ moment it merges, so each change goes through a PR and nothing is committed to `
 
 ## Every change
 
-- **Branch and PR.** Work in the thread's worktree, on a `feat/`, `fix/`, `docs/` or `chore/`
+- **Branch and PR.** Work in the thread's own clone, on a `feat/`, `fix/`, `docs/` or `chore/`
   branch, and open a PR against `main`. The PR body names the projects whose behaviour changes and
   what each must add or rename to keep meeting the contract.
-- **Write for agents.** Every skill, brief and doc here is read by an agent: call the Skill tool
-  with "writing-for-agents" before editing one.
+- **Write for agents.** Every skill, brief and doc here is read by an agent: use the `writing-for-agents` skill
+  before editing one.
 - **Tag a release** after merging a change to `actions/` or to what an action runs
   (`skills/implement/scripts/review.py`): `vX.Y.Z` on the merge commit, minor for a new rule, major
   when a project must change its workflow. Projects pin the action to a tag
@@ -60,7 +59,5 @@ moment it merges, so each change goes through a PR and nothing is committed to `
   The projects' own PRs come from the user-invoked [`fan-out`](skills/fan-out/SKILL.md) skill.
 - **A model changes in `agents/models.md`**, and in the wrappers in the same commit; nothing else
   names one.
-- **A T3 assumption** a change adds or drops is an entry in `t3-dependencies.md`, with its
-  **Used by** kept true.
 - **An idea taken from an upstream** gets its row in `upstreams/decisions.md`, and its license
   entry in `NOTICE` when text is carried over. The skill itself never names the upstream.

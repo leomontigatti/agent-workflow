@@ -18,7 +18,6 @@ changed signature breaks its callers' tests, which no other command here runs.
 | ----------------------------------------------- | -------------------------------------------------------- |
 | `skills/implement/scripts/review.py`            | `python3 -I tests/test_review.py`                        |
 | `skills/upstream-review/scripts/`               | `python3 -I tests/test_upstreams.py`                     |
-| `skills/t3-update-review/scripts/`              | `python3 -I tests/test_t3_changes.py`                    |
 | `lib/parts.py`                                  | `python3 -I tests/test_parts.py` and its importers' tests |
 | `evals/reviewer-recall/`                        | `python3 -I tests/test_reviewer_recall.py`               |
 | `skills/retro/scripts/`                         | `python3 -I tests/test_retro_sessions.py`                |

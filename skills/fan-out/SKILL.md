@@ -9,20 +9,19 @@ disable-model-invocation: true
 The argument is a change that has to land in several projects: most often a breaking
 `contract.md` change from an agent-workflow PR, whose body names the projects and what each must
 add or rename. This thread is the **coordinator**: it writes no project's code. Each project gets
-its own thread, in its own worktree, running its own contract through `implement`, and opens its
+its own thread, on its own machine, running its own contract through `implement`, and opens its
 own PR. The coordinator owns the list, the shared wording and the report.
 
 ## 1. Scope
 
-Discover the projects; keep no index of them. List them with `t3_project_list`, then:
+Discover the projects; keep no index of them. List the platform's projects, then:
 
-- skip an entry whose `repositoryIdentity` is null ("No project", scratch);
-- keep one entry per `repositoryIdentity.canonicalKey`, preferring the one whose `workspaceRoot`
-  is under `~/.t3/projects/`. Two entries with similar titles and different keys are two repos;
+- keep one entry per repository; two projects with similar names and different repositories are
+  two repos;
 - leave out the coordinator's own project: its change is the shared PR, not a child.
 
-For each project left, `git fetch` and read the top of `AGENTS.md` on its remote default branch
-(`git show origin/<default>:AGENTS.md`), plus whatever the change touches there (a contract file,
+For each project left, read the top of `AGENTS.md` on its default branch
+(`gh api repos/<owner>/<repo>/contents/AGENTS.md`), plus whatever the change touches there (a contract file,
 a skill it renames). Mark it **in** or **out**, with a one-line reason. Show the user the list and
 wait for their agreement.
 
@@ -30,7 +29,8 @@ Done when every project is in or out with a reason and the user has agreed to th
 
 ## 2. Fix the shared parts
 
-Write `/tmp/fan-out-<slug>/notes.md`, outside every repo:
+Write the **notes** as one comment on the PR or issue the change comes from, opening
+`## Fan-out notes` and edited in place from then on, since each child's machine sees only GitHub:
 
 - the change, and the PR or issue it comes from;
 - one section per **in** project: what that project must do, and its merge order (step 5);
@@ -42,39 +42,33 @@ question a child raises about shared wording is answered in the notes, then poin
 
 ## 3. Launch one thread per project
 
-`delegate_task` refuses a local `target.projectId` other than the parent's, so each child is a
-top-level thread: `t3_thread_launch` with
-
-- `projectId`: the project's id from step 1;
-- `workspaceStrategy`: `{type: "worktree", baseRef: "origin/<default>", startFromOrigin: true}`;
-- `clientRequestId`: `fan-out-<slug>-<project>`, so a retry returns the same thread;
-- `title`: the change and the project;
-- `message`: pointers only:
+Each child is a thread started in its project, on the thread's own model, titled with the
+change and the project. Its message is pointers only:
 
 ```
-Notes: /tmp/fan-out-<slug>/notes.md (read it first; its shared names are exact)
+Notes: the `## Fan-out notes` comment on <URL> (read it first; its shared names are exact)
 Your part: § <project>
 Run the `implement` skill, then commit, push, open your PR and babysit it.
+When your PR is open, and again when it is ready, message the thread that started you with its URL.
 <only when your part merges with the shared PR:> Leave the merge to the user.
 ```
 
 Invoking this skill and agreeing to the step 1 list is the user's whole go-ahead for these
-threads: launch every **in** project without asking again. Each child opens and babysits its
-own PR, and merges it itself unless its message holds the merge
-([THREADS.md](../implement/THREADS.md), "A launched thread reports to its own inbox").
-Record each child's `threadId` and `link` in the notes file.
+threads: start every **in** project without asking again. Each child opens and babysits its
+own PR and stops at READY: the merges are the user's
+([THREADS.md](../implement/THREADS.md)). Record each child's thread in the notes.
 
 ## 4. Track and report
 
-`list_thread_pull_requests` with each child's `threadId` gives its PR and state; it is the only
-source for a child's PR. Report one row per **in** project:
+Each child's message gives its PR; read that PR's state from GitHub (`gh pr view <url> --json
+state,mergeStateStatus,statusCheckRollup`), never from the child's word. Report one row per
+**in** project:
 
 | Project | Thread | PR | State |
 | ------- | ------ | -- | ----- |
 
-with the thread's `link` verbatim. Name every child that has not opened its PR yet: nothing wakes
-the coordinator for it, so the user asks again later and this step runs again. When the user
-hands the coordinator a merge that is theirs, follow THREADS.md's launcher rule for each PR.
+Name every child that has not opened its PR yet. When the user asks for the merges in this
+thread, merge each PR that reads READY, in step 5's order.
 
 ## 5. Order the merges
 
@@ -83,8 +77,7 @@ When the change comes from an agent-workflow PR, link every project PR from its 
 - a project PR that only adds what a new required contract row asks for merges before the shared
   PR, so the row is met the moment it lands;
 - a project PR that renames something the shared files name merges together with the shared PR,
-  back to back, so neither side reads a name the other has dropped. Its launch message held the
-  merge (step 3), so it waits at READY until the user merges both, or hands the merges to the
-  coordinator.
+  back to back, so neither side reads a name the other has dropped. It waits at READY until
+  the user merges both, or asks the coordinator to.
 
 Say which order applies to each PR in the step 4 report.

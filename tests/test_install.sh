@@ -15,12 +15,12 @@ fail=0
 ok() { echo "ok   $*"; }
 bad() { echo "FAIL $*"; fail=1; }
 
-mkdir -p "$HOME/.claude" "$HOME/.claude/skills/handoff"
+mkdir -p "$HOME/.claude" "$HOME/.claude/skills/grilling"
 echo '{"permissions":{"allow":["Bash(git status)"]},"hooks":{"PreToolUse":[{"matcher":"Bash","hooks":[{"type":"command","command":"/own/hook.sh"}]}]}}' >"$HOME/.claude/settings.json"
 
 if "$repo/install.sh" >/dev/null; then bad "a conflict makes install exit 1"; else ok "a conflict makes install exit 1"; fi
-if [ -d "$HOME/.claude/skills/handoff" ] && [ ! -L "$HOME/.claude/skills/handoff" ]; then ok "the conflicting dir is left alone"; else bad "the conflicting dir is left alone"; fi
-rm -rf "$HOME/.claude/skills/handoff"
+if [ -d "$HOME/.claude/skills/grilling" ] && [ ! -L "$HOME/.claude/skills/grilling" ]; then ok "the conflicting dir is left alone"; else bad "the conflicting dir is left alone"; fi
+rm -rf "$HOME/.claude/skills/grilling"
 
 "$repo/install.sh" >/dev/null || bad "install exited non-zero"
 if [ "$(readlink "$HOME/.agents/workflow")" = "$repo" ] && [ "$(readlink "$HOME/.claude/skills/tdd")" = "$HOME/.agents/skills/tdd" ]; then ok "install root linked"; else bad "install root linked"; fi

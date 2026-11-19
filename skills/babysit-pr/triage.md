@@ -65,7 +65,7 @@ findings. Format:
 ## Reading the round
 
 The PR's state, then every unresolved thread with its id. A comment or review a maintainer hid on
-GitHub (`isMinimized`) is left out, as T3's PR watch leaves it out, and a thread whose every
+GitHub (`isMinimized`) is left out, and a thread whose every
 comment is hidden with it:
 
 ```bash

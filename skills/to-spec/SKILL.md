@@ -76,7 +76,7 @@ Any further notes about the feature.
 
 </spec-template>
 
-4. When the spec adds a screen or flow, or changes a screen's layout or interaction, the **prototype pass** comes next, before `to-tickets`: call the Skill tool with "prototype" for every such screen in the spec, on one `prototype/<PRD>` branch, and hand them to the user together, to review in one sitting. Each winner comment goes on the PRD. Say so as you publish, and stop: the tickets follow the approved designs.
+4. When the spec adds a screen or flow, or changes a screen's layout or interaction, the **prototype pass** comes next, before `to-tickets`: use the `prototype` skill for every such screen in the spec, on one `prototype/<PRD>` branch, and hand them to the user together, to review in one sitting. Each winner comment goes on the PRD. Say so as you publish, and stop: the tickets follow the approved designs.
 
 ## A snapshot, not a source
 

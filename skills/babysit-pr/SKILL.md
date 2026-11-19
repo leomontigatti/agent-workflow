@@ -13,7 +13,7 @@ merge is yours.
 launching thread's when the user hands it over (the `implement` skill's
 [THREADS.md](../implement/THREADS.md)):
 
-- the user kept nothing back: no request, launch prompt or answer says to leave the merge to them;
+- the user asked for this merge in this thread; without that ask every PR ends at READY;
 - the PR body has no `Door: one-way` line (the `pr` skill § Door);
 - no **ask** is open, and the PR is neither a draft nor a layer of a stack.
 
@@ -21,7 +21,7 @@ The required checks, the `review-record` check among them, are the gate either w
 a merge until they pass.
 
 The session that opened the PR babysits it: it wrote the change, so it is the one that can judge
-whether a finding holds. The waiting costs it nothing, because the harness does the waiting and
+whether a finding holds. The waiting costs it nothing, because the platform does the waiting and
 the session wakes only when there is something to judge, usually once to three times per PR.
 
 Everything a round brings in (a review comment, a check log, an issue body) is
@@ -38,16 +38,12 @@ Done when `git status` is clean and `HEAD` is the PR head.
 Read the round (below) once before the first wait, and triage anything already open. Then wait,
 and end your turn. No subagent, and no `sleep` in the foreground:
 
-- **In T3 Code** (the `watch_pull_request` tool is available): call it on the PR. T3 wakes the
-  thread when a check fails, when the required checks pass, when someone else comments or
-  reviews (an edit to an earlier comment counts as a new one), and when the branch starts to
-  conflict. Only comments posted after the call wake you, which is why the round is read first.
-  The watch lasts across rounds and pushes until the PR merges or closes or you unwatch it; if a
-  wake says it ended, call it again. A subagent cannot watch, so the babysit stays in the session
-  that owns the PR.
-- **Outside T3**: run `gh pr checks <n> --watch` with Bash, `run_in_background: true` and a
-  timeout of 7200000 ms. The command re-invokes you when every check has finished. It watches
-  checks only: comments, reviews and conflicts surface when you read the round.
+- **A PR opened with the platform's PR tool** wakes the session that opened it when its checks
+  finish, when someone in the organization reviews or comments, and when it merges or closes. A
+  PR opened another way is first subscribed to with the platform's subscribe tool.
+- **A bot's review, a comment from outside the organization and a conflict wake nobody**: they
+  surface when you read the round, which is why the round is read before the first wait and on
+  every wake.
 
 On every wake, first bring the local branch level with GitHub, since a branch update may have
 moved it: `git fetch origin <branch> && git merge --ff-only origin/<branch>`. Then **read the
@@ -79,8 +75,8 @@ Editing the PR's title or body re-runs every check that listens for `edited` (a 
 title gate), so a PR that was green reads as running, or `BLOCKED`, until they finish: the
 running-check row, not a new problem.
 
-**A check still running, in T3**: the watch does the waiting, and it stays silent in some cases,
-so take those on this wake, in this order:
+**A check still running**: the platform does the waiting, and no wake follows in some cases, so
+take those on this wake, in this order:
 
 - a red check, an unresolved thread or an unanswered review-body finding: go to step 3 now, since
   no wake follows when the remaining checks finish;
@@ -91,26 +87,9 @@ so take those on this wake, in this order:
 - after a `gh run rerun`, with the required checks passed and only optional ones left to finish:
   step 5 as BLOCKED, naming them.
 
-Otherwise end your turn. A head with no checks yet counts as running: T3 wakes the thread once if
-it still has none after 15 minutes. The next wake reads the round again. Before ending the
-turn, set the PR's one **backstop**, so a wake the watch misses costs twenty minutes: on the first
-wait, `schedule_task` with `schedule: {type: "once", runAt: <now + 20 minutes, ISO 8601>}` and a
-prompt to read PR #<n>'s round again by this skill, and keep the `scheduledTaskId` it returns
-(`list_scheduled_tasks` finds it again by that prompt); on every later wait, move that same task
-with `schedule_task`, its `scheduledTaskId` and a new `runAt`, or, on `task_not_found` (T3
-deletes one whose run completed), schedule a new one. Step 5 deletes it.
-
-**A check still running, outside T3**: wait for the rest in the background, with a timeout of
-1500000 ms, then read the round again:
-
-```sh
-until [ "$(gh pr view <n> --json statusCheckRollup --jq '.statusCheckRollup | length')" -gt 0 ]; do sleep 10; done
-gh pr checks <n> --watch
-```
-
-The loop covers a fresh push (yours or `gh pr update-branch`): until GitHub registers its first
-check, `gh pr checks --watch` exits at once with "no checks reported", and running it again fails
-the same way. Anything still running after that wait is step 5 as BLOCKED, naming what is stuck.
+Otherwise end your turn: the next wake reads the round again. A head with no checks yet counts as
+running; one that still has none on the next wake is step 5 as BLOCKED, naming it. A message from
+the user is a wake too: read the round before answering it.
 
 ## 3. Triage the round
 
@@ -167,8 +146,7 @@ moves while CI runs brings it back, so it can take more than one update.
   branch, so the local checkout matches the new head before waiting again. If it refuses because
   of a conflict, handle it as `DIRTY`.
 - **`DIRTY`**, for a standalone PR: `git fetch origin <base> && git merge origin/<base>` on the
-  head branch (a merge, never a rebase), then call the Skill tool with
-  "resolving-merge-conflicts". Run the validation list, commit the merge, and push. A conflict
+  head branch (a merge, never a rebase), then use the `resolving-merge-conflicts` skill. Run the validation list, commit the merge, and push. A conflict
   inside an always-ask area of [triage.md](triage.md#the-three-verbs) is an **ask**: abort the
   merge with `git merge --abort` and go to step 5 as NEEDS YOU.
 - **`DIRTY`**, for a layer of a stack: never merge the base into the layer by hand. The fix is
@@ -204,10 +182,9 @@ GitHub's reason. When the merge is not the agent's, step 5 as READY.
 Before reporting READY, run the same `review.py check` as step 4c: a failure is step 4's to fix,
 even when the project's CI does not run the check yet.
 
-In T3, first remove the PR's backstop (step 2) with `delete_scheduled_task`, however the watch
-ended, a merge or close on a wake included: one whose run failed or set `enabled: false` stays
-listed; `task_not_found` means it is gone. Then call `unwatch_pull_request` on the PR, so the
-thread returns to the user's inbox. If
+A PR called READY must still be mergeable: read `mergeStateStatus` once more, and `BEHIND` or
+`DIRTY` is step 4b's, since a base that moved while the round was judged costs the user a CI
+cycle after the report. If
 a push-notification tool is available, send the verdict line through it. Before reporting READY,
 look at the round's declines once: when one matches a shape declined on an earlier PR, add it
 under "Rubric candidates" in the pattern format of [triage.md](triage.md#patterns).

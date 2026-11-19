@@ -5,8 +5,8 @@ description: "Implementation workflow: explore, test-first at agreed seams, vali
 
 # Implement
 
-The session runs in its thread's own worktree and branch: [THREADS.md](THREADS.md) has the rules
-for branches, worktrees and PRs that every step below assumes.
+The session runs in its thread's own machine and branch: [THREADS.md](THREADS.md) has the rules
+for branches, machines and PRs that every step below assumes.
 
 ## 1. Explore
 
@@ -21,16 +21,13 @@ for the user. Done when you can name the **seams**: the public interfaces the be
 tested through.
 
 Take the seams from the ticket's **Test seams** when it has them. Otherwise propose them and
-confirm with the user. When where a seam belongs is itself the question, call the Skill tool with
-"codebase-design". When the change renames a domain term or edits `GLOSSARY.md` or an ADR, call it
-with "domain-modeling".
+confirm with the user. When where a seam belongs is itself the question, use the `codebase-design` skill. When the change renames a domain term or edits `GLOSSARY.md` or an ADR, use the `domain-modeling` skill.
 
 **Prototype first** when the change adds a screen or flow, or changes a screen's layout or
 interaction. Say at the start which group the change is in; the user may move it. Unless the issue
 already links an approved prototype (a `prototype/<n>` branch and its winner comment, on the
 issue, in its `## Design` section or on its PRD for its screen), or the user picked one earlier in
-this thread, call the
-Skill tool with "prototype", follow its UI branch, and stop at the user's pick: the build starts
+this thread, use the `prototype` skill, follow its UI branch, and stop at the user's pick: the build starts
 from the winner. A change to copy, spacing or a visual bug skips it.
 
 The **reference** for what a user will see is the approved variant when there is one: step 4
@@ -40,7 +37,7 @@ before left to take.
 
 ## 2. Build test-first
 
-Call the Skill tool with "tdd" and follow its loop at those seams: one failing test, the minimal
+Use the `tdd` skill and follow its loop at those seams: one failing test, the minimal
 code to pass it, repeat. The `tdd` skill also follows the project's `docs/agents/tdd-*.md` notes
 for the kind of code the change touches.
 
@@ -105,13 +102,11 @@ clean before moving to the next. Read a failure where the command prints it: out
 ## 4. Verify what a user sees
 
 When the change alters anything a user sees or drives, prove it by `docs/agents/verification.md`:
-launch, drive the flows its § Feature map names for the area (in a T3 thread, with the browser CLI
-§ Drive names, or T3's preview tools as [PREVIEW.md](PREVIEW.md) says when it names none), and capture the **after** on the
-same screen, data and account as the reference: the before, or the approved variant captured from
-its branch by a `delegate_task` child with `isolation: "worktree"`: it checks out
-`origin/prototype/<n>` detached, reruns `t3.json`'s setup when the lockfile differs, and saves
-each capture at the absolute path you give it. Outside T3, capture it from a
-`git worktree add --detach` that you set up by `t3.json`'s setup and remove after. Clean up what you launched, then check that each
+launch, drive the flows its § Feature map names for the area (with the browser CLI § Drive names,
+or the machine's browser as [PREVIEW.md](PREVIEW.md) says when it names none), and capture the
+**after** on the same screen, data and account as the reference: the before, or the approved
+variant, captured from a `git worktree add --detach` of `origin/prototype/<n>` beside the clone,
+with its dependencies installed when its lockfile differs, and removed after. Clean up what you launched, then check that each
 capture is still at its path: step 7 embeds it from there. A check you can run is
 never handed to the user: run it and show the result. Skip this step for changes with no surface a
 user reaches, and say so.
@@ -127,7 +122,7 @@ prints (a `GLOSSARY.md` term no path shows, anything else you judge risky), neve
 
 - **`full`** when the diff touches an area in `docs/agents/review.md` § Full review, a migration,
   a term defined in `GLOSSARY.md`, or an operational script that deletes or overwrites (a database
-  reset or restore, a sync with delete): call the Skill tool with "code-review" on the changes
+  reset or restore, a sync with delete): use the `code-review` skill on the changes
   since the branch point, and add the correctness axis.
 - **`readback+correctness`** when the diff changes behaviour, config included (a header, a cache
   directive, a build or server setting, a permission rule): follow
@@ -202,11 +197,8 @@ user not to commit overrides this. Conventional-commit subject and body, in the 
 
 **Screens are approved before the PR.** When step 4 captured a reference and an after, show them
 to the user. An after that matches its approved variant was approved at the pick: show the pair
-and go on. Any other pair, a before included, ends the turn on the question, with what step 4 launched already stopped: in a T3 thread,
-embed each image by its absolute path in the reply; elsewhere, list the paths. The path resolves
-on the thread's own machine: a capture taken in another environment (a child delegated with
-`target.environmentId`) is first copied to this machine, the way the user's instructions for that
-machine say, and embedded from the copy; with no way to copy it, list its path. An adjustment the
+and go on. Any other pair, a before included, ends the turn on the question, with what step 4 launched already stopped:
+show each image in the reply, and list its path when the reply cannot carry it. An adjustment the
 user asks for is a change like any other: steps 2 to 6 again, then show the new after. The
 approval holds until a later commit changes what a captured screen shows; then show it again.
 Done when every captured screen matches its approved variant or the user has approved it, or
@@ -215,15 +207,17 @@ in the thread: the PR carries none.
 
 When the run started from an issue or the user asked for a PR: push the branch, open it ready for
 review (never a draft; a PRD run under `implement-spec` keeps its PR a draft until the last slice
-lands) with a body written by calling the Skill tool with "pr", carrying `Closes #N`, linked to
-the thread as [THREADS.md](THREADS.md) says. An issue is the unit of work here, so a run that starts from one ends in the PR
+lands) with a body written by following the `pr` skill, carrying `Closes #N`, opened with the
+platform's PR tool as [THREADS.md](THREADS.md) says. Before opening it, write the body to a file
+and run `python3 -I <this-skill-dir>/scripts/review.py check --body <file>`: open the PR only
+once it prints `review record: ok`, so the record's check never goes red on a PR already called
+ready. An issue is the unit of work here, so a run that starts from one ends in the PR
 that closes it unless the user says otherwise.
-Done when `gh pr view` shows it open and it is linked.
+Done when `gh pr view` shows it open.
 
-Then call the Skill tool with "babysit-pr": this session judges the review rounds and merges the
-PR when the merge is the agent's, and T3's `watch_pull_request` (or, outside T3, a background
-`gh pr checks --watch`) does the waiting, so the session wakes only when a round needs it. Stop
-only at the skill's report.
+Then follow the `babysit-pr` skill: this session judges the review rounds, and the platform does
+the waiting, waking the thread when the PR's checks finish. Stop only at the
+skill's report.
 
 ## The final report
 
