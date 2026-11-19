@@ -45,10 +45,10 @@ running Y"), and its tier and family are the review's; null keeps the requested 
 | Design runners        | `codebase-design`'s design-it-twice, `prototype` variants | both families, alternating: Opus, Sol, Opus…             | high    | one family, at the same count                |
 | Research              | primary sources outside the repo (`research` agent)       | Codex `gpt-6.1-terra`                                    | low     | Claude `research` on Sonnet                  |
 | Miners                | slices of transcripts or diffs (`retro`, `upstream-review`, `t3-update-review`) | Codex `gpt-6.1-terra`              | low     | Claude Sonnet                                |
-| Implementer           | one ticket (`implement-spec`)                             | the author's family: Opus (`claudeAgent`) in Claude Code, `gpt-6.1-sol` (`codex`) in Codex | medium in Codex | none                     |
+| Implementer           | one ticket (`implement-spec`)                             | the author's family: Opus (`claudeAgent`) in Claude Code, `gpt-6.2-sol` (`codex`) in Codex | medium in Codex | none                     |
 | Codebase mapping      | a narrow read of 4+ files for the session                 | the harness's own explorer (Claude's `Explore`, Codex's default agent) | default | inline                       |
 
-Model ids: Sol is `gpt-6.1-sol`, Terra is `gpt-6.1-terra`, Luna is `gpt-6-luna` (Codex); Opus is
+Model ids: Sol is `gpt-6.2-sol`, Terra is `gpt-6.1-terra`, Luna is `gpt-6-luna` (Codex); Opus is
 `claude-opus-5-5`, Sonnet is `claude-sonnet-5-5` (Claude).
 
 Why each effort:
@@ -75,7 +75,7 @@ Why each effort:
 
 Why correctness runs on both families in the full tier: on 15 known bugs
 ([reviewer-recall](../evals/reviewer-recall/README.md), 2026-10-27), Opus caught 63% of its
-reviews' bugs and Sol 40%, each finding bugs the other missed, and the two together caught 14
+reviews' bugs and Sol 40% (on `gpt-6.1-sol`; 6.2 is unmeasured), each finding bugs the other missed, and the two together caught 14
 of 15. A diff outside the full tier keeps one reviewer, to spare the quota.
 
 ## Reaching each model

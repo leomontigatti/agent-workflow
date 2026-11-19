@@ -50,7 +50,7 @@ Closes #N
   > 🤖 **<model> responding on behalf of <user>**
   ```
 
-  `<model>` is the public name of the model writing it (`Claude Opus 5.5`, `GPT-6.1 Sol`), or the
+  `<model>` is the public name of the model writing it (`Claude Opus 5.5`, `GPT-6.2 Sol`), or the
   harness's name when you cannot tell; `<user>` is `gh api user --jq .login`. A PR body, a commit
   message, and text the user asked to post word for word carry no note.
 - **The issue carries the why.** The investigation, the alternatives and the domain reasoning live
