@@ -154,8 +154,8 @@ class CheckPr(unittest.TestCase):
             self.assertIn("review record: ok", run.stdout)
 
 
-class CheckBody(unittest.TestCase):
-    """`check --body <file>`: the record checked from the checkout, before the push."""
+class Checkout(unittest.TestCase):
+    """A clone of a one-commit origin, on branch `feat`, where the script runs from its command line."""
 
     def setUp(self):
         tmp = tempfile.TemporaryDirectory()
@@ -183,13 +183,37 @@ class CheckBody(unittest.TestCase):
         self.git(self.work, "commit", "-q", "-m", path)
         return self.git(self.work, "rev-parse", "--short", "HEAD")
 
+    def run_script(self, *args):
+        return subprocess.run([sys.executable, "-I", os.path.join(ROOT, "skills/implement/scripts/review.py"), *args],
+                              cwd=self.work, capture_output=True, text=True, env=self.env)
+
+
+class TierCommand(Checkout):
+    """`tier [base]`: the tier of the branch, from the command line."""
+
+    def test_a_flag_as_the_base_is_refused_with_a_usage_line(self):
+        run = self.run_script("tier", "--base", "origin/main")
+        self.assertEqual(run.returncode, 2)
+        self.assertNotIn("Traceback", run.stderr)
+        self.assertEqual(len(run.stderr.strip().splitlines()), 1, run.stderr)
+        self.assertTrue(run.stderr.startswith("usage: "), run.stderr)
+
+    def test_a_plain_base_and_no_base_both_read_the_branch(self):
+        self.commit("src/app.py")
+        for args in (("tier", "origin/main"), ("tier",)):
+            run = self.run_script(*args)
+            self.assertEqual(run.returncode, 0, run.stderr)
+            self.assertIn("Tier: readback+correctness", run.stdout)
+
+
+class CheckBody(Checkout):
+    """`check --body <file>`: the record checked from the checkout, before the push."""
+
     def run_check(self, text, *extra):
         path = os.path.join(self.tmp, "body.md")
         with open(path, "w") as f:
             f.write(text)
-        return subprocess.run([sys.executable, "-I", os.path.join(ROOT, "skills/implement/scripts/review.py"),
-                               "check", "--body", path, *extra], cwd=self.work, capture_output=True, text=True,
-                              env=self.env)
+        return self.run_script("check", "--body", path, *extra)
 
     def test_a_reviewed_branch_passes(self):
         sha = self.commit("a.md")
@@ -226,6 +250,14 @@ class CheckBody(unittest.TestCase):
         sha = self.commit("a.md")
         run = self.run_check(body("readback", "- readback (luna): ok").replace("abc1234", sha), "--base", "HEAD~1")
         self.assertEqual(run.returncode, 0, run.stderr)
+
+    def test_a_flag_as_the_base_is_refused_with_a_usage_line(self):
+        sha = self.commit("a.md")
+        run = self.run_check(body("readback", "- readback (luna): ok").replace("abc1234", sha), "--base", "--cached")
+        self.assertEqual(run.returncode, 2)
+        self.assertNotIn("Traceback", run.stderr)
+        self.assertEqual(len(run.stderr.strip().splitlines()), 1, run.stderr)
+        self.assertTrue(run.stderr.startswith("usage: "), run.stderr)
 
 
 if __name__ == "__main__":
