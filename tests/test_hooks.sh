@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 #
-# Feeds hooks/block-push-default-branch.sh the JSON a harness sends, from a throwaway repo whose
-# origin's default branch is main, and checks which pushes it blocks (exit 2) and which it lets by.
+# Feeds each hook the JSON a harness sends and checks which commands it blocks (exit 2) and which
+# it lets by: hooks/block-push-default-branch.sh from a throwaway repo whose origin's default
+# branch is main, then hooks/block-pkill-f.sh.
 
 set -euo pipefail
 
@@ -94,5 +95,24 @@ git -C "$tmp/work" config --unset remote.pushDefault
 check allowed "git push"
 check blocked $'cat <<\\EOF > notes.md\nx\nEOF\ngit push origin HEAD:main'
 check allowed $'cat <<\'END OF FILE\' > notes.md\ngit push origin main\nEND OF FILE'
+
+hook="$repo/hooks/block-pkill-f.sh"
+check blocked "pkill -f node"
+check blocked "pkill -fx node"
+check blocked "pkill --full node"
+check blocked "pkill -9 -f node"
+check blocked "pkill -u t3 -f node"
+check blocked "pkill --signal TERM -f node"
+check blocked "pkill -u t3 --full node"
+check blocked "sleep 1; pkill -u t3 -f node"
+check blocked $'echo hi\npkill -u t3 -f node'
+check allowed "pkill node"
+check allowed "pkill -u t3 node"
+check allowed "pgrep -f node"
+check allowed "echo never run pkill -f in a hook"
+check allowed "pkill node; grep -f x y"
+check allowed "pkill -u t3 node && grep -f x y"
+check allowed "pkill node | grep -f x"
+check allowed $'pkill node\ngrep -f x y'
 
 exit "$fail"
