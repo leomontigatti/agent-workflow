@@ -56,7 +56,7 @@ verdict and its reason as written.
    (`~/.agents/workflow/agents/models.md`) when it names a model. Then give it one
    proposed verdict:
    - **adopt**: it makes a skill better and fits our design (shared skills hold procedure,
-     projects hold facts, T3 does the orchestration). Draft the change: the file, the section,
+     projects hold facts, the platform does the orchestration). Draft the change: the file, the section,
      the new text.
    - **decline**: we already do it, it fights our design, or its cost outweighs it. Give the
      reason in one line, citing our file when we already do it.
@@ -90,6 +90,6 @@ verdict and its reason as written.
 
 ## Cadence
 
-Weekly: the T3 scheduled task "Weekly upstream review" runs it on Mondays at 09:00, in a fresh
-thread on this repo. The sources move a few commits a week, and an idea loses nothing by waiting
-a few days. A run's thread is its record. The task's `lastRunStatus` turns `failed`, with `lastRunError` saying why, for a run that failed, was stopped or was missed while T3 was down; `succeeded` only means it started, so a thread with no report is a failed run too.
+Weekly: the automation "Weekly upstream review" runs it on Mondays at 09:00, in a new thread on
+this repo. The sources move a few commits a week, and an idea loses nothing by waiting a few
+days. A run's thread is its record: a thread with no report is a failed run.

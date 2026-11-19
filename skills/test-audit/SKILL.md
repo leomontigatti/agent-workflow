@@ -9,7 +9,7 @@ against the test rules, and opens one PR that deletes, folds or rewrites the **l
 and retitles the **overstated** ones. The user's merge is the verdict: a test the user wants kept is
 restored on the PR, or the PR is closed.
 
-It runs in a fresh thread on the project, in its own worktree from the default branch. It reads
+It runs in a fresh thread on the project, from the default branch. It reads
 the whole window and edits only test files.
 
 ## The rules
@@ -73,7 +73,7 @@ edits a protected test beyond renaming it, and lists a low-signal one as an ask.
    Commit each round's fixes before the next step, so the reviewed commit is the branch's head.
 
 5. **Report and open the PR.** Push, and open the PR ready for review, with a body written by
-   calling the Skill tool with "pr" (its `## Review` record included) and holding:
+   using the `pr` skill (its `## Review` record included) and holding:
 
    ```
    Window: <watermark short sha>..<new short sha>, <n> cases judged
@@ -91,7 +91,6 @@ edits a protected test beyond renaming it, and lists a low-signal one as an ask.
 
 ## Cadence
 
-Weekly: a T3 scheduled task per project, "Weekly test audit", on Mondays at 10:00, in a fresh
-thread on that project. A missed week leaves the watermark where it was, so the next run covers
-both. A run's thread is its record: a thread with no report is a failed run, whatever the task's
-`lastRunStatus` says.
+Weekly: an automation per project, "Weekly test audit", on Mondays at 10:00, in a new thread
+on that project. A missed week leaves the watermark where it was, so the next run covers
+both. A run's thread is its record: a thread with no report is a failed run.

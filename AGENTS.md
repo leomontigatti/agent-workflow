@@ -27,11 +27,11 @@ moment it merges, so each change goes through a PR and nothing is committed to `
 
 ## Every change
 
-- **Branch and PR.** Work in the thread's worktree, on a `feat/`, `fix/`, `docs/` or `chore/`
+- **Branch and PR.** Work in the thread's own clone, on a `feat/`, `fix/`, `docs/` or `chore/`
   branch, and open a PR against `main`. The PR body names the projects whose behaviour changes and
   what each must add or rename to keep meeting the contract.
-- **Write for agents.** Every skill, brief and doc here is read by an agent: call the Skill tool
-  with "writing-for-agents" before editing one.
+- **Write for agents.** Every skill, brief and doc here is read by an agent: use the `writing-for-agents` skill
+  before editing one.
 - **Tag a release** after merging a change to `actions/` or to what an action runs
   (`skills/implement/scripts/review.py`): `vX.Y.Z` on the merge commit, minor for a new rule, major
   when a project must change its workflow. Projects pin the action to a tag

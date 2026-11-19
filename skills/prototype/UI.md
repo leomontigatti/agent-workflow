@@ -100,7 +100,7 @@ Launch by `docs/agents/verification.md` § Launch, once, as a background command
 
 ### 6. Hand it over
 
-In a T3 thread, open the route in a preview tab the user sees (`preview_open` with `open: true`); elsewhere, give the URL. Tell the user the `?variant=` keys, and one line per variant saying what it bets on. The user drives the tab and comments in the thread, on elements directly through the preview's annotations. Each ask changes the **prototype**, then step 5 runs again. Done when the user names a winner.
+Expose the route's port as a preview and give the user its address. Tell the user the `?variant=` keys, and one line per variant saying what it bets on. The user drives the page and comments in the thread. Each ask changes the **prototype**, then step 5 runs again. Done when the user names a winner.
 
 ### 7. Capture the answer and clean up
 

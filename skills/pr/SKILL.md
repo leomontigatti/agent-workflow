@@ -14,8 +14,8 @@ reader cares about, not the mechanism that delivers it (`cut websocket frames 70
 `gh pr create` fails because GitHub's GraphQL budget is spent (`gh api rate_limit --jq
 .resources.graphql` shows `remaining` near 0), open it through REST, which has its own budget:
 `gh api repos/{owner}/{repo}/pulls -f title=<title> -f head=<branch> -f base=<base> -F
-body=@<file>`. T3 does not link a PR opened that way: link it as the `implement` skill's
-[THREADS.md](../implement/THREADS.md) says.
+body=@<file>`. Nothing wakes the thread for a PR opened that way: subscribe to it, as the
+`babysit-pr` skill's step 2 says.
 
 The body has two readers: the `review-record` check, which reads `## Review`, and the user, who
 opens a PR only now and then, and never to approve it: screens are approved in the thread before
