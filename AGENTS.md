@@ -16,7 +16,6 @@ moment it merges, so each change goes through a PR and nothing is committed to `
 - `hooks/`: the hooks that depend on no project.
 - `lib/`: Python modules more than one skill's script imports, by its real path:
   [`parts.py`](lib/parts.py) cuts a review script's output into parts that each fit one Read.
-- [`t3-dependencies.md`](t3-dependencies.md): what the shared files assume about T3 Code.
 - `upstreams/`: the watched upstream repos, their watermarks, and every verdict on an idea from
   them ([`decisions.md`](upstreams/decisions.md)). Upstream URLs live there and in `NOTICE`
   only.
@@ -59,7 +58,5 @@ moment it merges, so each change goes through a PR and nothing is committed to `
   The projects' own PRs come from the user-invoked [`fan-out`](skills/fan-out/SKILL.md) skill.
 - **A model changes in `agents/models.md`**, and in the wrappers in the same commit; nothing else
   names one.
-- **A T3 assumption** a change adds or drops is an entry in `t3-dependencies.md`, with its
-  **Used by** kept true.
 - **An idea taken from an upstream** gets its row in `upstreams/decisions.md`, and its license
   entry in `NOTICE` when text is carried over. The skill itself never names the upstream.
