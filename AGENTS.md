@@ -37,7 +37,8 @@ moment it merges, so each change goes through a PR and nothing is committed to `
   (`skills/implement/scripts/review.py`): `vX.Y.Z` on the merge commit, minor for a new rule, major
   when a project must change its workflow. Projects pin the action to a tag
   ([its README](actions/review-record/README.md)).
-- **Run the lint**: `python3 -I tests/lint_skills.py`. CI runs it with `tests/test_lint.sh` and
+- **Run the lint**: `python3 -I tests/lint_skills.py`, then the test of each script you changed
+  ([`docs/agents/validation.md`](docs/agents/validation.md)). CI runs it with `tests/test_lint.sh` and
   `tests/test_install.sh`. Run `install.sh` only when the user asks; the install test uses a
   throwaway `HOME`.
 - **Context is budgeted.** The lint fails when a skill or wrapper description, a `SKILL.md` or a
