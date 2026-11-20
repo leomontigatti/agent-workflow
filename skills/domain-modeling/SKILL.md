@@ -23,9 +23,15 @@ A project has a single context:
 `AGENTS.md` routes to any further domain docs (the detailed rules the glossary points at). If no
 `docs/adr/` file covers a decision, create the next numbered ADR when it is needed.
 
-When your output contradicts an ADR, say so rather than silently overriding it: "Contradicts
-ADR-0002, but worth reopening because…". ADRs are records: a reversal is a new ADR that
-supersedes the old one.
+An ADR records why; the code says what is. When your output contradicts an ADR, say so rather than
+silently overriding it: "Contradicts ADR-0002, but worth reopening because…". When the code
+already contradicts one, the code is current: raise the mismatch with the user, who rules which of
+the two changes. A reversal is a new ADR, and the one it supersedes is deleted in the same change:
+git keeps the record, and a reader finds only decisions in force.
+
+`python3 -I ~/.agents/workflow/skills/domain-modeling/scripts/anchors.py` lists every ADR and
+glossary term whose **anchor** has left the code. Run it before relying on either and after
+editing one: each `gone:` line is such a mismatch.
 
 ## During the session
 
@@ -53,7 +59,8 @@ When a term is resolved, update `GLOSSARY.md` right there. Don't batch these up:
 
 ### Offer ADRs sparingly
 
-Only offer to create an ADR when all three are true:
+An ADR is the last resort: a decision that a type, a lint rule or a test can hold lives there,
+where a break fails a check. Only offer to create an ADR when all three are true:
 
 1. **Hard to reverse**: the cost of changing your mind later is meaningful
 2. **Surprising without context**: a future reader will wonder "why did they do it this way?"

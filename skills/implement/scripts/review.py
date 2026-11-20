@@ -24,6 +24,10 @@ The tier comes from the changed paths and the project's `docs/agents/review.md`,
 - `quiet: <regex>`: a path that changes no runtime behaviour, beside the defaults below. A diff
   made only of quiet paths keeps the readback alone.
 
+A `readback+correctness` diff of at most 30 changed lines outside the quiet paths is **small**:
+`tier` says so, and names the correctness axis alone. The record keeps its readback line, as
+`skipped, small diff`, which the check passes with a warning.
+
 The full tier needs correctness from both model families, Opus and Sol; `both-families`, the line
 that once turned this on, is still read and changes nothing.
 
@@ -42,6 +46,7 @@ import sys
 TIERS = ["readback", "readback+correctness", "full"]
 QUIET_DEFAULT = [r"\.md$", r"^docs/", r"^\.agents/", r"^\.claude/", r"^\.codex/", r"^\.vscode/",
                  r"^\.github/labels\.json$", r"^NOTICE$", r"^LICENSE$"]
+SMALL_LINES = 30  # changed lines outside the quiet paths, tests included
 HEAVY = {"sol", "opus"}  # the models that may run the correctness axis
 MODELS = {"sol", "opus", "terra", "luna", "sonnet"}
 LINE = "- <axis> (<model>): <outcome>"
@@ -92,6 +97,14 @@ def tier_of(paths, rules):
     if paths and all(quiet(p, rules) for p in paths):
         return "readback", []
     return "readback+correctness", []
+
+
+def small(tier, counts, rules):
+    """counts: {path: changed lines, or None for a binary file}. The loud line count of a small diff, else None."""
+    loud = [n for path, n in counts.items() if not quiet(path, rules)]
+    if tier != "readback+correctness" or None in loud or sum(loud) > SMALL_LINES:
+        return None
+    return sum(loud)
 
 
 def requirements(tier, rules):
@@ -185,6 +198,21 @@ def default_base():
         return "main"
 
 
+def line_counts(base):
+    """{path: changed lines} of the working tree against its merge-base with base; None for a binary file."""
+    counts = {}
+    for row in lines(git("diff", "--numstat", "--no-renames", git("merge-base", base, "HEAD"))):
+        added, deleted, path = row.split("\t", 2)
+        counts[path] = None if added == "-" else int(added) + int(deleted)
+    for path in lines(git("ls-files", "--others", "--exclude-standard")):
+        try:
+            text = open(path, encoding="utf-8").read()
+            counts[path] = None if "\0" in text else len(text.splitlines())
+        except (UnicodeDecodeError, OSError):
+            counts[path] = None
+    return counts
+
+
 def print_tier(base, rules):
     paths = sorted(set(lines(git("diff", "--name-only", f"{base}...HEAD")))
                    | set(lines(git("diff", "--name-only", "HEAD")))
@@ -193,7 +221,12 @@ def print_tier(base, rules):
     print(f"Tier: {tier}")
     for r in reasons:
         print(f"  {r}")
-    print("Reviewers: " + ", ".join(label(r) for r in requirements(tier, rules)))
+    needs = requirements(tier, rules)
+    n = small(tier, line_counts(base), rules)
+    if n is not None:
+        print(f"Small: {n} changed line{'' if n == 1 else 's'} outside the quiet paths (limit {SMALL_LINES})")
+        needs = [r for r in needs if r[0] != "readback"]
+    print("Reviewers: " + ", ".join(label(r) for r in needs))
 
 
 def run_check(args, rules):

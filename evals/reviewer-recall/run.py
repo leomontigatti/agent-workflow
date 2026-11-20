@@ -20,7 +20,7 @@ Each review's wall time, cost and tokens go beside it in `<case>.<model>.<k>.met
 one of each, so its recall is one brief on one case set; `grade` and `report` read them from it.
 
 DIR defaults to ~/.local/state/reviewer-recall/<today>. `review` skips a review already on disk, so
-a stopped run resumes. Repos are read from ~/.t3/projects/<repo>, else cloned once into ~/.cache/reviewer-recall; a missing commit is fetched from
+a stopped run resumes. Repos are read from a checkout beside this one (<this repo>/../<repo>), else cloned once into ~/.cache/reviewer-recall; a missing commit is fetched from
 the PR's head ref. Worktrees are made under a temporary directory and removed at the end.
 
 `consult` measures foresight instead: it checks out the PR's merge-base, where none of the change
@@ -44,7 +44,7 @@ import time
 
 HERE = os.path.dirname(os.path.realpath(__file__))
 ROOT = os.path.normpath(os.path.join(HERE, "..", ".."))
-PROJECTS = os.path.expanduser("~/.t3/projects")
+PROJECTS = os.path.dirname(ROOT)  # the project checkouts beside this one
 CACHE = os.path.expanduser("~/.cache/reviewer-recall")  # a clone for a repo with no project checkout
 TIMEOUT = 1800
 

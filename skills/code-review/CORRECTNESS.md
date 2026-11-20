@@ -1,7 +1,8 @@
 # Correctness
 
 The bug-hunting axis of step 5 of the `implement` skill. It runs on every diff that changes
-behaviour: beside the readback, or beside Standards and Spec in the full review. Standards asks
+behaviour: beside the readback (alone when the diff is **small**), or beside Standards and Spec in
+the full review. Standards asks
 whether the code follows the repo's conventions and Spec whether it does what the issue asked;
 this one asks whether it is **wrong**.
 

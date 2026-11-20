@@ -1,6 +1,6 @@
 ---
 name: reviewer-opus
-description: The reviewer agent on Opus. Use for a review role agents/models.md gives to Opus, and for every review role in a Claude Code session outside T3.
+description: The reviewer agent on Opus. Use for a review role agents/models.md gives to Opus, and for every review role in a Claude Code session.
 model: opus
 tools: Read, Grep, Glob, Bash
 ---
