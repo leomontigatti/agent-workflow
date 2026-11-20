@@ -12,7 +12,7 @@ Read `docs/agents/issue-tracker.md` first: it says how this repo's tracker expre
 
 ## Process
 
-1. Explore the repo to understand the current state of the codebase, if you haven't already. Use the project's domain glossary vocabulary throughout the spec, and respect any ADRs in the area you're touching.
+1. Explore the repo to understand the current state of the codebase, if you haven't already. Use the project's domain glossary vocabulary throughout the spec, and respect any ADRs in the area you're touching; where an ADR and the code disagree, ask the user which stands.
 
 2. Sketch out the seams at which you're going to test the feature. Existing seams should be preferred to new ones. Use the highest seam possible. If new seams are needed, propose them at the highest point you can. The fewer seams across the codebase, the better - the ideal number is one. Propose them as the `tdd` skill's § Seams says, with the user stories at risk as its behaviours at risk: each with the cheapest check that proves it, including the stories no test needs to cover.
 

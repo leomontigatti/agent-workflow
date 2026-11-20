@@ -21,6 +21,7 @@ changed signature breaks its callers' tests, which no other command here runs.
 | `lib/parts.py`                                  | `python3 -I tests/test_parts.py` and its importers' tests |
 | `evals/reviewer-recall/`                        | `python3 -I tests/test_reviewer_recall.py`               |
 | `skills/retro/scripts/`                         | `python3 -I tests/test_retro_sessions.py`                |
+| `skills/domain-modeling/scripts/`               | `python3 -I tests/test_anchors.py`                       |
 | `hooks/`                                        | `tests/test_hooks.sh`                                    |
 | `install.sh`, a skill, brief or hook added or removed | `tests/test_install.sh` (a throwaway `HOME`)       |
 

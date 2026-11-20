@@ -69,35 +69,35 @@ class Reviewers(unittest.TestCase):
 
     def test_the_readback_model_follows_the_author(self):
         models = review.load_models(MODELS_MD)
-        self.assertEqual(review.reviewers("readback", "claude", models),
+        self.assertEqual(review.reviewers(review.requirements("readback", None), "claude", models),
                          [("readback", "acme/terra-9", "low", "skills/code-review/READBACK.md")])
-        self.assertEqual(review.reviewers("readback", "codex", models),
+        self.assertEqual(review.reviewers(review.requirements("readback", None), "codex", models),
                          [("readback", "beta/sonnet-9", "low", "skills/code-review/READBACK.md")])
 
     def test_correctness_runs_on_the_other_family_at_its_rows_effort(self):
         models = review.load_models(MODELS_MD)
-        self.assertEqual(review.reviewers("readback+correctness", "claude", models)[1],
+        self.assertEqual(review.reviewers(review.requirements("readback+correctness", None), "claude", models)[1],
                          ("correctness", "acme/sol-9", "high", "skills/code-review/CORRECTNESS.md"))
-        self.assertEqual(review.reviewers("readback+correctness", "codex", models)[1],
+        self.assertEqual(review.reviewers(review.requirements("readback+correctness", None), "codex", models)[1],
                          ("correctness", "beta/opus-9", "high", "skills/code-review/CORRECTNESS.md"))
 
     def test_the_full_tier_runs_correctness_on_both_families_whoever_wrote_it(self):
         models = review.load_models(MODELS_MD)
         for author in ("claude", "codex"):
-            got = review.reviewers("full", author, models)
+            got = review.reviewers(review.requirements("full", None), author, models)
             self.assertEqual([r[0] for r in got], ["standards", "spec", "correctness", "correctness"])
             self.assertEqual(sorted(r[1] for r in got[2:]), ["acme/sol-9", "beta/opus-9"])
-        self.assertEqual(review.reviewers("full", "claude", models)[0],
+        self.assertEqual(review.reviewers(review.requirements("full", None), "claude", models)[0],
                          ("standards", "acme/sol-9", "medium", "skills/code-review/SKILL.md"))
 
     def test_each_id_takes_the_provider_named_before_it_whatever_ends_the_clause(self):
         models = review.load_models(MODELS_MD.replace("(`terra-9`); `beta` for", "(`terra-9`). `beta`\nfor"))
-        self.assertEqual(review.reviewers("readback", "codex", models)[0][1], "beta/sonnet-9")
+        self.assertEqual(review.reviewers(review.requirements("readback", None), "codex", models)[0][1], "beta/sonnet-9")
 
     def test_a_model_with_no_id_fails_naming_it(self):
         broken = MODELS_MD.replace("Terra (`terra-9`)", "Luna (`luna-9`)")
         with self.assertRaises(SystemExit) as cm:
-            review.reviewers("readback", "claude", review.load_models(broken))
+            review.reviewers(review.requirements("readback", None), "claude", review.load_models(broken))
         self.assertIn("Terra", str(cm.exception))
 
     def test_the_real_table_gives_every_reviewer_a_model_and_a_brief(self):
@@ -105,10 +105,27 @@ class Reviewers(unittest.TestCase):
             models = review.load_models(f.read())
         for tier in review.TIERS:
             for author in ("claude", "codex"):
-                for axis, model_id, effort, brief in review.reviewers(tier, author, models):
+                for axis, model_id, effort, brief in review.reviewers(review.requirements(tier, None), author, models):
                     self.assertRegex(model_id, r"^[a-z]+/[\w.-]+$", (tier, author, axis))
                     self.assertIn(effort, {"low", "medium", "high"}, (tier, author, axis))
                     self.assertTrue(os.path.isfile(os.path.join(ROOT, brief)), brief)
+
+
+class Small(unittest.TestCase):
+    def test_a_few_lines_of_code_are_small(self):
+        self.assertEqual(review.small("readback+correctness", {"app/x.ts": 12, "app/x.test.ts": 18}, rules()), 30)
+
+    def test_one_line_past_the_limit_is_not(self):
+        self.assertIsNone(review.small("readback+correctness", {"app/x.ts": 31}, rules()))
+
+    def test_quiet_paths_do_not_count(self):
+        self.assertEqual(review.small("readback+correctness", {"app/x.ts": 3, "docs/a.md": 400}, rules()), 3)
+
+    def test_a_binary_file_is_not_small(self):
+        self.assertIsNone(review.small("readback+correctness", {"app/x.ts": 3, "app/logo.png": None}, rules()))
+
+    def test_the_full_tier_is_never_small(self):
+        self.assertIsNone(review.small("full", {"app/finances/pay.ts": 1}, rules()))
 
 
 class Record(unittest.TestCase):
@@ -268,6 +285,8 @@ class TierCommand(Checkout):
             self.assertIn("Tier: readback+correctness", run.stdout)
 
     def test_the_tier_line_comes_first_and_each_reviewer_follows_with_its_effort_and_brief(self):
+        os.makedirs(os.path.join(self.work, "src"))
+        self.write("src/app.py", 40)
         self.commit("src/app.py")
         run = self.run_script("tier")
         self.assertEqual(run.returncode, 0, run.stderr)
@@ -279,6 +298,38 @@ class TierCommand(Checkout):
                             and "~/.agents/workflow/skills/code-review/CORRECTNESS.md" in line for line in out), out)
         self.assertIn("When Claude wrote it:", out)
         self.assertIn("When Codex wrote it:", out)
+
+
+    def write(self, path, lines):
+        with open(os.path.join(self.work, path), "w") as f:
+            f.write("x\n" * lines)
+
+    def test_a_small_diff_keeps_correctness_alone(self):
+        self.commit("src/app.py")
+        run = self.run_script("tier")
+        self.assertIn("Small: 1 changed line", run.stdout)
+        self.assertEqual(run.stdout.strip().splitlines()[-1], "Reviewers: correctness (Opus or Sol)")
+
+    def test_a_small_diff_starts_no_readback_for_either_family(self):
+        self.commit("src/app.py")
+        out = self.run_script("tier").stdout.splitlines()
+        self.assertEqual([line.split(":")[0].strip() for line in out if line.startswith("  ")],
+                         ["correctness", "correctness"], out)
+
+    def test_an_untracked_file_with_nul_bytes_is_binary(self):
+        self.commit("src/app.py")
+        with open(os.path.join(self.work, "src/blob.bin"), "wb") as f:
+            f.write(b"a\0b\n")
+        self.assertNotIn("Small:", self.run_script("tier").stdout)
+
+    def test_uncommitted_and_untracked_lines_count(self):
+        self.commit("src/app.py")
+        self.write("src/app.py", 20)
+        self.write("src/new.py", 20)
+        run = self.run_script("tier")
+        self.assertEqual(run.returncode, 0, run.stderr)
+        self.assertNotIn("Small:", run.stdout)
+        self.assertEqual(run.stdout.strip().splitlines()[-1], "Reviewers: readback, correctness (Opus or Sol)")
 
 
 class CheckBody(Checkout):

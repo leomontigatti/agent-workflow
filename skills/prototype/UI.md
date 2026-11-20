@@ -96,7 +96,7 @@ Put the switcher in a single shared component so both sub-shapes can reuse it. L
 
 ### 5. Check it yourself
 
-Launch by `docs/agents/verification.md` § Launch, once, as a background command, then poll the URL it gives until it answers; a second launch collides with the first. Drive every variant with the browser CLI § Drive names, or with T3's preview tools as the `implement` skill's [PREVIEW.md](../implement/PREVIEW.md) says when it names none: each renders with the seed data, the switcher works by button and by key, and the console is clean. Fix what breaks first. Done when every variant passes: the user reviews designs, never a broken page.
+Launch by `docs/agents/verification.md` § Launch, once, as a background command, then poll the URL it gives until it answers; a second launch collides with the first. Drive every variant with the browser CLI § Drive names, or with the machine's browser as the `implement` skill's [PREVIEW.md](../implement/PREVIEW.md) says when it names none: each renders with the seed data, the switcher works by button and by key, and the console is clean. Fix what breaks first. Done when every variant passes: the user reviews designs, never a broken page.
 
 ### 6. Hand it over
 

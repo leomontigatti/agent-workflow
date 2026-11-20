@@ -11,6 +11,8 @@ Fails (exit 1) when:
 - a skill's frontmatter `name:` is not its folder name, which the Skill tool calls it by;
 - a shared file mentions an upstream repo (`upstreams/sources.json`, plus the former sources
   listed below);
+- a shared file or `contract.md` names a platform the workflow no longer runs on, or one of its
+  tools;
 - a context load grows past its budget in `tests/context-budget.json`, or has no budget there.
 
 A context load is text an agent's window carries. Two kinds are budgeted, in bytes:
@@ -51,8 +53,12 @@ PROSE_COMMANDS = ["pnpm", "npx", "yarn", "uvx", "vitest", "playwright-cli", "dri
 # Former sources that are not watched any more but must not reappear either.
 FORMER_UPSTREAMS = ["course-video-manager", "humanlayer", "show-me", "do-work", "dexhorthy"]
 
+# Platforms the workflow ran on once, and their tools: an instruction that names one cannot be
+# followed any more.
+RETIRED_PLATFORM = re.compile(r"(?<!\w)(T3|t3code|t3_\w+|instabox)(?!\w)")
+
 # Paths that are harness or tool locations, not project files.
-ALLOWED_PATHS = {".claude/worktrees/", "CLAUDE.md", "pingdotgg/t3code"}
+ALLOWED_PATHS = {"CLAUDE.md"}
 
 # A bare file name counts when it is written like a project root file: CONTEXT.md, CODING_STANDARDS.md.
 ROOT_DOC = re.compile(r"^[A-Z][A-Z0-9_-]*\.md$")
@@ -202,6 +208,12 @@ def check_upstreams(path, text, names):
             report(path, i, f"mentions an upstream: {m.group(1)}")
 
 
+def check_retired(path, text):
+    for i, line in enumerate(text.splitlines(), 1):
+        for m in RETIRED_PLATFORM.finditer(line):
+            report(path, i, f"names a retired platform: {m.group(1)}")
+
+
 FRONT_NAME = re.compile(r"""^name:\s*(?:"([^"]*)"|'([^']*)'|(\S*?))\s*(?:\s#.*)?$""")
 
 
@@ -324,9 +336,13 @@ def main():
             continue
         check_links(path, open(path, encoding="utf-8").read().splitlines())
 
+    contract_path = os.path.join(ROOT, "contract.md")
+    check_retired(contract_path, open(contract_path, encoding="utf-8").read())
+
     for path in walk(SHARED_DIRS, (".md", ".toml", ".yaml", ".yml", ".py", ".sh")):
         text = open(path, encoding="utf-8").read()
         check_upstreams(path, text, names)
+        check_retired(path, text)
         if path.endswith(".md"):
             lines = text.splitlines()
             check_paths(path, lines, contract)

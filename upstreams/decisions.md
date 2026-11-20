@@ -258,6 +258,15 @@ The checker and its `formal-verification` skill at github.com/mattzcarey/everyst
 | -- | ---- | ------- | ------------ |
 | `everystate:formal-verification` | Model a protocol in TLA+ and check every interleaving: before a `lifetime-audit` to find races more cheaply, as a prover step, or when designing a fix for a race. | declined | In the trial it found only what the judges already had, and it costs more per line read: a model covers one protocol, and someone must first pick which one and which promise (the trial's were picked for it; in an audit they are the judges' output), and it checks the model, not the code, so a red test still has to back the bug. Most `lifetime-audit` findings (stale responses, unreleased claims, blind writes) are two-step bugs a test settles. Its one gain is checking that a fix's design holds in every order, worth it only for a core protocol with several actors around one claim or queue (rubens's outbox, handoffs). Reopen there with a new reason: a fix to such a protocol that broke again in an order its tests missed. That route is `pstack:formal-verification-skill`, which stays `later` as a project skill for one costly property; everystate would be its checker. |
 
+## modern-web-guidance, a web-platform knowledge skill (2026-11-16)
+
+The skill at github.com/GoogleChrome/modern-web-guidance, read on the user's request. It is not a watched source, so the row carries `modern-web-guidance:`. Its agent runs `npx modern-web-guidance@latest` to search and retrieve a guide before every HTML, CSS or client JS task. Trial on 2026-11-16: its `legacy-scan` v1.0.0 (35 rules, about a fifth of its guides) on en-escena found one hit, a missing `isComposing` check on the Enter handler of a digits-only input, harmless and left unfixed.
+
+| Id | Idea | Verdict | Where or why |
+| -- | ---- | ------- | ------------ |
+| `modern-web-guidance:shared-skill` | Install it as a shared skill. | declined | It holds domain facts, not a procedure, and would load in projects with no web frontend. |
+| `modern-web-guidance:per-project` | Install it in the web projects (en-escena, rubens). | later | Each task pays an unpinned `npx @latest` network call, a "MANDATORY: Execute FIRST" trigger, a forced reply section and a 9.8 KB `SKILL.md`, and it claims to be "the preferred local standard" over the project's own style guide. Reopen if it ships a pinned or offline mode, or when a frontend project shows gaps its style guides miss. |
+
 ## caldoai prune-tests, a skill that prunes tests guarding no behaviour (2026-11-18)
 
 The `prune-tests` skill at github.com/caldoai/skills (MIT), read at `d5b68da` on the user's request. It is not a watched source, so the rows carry `caldoai:`. It sorts a dead test by what it depends on (the past, nothing, the implementation) and prunes the whole suite. The ideas are taken in our own words; no text is carried over.
