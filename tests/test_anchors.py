@@ -116,6 +116,29 @@ class Anchors(unittest.TestCase):
         self.assertEqual(run.returncode, 0, run.stdout + run.stderr)
         self.assertNotIn("README.md", run.stdout)
 
+    def test_a_term_only_inside_a_longer_name_is_gone(self):
+        self.write("GLOSSARY.md", "# Clinic\n\n**`clinicalRecord`** — ui: \"Historia\"\nA record.\n")
+        self.write("app/models.py", "keepsClinicalRecords = True\nclinical_record_id = 1\n")
+        self.write("config.yml", "keeps-clinical-records: true\n")
+        self.assertIn("gone: GLOSSARY.md term `clinicalRecord`", self.run_script().stdout)
+
+    def test_a_term_only_as_spaced_words_is_gone(self):
+        self.write("GLOSSARY.md", "# Clinic\n\n**`replyExample`** — ui: \"Ejemplo\"\nAn example.\n")
+        self.write("app/models.py", "# store one reply example per template\nexamples = []\n")
+        self.assertIn("gone: GLOSSARY.md term `replyExample`", self.run_script().stdout)
+
+    def test_a_term_is_found_in_its_plural(self):
+        self.write("GLOSSARY.md", "# Shop\n\n**`order`** — ui: \"Pedido\"\nAn order.\n\n**`box`** — ui: \"Caja\"\nA box.\n")
+        self.write("app/schema.sql", "create table orders (id int);\ncreate table boxes (id int);\n")
+        run = self.run_script()
+        self.assertEqual(run.returncode, 0, run.stdout + run.stderr)
+
+    def test_a_glossary_with_no_readable_term_says_so(self):
+        self.write("GLOSSARY.md", "# Shop\n\n**Retail Store**:\nA physical store.\n")
+        run = self.run_script()
+        self.assertEqual(run.returncode, 0, run.stdout + run.stderr)
+        self.assertIn("no terms: GLOSSARY.md", run.stdout)
+
     def test_a_project_with_neither_file_passes(self):
         self.write("app/models.py", "x = 1\n")
         self.assertEqual(self.run_script().returncode, 0)

@@ -4,12 +4,16 @@
 Usage, from a project checkout: python3 -I anchors.py
 
 - An ADR, a file under `docs/adr/` whose name starts with its number, names what it governs on a
-  `Governs:` line, each anchor in backticks. One written like a path (a slash, a `*`, a file extension) must match a file in the tree, as a
-  glob or a directory; any other is an identifier some file outside `docs/adr/` and `GLOSSARY.md`
-  must contain as a whole word.
-- A `GLOSSARY.md` term (written `sale_order` in bold) must appear in a file that is not Markdown, under any
-  casing or separator and inside a longer name (`SaleOrder`, `sale-order`, `sale_order_id`): a
-  term is gone only when nothing in the code resembles it. A retired term is skipped.
+  `Governs:` line, each anchor in backticks. One written like a path (a slash, a `*`, a file
+  extension) must match a file in the tree, as a glob or a directory; any other is an identifier
+  some file outside `docs/adr/` and `GLOSSARY.md` must contain as a whole word.
+- A `GLOSSARY.md` term (written `sale_order` in bold) must appear as a whole name in a file that is
+  not Markdown, under any casing, with `_`, `-` or nothing between its words, and with or without
+  a final `s` or `es` (`SaleOrder`, `sale-orders`). A longer name that contains it
+  (`sale_order_id`, `keeps-sale-orders`) does not count, and neither do its words spelled apart
+  (`sale order`): the entry is the name the code uses. The match reads text, so a name left in a
+  comment still counts. A retired term is skipped, and a glossary with no other entry is reported
+  as `no terms:`.
 
 Prints one `gone:` line per missing anchor and exits 1 when there is one: the decision or the term
 may be stale. An ADR with no `Governs:` line is listed as `no anchor:` and passes. Files not yet
@@ -32,8 +36,9 @@ def in_code(flag, pattern, *excluded):
     return git("grep", "--untracked", "-I", "-lz", flag, "-e", pattern, "--", ".", *excluded).stdout.split("\0")[:-1]
 
 
-def whole_word(token, paths):
-    word = re.compile(rf"(?<!\w){re.escape(token)}(?!\w)")
+def whole_word(pattern, paths, flags=0, joiner=""):
+    """joiner: characters that, like a letter, make the match part of a longer name."""
+    word = re.compile(rf"(?<![\w{joiner}])(?:{pattern})(?![\w{joiner}])", flags)
     return any(word.search(open(p, encoding="utf-8", errors="replace").read()) for p in paths)
 
 
@@ -41,12 +46,13 @@ def adr_gone(token, files):
     if "/" in token or "*" in token or re.search(r"\.\w+$", token):
         folder = token.rstrip("/") + "/"
         return not any(fnmatch.fnmatch(f, token) or f.startswith(folder) for f in files)
-    return not whole_word(token, in_code("-F", token, ":!docs/adr", ":!GLOSSARY.md"))
+    return not whole_word(re.escape(token), in_code("-F", token, ":!docs/adr", ":!GLOSSARY.md"))
 
 
 def term_gone(term):
     parts = [re.escape(p) for p in re.split(r"[_\s-]+|(?<=[a-z0-9])(?=[A-Z])|(?<=[A-Z])(?=[A-Z][a-z])", term) if p]
-    return bool(parts) and not in_code("-iE", "[_ -]?".join(parts), ":!*.md")
+    name = "[_-]?".join(parts)
+    return bool(parts) and not whole_word(name + "(?:s|es)?", in_code("-iE", name, ":!*.md"), re.I, "-")
 
 
 def main():
@@ -64,10 +70,13 @@ def main():
                 print(f"gone: {path} governs `{token}`")
                 gone += 1
     if os.path.exists("GLOSSARY.md"):
-        for line in open("GLOSSARY.md", encoding="utf-8"):
-            term = re.match(r"\*\*`([^`]+)`\*\*", line)
-            if term and "retired term" not in line and term_gone(term.group(1)):
-                print(f"gone: GLOSSARY.md term `{term.group(1)}`")
+        terms = [m.group(1) for line in open("GLOSSARY.md", encoding="utf-8")
+                 if (m := re.match(r"\*\*`([^`]+)`\*\*", line)) and "retired term" not in line]
+        if not terms:
+            print("no terms: GLOSSARY.md has no current entry written as a code identifier in bold backticks, so none is checked")
+        for term in terms:
+            if term_gone(term):
+                print(f"gone: GLOSSARY.md term `{term}`")
                 gone += 1
     if gone:
         return 1
