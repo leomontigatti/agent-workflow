@@ -55,7 +55,7 @@ FORMER_UPSTREAMS = ["course-video-manager", "humanlayer", "show-me", "do-work", 
 
 # Platforms the workflow ran on once, and their tools: an instruction that names one cannot be
 # followed any more.
-RETIRED_PLATFORM = re.compile(r"(?<![\w-])(T3|t3code|t3_\w+|instabox)(?![\w-])")
+RETIRED_PLATFORM = re.compile(r"(?<!\w)(T3|t3code|t3_\w+|instabox)(?!\w)")
 
 # Paths that are harness or tool locations, not project files.
 ALLOWED_PATHS = {"CLAUDE.md"}

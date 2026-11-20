@@ -157,8 +157,7 @@ with a correctness axis, when the review produced code fixes, run that axis agai
 models, over the fixes alone: diff them against the reviewed state, a commit or, before step 6
 allows one, a snapshot taken with `git stash create` before fixing (it touches no stash entry).
 The other axes do not re-run. Repeat while a fix round produces fixes, at most twice; a third
-round's fixes go to the user as an **ask**. A diff that is still **small** with its fixes in has
-no fix round: the final report names each fix as unreviewed.
+round's fixes go to the user as an **ask**.
 
 Done when every finding carries a verb, every **fix** is made and reviewed, and the breadth list is
 walked. Repeat step 3 for anything you touched. Refactoring belongs here, under green tests. The

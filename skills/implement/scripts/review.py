@@ -206,7 +206,8 @@ def line_counts(base):
         counts[path] = None if added == "-" else int(added) + int(deleted)
     for path in lines(git("ls-files", "--others", "--exclude-standard")):
         try:
-            counts[path] = len(open(path, encoding="utf-8").read().splitlines())
+            text = open(path, encoding="utf-8").read()
+            counts[path] = None if "\0" in text else len(text.splitlines())
         except (UnicodeDecodeError, OSError):
             counts[path] = None
     return counts

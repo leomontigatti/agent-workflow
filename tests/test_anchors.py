@@ -42,6 +42,44 @@ class Anchors(unittest.TestCase):
         self.assertEqual(run.returncode, 1)
         self.assertIn("gone: docs/adr/0001-manual-sql.md governs `app/billing/`", run.stdout)
 
+    def test_a_governed_file_deleted_but_still_in_the_index_is_gone(self):
+        self.write("app/billing/sql.py", "x = 1\n")
+        self.write("docs/adr/0001-manual-sql.md", "# Manual SQL\n\nNo ORM in billing.\n\nGoverns: `app/billing/`\n")
+        subprocess.run(["git", "-C", self.work, "add", "-A"], check=True, env=self.env)
+        os.unlink(os.path.join(self.work, "app/billing/sql.py"))
+        run = self.run_script()
+        self.assertEqual(run.returncode, 1)
+        self.assertIn("governs `app/billing/`", run.stdout)
+
+    def test_a_governed_identifier_inside_a_longer_name_is_gone(self):
+        self.write("app/bus.py", "class EventBusPreview: pass\n")
+        self.write("docs/adr/0001-events.md", "# Events\n\nContexts talk through events.\n\nGoverns: `EventBus`\n")
+        self.assertIn("governs `EventBus`", self.run_script().stdout)
+
+    def test_a_governed_identifier_inside_a_longer_non_ascii_name_is_gone(self):
+        self.write("app/models.py", "factura_electrónica = 1\n")
+        self.write("docs/adr/0001-facturas.md", "# Facturas\n\nOne table.\n\nGoverns: `factura_electr`\n")
+        self.assertIn("governs `factura_electr`", self.run_script().stdout)
+
+    def test_a_governed_path_with_a_non_ascii_name_passes(self):
+        self.write("app/facturación.py", "x = 1\n")
+        self.write("docs/adr/0001-facturas.md", "# Facturas\n\nOne table.\n\nGoverns: `app/facturación.py`\n")
+        subprocess.run(["git", "-C", self.work, "add", "-A"], check=True, env=self.env)
+        run = self.run_script()
+        self.assertEqual(run.returncode, 0, run.stdout + run.stderr)
+
+    def test_an_acronym_term_is_found_in_snake_case(self):
+        self.write("GLOSSARY.md", "# Shop\n\n**`XMLInvoice`** — ui: \"Factura\"\nAn invoice.\n")
+        self.write("app/models.py", "xml_invoice = 1\n")
+        run = self.run_script()
+        self.assertEqual(run.returncode, 0, run.stdout + run.stderr)
+
+    def test_a_term_with_a_non_ascii_letter_is_found(self):
+        self.write("GLOSSARY.md", "# Shop\n\n**`factura_electrónica`** — ui: \"Factura\"\nAn invoice.\n")
+        self.write("app/models.py", "factura_electrónica = 1\n")
+        run = self.run_script()
+        self.assertEqual(run.returncode, 0, run.stdout + run.stderr)
+
     def test_a_governed_identifier_must_be_in_the_code_not_only_in_the_adr(self):
         self.write("app/bus.py", "class EventBus: pass\n")
         self.write("docs/adr/0001-events.md", "# Events\n\nContexts talk through events.\n\nGoverns: `EventBus`, `OutboxRelay`\n")

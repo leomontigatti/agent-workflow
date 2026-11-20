@@ -233,6 +233,12 @@ class TierCommand(Checkout):
         self.assertIn("Small: 1 changed line", run.stdout)
         self.assertEqual(run.stdout.strip().splitlines()[-1], "Reviewers: correctness (Opus or Sol)")
 
+    def test_an_untracked_file_with_nul_bytes_is_binary(self):
+        self.commit("src/app.py")
+        with open(os.path.join(self.work, "src/blob.bin"), "wb") as f:
+            f.write(b"a\0b\n")
+        self.assertNotIn("Small:", self.run_script("tier").stdout)
+
     def test_uncommitted_and_untracked_lines_count(self):
         self.commit("src/app.py")
         self.write("src/app.py", 20)
