@@ -36,6 +36,8 @@ expect_failure "broken link" skills/tdd/SKILL.md 'See [this](missing.md).' "brok
 expect_failure "broken anchor" skills/tdd/SKILL.md 'See [this](tests.md#no-such-heading).' "broken anchor"
 expect_failure "upstream mention" skills/tdd/SKILL.md 'Taken from mattpocock/skills.' "mentions an upstream"
 expect_failure "former upstream" agents/reviewer.md 'Adapted from show-me.' "mentions an upstream: show-me"
+expect_failure "retired platform in a skill" skills/tdd/SKILL.md 'In a T3 thread, use its preview.' "names a retired platform: T3"
+expect_failure "retired platform tool in the contract" contract.md 'Run `instabox exec` there.' "names a retired platform: instabox"
 
 # The name cases edit the frontmatter in place: appending a line cannot reach it.
 expect_name() {
