@@ -8,15 +8,19 @@ ADRs live in `docs/adr/` and use sequential numbering: `0001-slug.md`, `0002-slu
 # {Short title of the decision}
 
 {1-3 sentences: what's the context, what did we decide, and why.}
+
+Governs: `{a path, a glob or an identifier the decision shapes}`, `{another}`
 ```
 
 That's it. An ADR can be a single paragraph. The value is in recording _that_ a decision was made and _why_, not in filling out sections.
+
+`Governs:` is the ADR's **anchor**: the code the decision shapes, each entry in backticks. `scripts/anchors.py` reports an anchor that has left the code, which is how a stale ADR is found. Leave the line out only when nothing in the code can stand for the decision (a compliance rule that forbids a provider).
 
 ## Optional sections
 
 Only include these when they add genuine value. Most ADRs won't need them.
 
-- **Status** frontmatter (`proposed | accepted | deprecated | superseded by ADR-NNNN`): useful when decisions are revisited
+- **Status** frontmatter (`proposed | accepted`): useful while a decision is still open. A superseded ADR is deleted, so it has no status
 - **Considered Options**: only when the rejected alternatives are worth remembering
 - **Consequences**: only when non-obvious downstream effects need to be called out
 

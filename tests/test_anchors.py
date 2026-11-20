@@ -1,0 +1,81 @@
+"""Tests for skills/domain-modeling/scripts/anchors.py: an ADR or a glossary term whose anchor left the code."""
+
+import os
+import subprocess
+import sys
+import tempfile
+import unittest
+
+ROOT = os.path.normpath(os.path.join(os.path.dirname(os.path.realpath(__file__)), ".."))
+SCRIPT = os.path.join(ROOT, "skills/domain-modeling/scripts/anchors.py")
+
+
+class Anchors(unittest.TestCase):
+    def setUp(self):
+        tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(tmp.cleanup)
+        self.work = tmp.name
+        # No user or system git config: a signing or hooks setting there would break the fixture.
+        self.env = {**os.environ, "GIT_CONFIG_GLOBAL": os.devnull, "GIT_CONFIG_NOSYSTEM": "1"}
+        subprocess.run(["git", "-C", self.work, "init", "-q"], check=True, env=self.env)
+
+    def write(self, path, text):
+        full = os.path.join(self.work, path)
+        os.makedirs(os.path.dirname(full), exist_ok=True)
+        with open(full, "w", encoding="utf-8") as f:
+            f.write(text)
+
+    def run_script(self):
+        return subprocess.run([sys.executable, "-I", SCRIPT], cwd=self.work, capture_output=True, text=True, env=self.env)
+
+    def test_a_governed_path_in_the_tree_passes(self):
+        self.write("app/billing/sql.py", "x = 1\n")
+        self.write("docs/adr/0001-manual-sql.md", "# Manual SQL\n\nNo ORM in billing.\n\nGoverns: `app/billing/`, `app/*/sql.py`\n")
+        run = self.run_script()
+        self.assertEqual(run.returncode, 0, run.stdout + run.stderr)
+        self.assertIn("anchors: ok", run.stdout)
+
+    def test_a_governed_path_that_left_the_tree_is_gone(self):
+        self.write("app/orders/sql.py", "x = 1\n")
+        self.write("docs/adr/0001-manual-sql.md", "# Manual SQL\n\nNo ORM in billing.\n\nGoverns: `app/billing/`\n")
+        run = self.run_script()
+        self.assertEqual(run.returncode, 1)
+        self.assertIn("gone: docs/adr/0001-manual-sql.md governs `app/billing/`", run.stdout)
+
+    def test_a_governed_identifier_must_be_in_the_code_not_only_in_the_adr(self):
+        self.write("app/bus.py", "class EventBus: pass\n")
+        self.write("docs/adr/0001-events.md", "# Events\n\nContexts talk through events.\n\nGoverns: `EventBus`, `OutboxRelay`\n")
+        run = self.run_script()
+        self.assertEqual(run.returncode, 1)
+        self.assertNotIn("`EventBus`", run.stdout)
+        self.assertIn("gone: docs/adr/0001-events.md governs `OutboxRelay`", run.stdout)
+
+    def test_an_adr_with_no_governs_line_is_listed_and_passes(self):
+        self.write("docs/adr/0001-no-aws.md", "# No AWS\n\nCompliance rules it out.\n")
+        run = self.run_script()
+        self.assertEqual(run.returncode, 0, run.stdout + run.stderr)
+        self.assertIn("no anchor: docs/adr/0001-no-aws.md", run.stdout)
+
+    def test_a_term_is_found_under_another_casing_and_an_untracked_file(self):
+        self.write("GLOSSARY.md", "# Shop\n\n**`sale_order`** — ui: \"Pedido\"\nAn order.\n")
+        self.write("app/models.py", "class SaleOrder: pass\n")
+        run = self.run_script()
+        self.assertEqual(run.returncode, 0, run.stdout + run.stderr)
+
+    def test_a_term_the_code_no_longer_names_is_gone_and_a_retired_one_is_skipped(self):
+        self.write("GLOSSARY.md", "# Shop\n\n**`invoice`** — ui: \"Factura\"\nA request for payment.\n\n"
+                                  "**`cliente`** _(retired term)_ — no code identifier\nReplaced by customer.\n")
+        self.write("app/models.py", "class Order: pass\n")
+        self.write("docs/notes.md", "An invoice is sent after delivery.\n")
+        run = self.run_script()
+        self.assertEqual(run.returncode, 1)
+        self.assertIn("gone: GLOSSARY.md term `invoice`", run.stdout)
+        self.assertNotIn("cliente", run.stdout)
+
+    def test_a_project_with_neither_file_passes(self):
+        self.write("app/models.py", "x = 1\n")
+        self.assertEqual(self.run_script().returncode, 0)
+
+
+if __name__ == "__main__":
+    unittest.main()
