@@ -3,7 +3,9 @@
 
 Usage, from a project checkout:
   python3 -I review.py tier [base]          the tier of everything since base (default: the
-                                            remote default branch), uncommitted files included
+                                            remote default branch), uncommitted files included,
+                                            then each reviewer's model id, reasoning mode and
+                                            brief from agents/models.md, per author family
   python3 -I review.py check --pr <n>       check PR <n>'s `## Review` record
   python3 -I review.py check --body <file> [--base <ref>]
                                             the same for a body not pushed yet, against HEAD and
@@ -47,6 +49,11 @@ MODELS = {"sol", "opus", "terra", "luna", "sonnet"}
 LINE = "- <axis> (<model>): <outcome>"
 FAMILY = {"sol": "codex", "terra": "codex", "luna": "codex", "opus": "claude", "sonnet": "claude"}
 FLAGS = {"tier": set(), "check": {"--pr", "--body", "--base"}}
+MODELS_MD = os.path.join(os.path.dirname(os.path.realpath(__file__)), "..", "..", "..", "agents", "models.md")
+INSTALLED = "~/.agents/workflow"
+BRIEFS = {"readback": "skills/code-review/READBACK.md", "correctness": "skills/code-review/CORRECTNESS.md",
+          "standards": "skills/code-review/SKILL.md", "spec": "skills/code-review/SKILL.md"}
+AUTHORS = {"claude": "Claude", "codex": "Codex"}
 USAGE = "usage: review.py tier [base] | check [--pr <n> | --body <file> [--base <ref>]]"
 
 
@@ -101,6 +108,45 @@ def requirements(tier, rules):
     if tier == "readback+correctness":
         return [("readback", None), ("correctness", HEAVY)]
     return [("readback", None)]
+
+
+def load_models(text):
+    """agents/models.md read into its table rows ({role: (model cell, effort)}) and model ids ({name: id})."""
+    rows = {}
+    for line in text.splitlines():
+        cells = [c.strip() for c in line.strip().strip("|").split("|")]
+        if line.startswith("|") and len(cells) >= 4 and not set(cells[0]) <= set("- "):
+            for role in cells[0].split(","):
+                rows[role.strip().lower()] = (cells[2], cells[3])
+    ids, provider = {}, None
+    reaching = text.split("## Reaching each model", 1)[-1]
+    for named, name, model in re.findall(r"`(\w+)`\s+for\s|(\w+) \(`([^`]+)`\)", reaching):
+        if named:
+            provider = named
+        elif provider:
+            ids[name.lower()] = f"{provider}/{model}"
+    return {"rows": rows, "ids": ids}
+
+
+def reviewers(tier, author, models):
+    """(axis, model id, effort, brief) for each reviewer the tier needs, when `author`'s family wrote the change."""
+    out = []
+    for axis, allowed in requirements(tier, None):
+        if axis not in models["rows"]:
+            sys.exit(f"agents/models.md has no {axis.capitalize()} row")
+        cell, effort = models["rows"][axis]
+        if not effort:
+            sys.exit(f"agents/models.md: the {axis.capitalize()} row has no effort")
+        if allowed and len(allowed) == 1:
+            name = next(iter(allowed))
+        elif m := re.search(r"(\w+), or (\w+) when Codex wrote it", cell):
+            name = (m.group(2) if author == "codex" else m.group(1)).lower()
+        else:
+            sys.exit(f"agents/models.md: cannot read the {axis.capitalize()} row's model: {cell}")
+        if name not in models["ids"]:
+            sys.exit(f"agents/models.md names no id for {name.capitalize()} under Reaching each model")
+        out.append((axis, models["ids"][name], effort, BRIEFS[axis]))
+    return out
 
 
 def label(req):
@@ -194,6 +240,13 @@ def print_tier(base, rules):
     for r in reasons:
         print(f"  {r}")
     print("Reviewers: " + ", ".join(label(r) for r in requirements(tier, rules)))
+    with open(MODELS_MD, encoding="utf-8") as f:
+        models = load_models(f.read())
+    print(f"Each reviewer's task opens with {INSTALLED}/agents/reviewer.md, then its brief.")
+    for author, name in AUTHORS.items():
+        print(f"When {name} wrote it:")
+        for axis, model_id, effort, brief in reviewers(tier, author, models):
+            print(f"  {axis}: {model_id}, reasoning {effort}, brief {INSTALLED}/{brief}")
 
 
 def run_check(args, rules):

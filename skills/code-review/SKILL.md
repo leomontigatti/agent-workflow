@@ -86,7 +86,8 @@ End with a one-line summary: total findings per axis, and the worst issue _withi
 
 Each review role is a subagent on the model and effort
 `~/.agents/workflow/agents/models.md` gives it; that table is the only place a model
-is named, and its "Reaching each model" says how a subagent is started.
+is named, and its "Reaching each model" says how a subagent is started. Under `implement`
+step 5, `review.py tier` prints them for each reviewer.
 
 - **Start every reviewer of a round together**, each with a title naming the axis and the round.
   The task opens with "Before anything else, read `~/.agents/workflow/agents/reviewer.md` and

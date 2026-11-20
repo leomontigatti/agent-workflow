@@ -1,12 +1,14 @@
 #!/usr/bin/env bash
 #
-# SessionStart hook, wired at user level by install.sh for Claude Code and Codex. Both harnesses
+# SessionStart hook, wired by install.sh into the Claude Code and Codex CLIs' user settings. Both
 # add a SessionStart hook's `hookSpecificOutput.additionalContext` to the session's context.
+# Capy runs no hooks, so on a Capy thread this one never fires: there a thread's tools are what
+# the project's Setup installs on its machine.
 #
 # Warns at the start of a session whose shell cannot find a tool the work needs: the ones every
 # shared skill uses, plus one per line in the project's `.agents/required-tools`, when it exists.
-# The harness inherits PATH from the desktop login session, which reads `~/.profile`, not
-# `~/.bashrc`, so a directory added only in `~/.bashrc` is missing from an agent's shell. Agents
+# A CLI started from the desktop inherits PATH from its login session, which reads `~/.profile`,
+# not `~/.bashrc`, so a directory added only in `~/.bashrc` is missing from an agent's shell. Agents
 # that prefix every command with `export PATH=...` hide that cause from the next session. The hook
 # only reports: it never edits PATH, so the fix stays at the source.
 
@@ -37,7 +39,7 @@ fi
 names="$(printf '%s ' "${missing[@]}" | tr -cd 'A-Za-z0-9._+ -')"
 names="${names% }"
 
-message="This session's shell cannot find ${names} on PATH. The harness inherits PATH from the desktop login session, so a tool directory added only in ~/.bashrc is missing here; ~/.profile is where it belongs. Do not prefix commands with \`export PATH=...\`: tell the user, who fixes it at the source. Work that needs a missing tool stops and says so, instead of working around it."
+message="This session's shell cannot find ${names} on PATH. An agent CLI started from the desktop inherits PATH from its login session, so a tool directory added only in ~/.bashrc is missing here; ~/.profile is where it belongs. Do not prefix commands with \`export PATH=...\`: tell the user, who fixes it at the source. Work that needs a missing tool stops and says so, instead of working around it."
 
 # Printed without jq, so the warning needs nothing but bash. The message holds no double quote or
 # backslash, the two characters JSON would need escaped.

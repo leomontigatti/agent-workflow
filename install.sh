@@ -1,25 +1,28 @@
 #!/usr/bin/env bash
 #
-# Installs this repo as the user-level agent workflow, for Claude Code and Codex. Idempotent: a
-# second run changes nothing. `--check` changes nothing and reports drift, exiting 1 when there
-# is any.
+# Installs this repo as the user-level agent workflow on one machine. On Capy every thread has a
+# machine of its own, and the project's Setup script runs this there before the agent starts.
+# Idempotent: a second run changes nothing. `--check` changes nothing and reports drift, exiting 1
+# when there is any.
 #
 #   ./install.sh           link everything, wire the hooks
 #   ./install.sh --check   report what is missing, wrong or stale
 #
 # What goes where:
 #
-#   ~/.agents/workflow              -> this repo: the stable path skills, briefs and wrappers
-#                                      name, whichever harness reads them
+#   ~/.agents/workflow              -> this repo: the stable path skills and briefs name
 #   ~/.agents/skills/<name>         -> ~/.agents/workflow/skills/<name>
-#                                      the one skills folder: Codex reads it directly
-#   ~/.claude/skills/<name>         -> ~/.agents/skills/<name>
-#                                      Claude Code reads only ~/.claude/skills, so each entry
-#                                      there is a link into ~/.agents/skills
-#   ~/.claude/agents/<name>.md      -> agents/claude/   Claude Code's user subagents
-#   ~/.codex/agents/<name>.toml     -> agents/codex/    Codex's personal agents
+#                                      the skills folder a Capy session reads each skill from,
+#                                      by path
+#   ~/.claude/skills/<name>         -> ~/.agents/skills/<name>   the Claude Code skills folder
+#   ~/.claude/agents/<name>.md      -> agents/claude/            Claude Code's user subagents
+#   ~/.codex/agents/<name>.toml     -> agents/codex/             Codex's personal agents
 #   ~/.claude/settings.json hooks   the hooks/ scripts, merged into its "hooks" block
 #   ~/.codex/hooks.json hooks       the same, in Codex's user hooks file
+#
+# The ~/.claude and ~/.codex entries are the Claude Code and Codex CLIs' own folders. A Capy
+# session uses none of them: it reads skills from ~/.agents/skills, starts every role as a
+# subagent with the model id agents/models.md gives it, and runs no hooks.
 #
 # A target that exists and is not this repo's link is a conflict: it is reported and left alone,
 # never overwritten. Links into this repo whose source is gone are stale, and removed.
@@ -87,7 +90,8 @@ prune() {
   done
 }
 
-# The hooks block both harnesses read, pointing at the scripts through the stable path.
+# The hooks block of the Claude Code and Codex settings files, pointing at the scripts through the
+# stable path.
 hooks_json() {
   jq -n --arg dir "$root_link/hooks" '{
     SessionStart: [{hooks: [{type: "command", command: ($dir + "/check-tool-path.sh")},

@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 #
-# PreToolUse hook (matcher: Bash), wired at user level by install.sh for Claude Code and Codex;
-# both harnesses send the command as `tool_input.command`.
+# PreToolUse hook (matcher: Bash), wired by install.sh into the Claude Code and Codex CLIs' user
+# settings, which send the command as `tool_input.command`. Capy runs no hooks, so on a Capy
+# thread this one never fires; it guards a session run in one of those CLIs.
 #
 # Blocks `pkill -f`. `pkill -f <pattern>` matches full command lines, and the shell running the
 # agent's own Bash call carries the pattern in its command line, so it kills itself and the call

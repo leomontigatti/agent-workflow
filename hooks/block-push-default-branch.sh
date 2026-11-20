@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 #
-# PreToolUse hook (matcher: Bash), wired at user level by install.sh for Claude Code and Codex;
-# both harnesses send the command as `tool_input.command` and the session's directory as `cwd`.
+# PreToolUse hook (matcher: Bash), wired by install.sh into the Claude Code and Codex CLIs' user
+# settings, which send the command as `tool_input.command` and the session's directory as `cwd`.
+# Capy runs no hooks, so on a Capy thread this one never fires: there the rule is THREADS.md's
+# (every change goes through a PR), and this hook guards a session run in one of those CLIs.
 #
 # Blocks a `git push` that would update the repo's default branch. Every project takes changes to
 # its default branch through a PR, but branch protection does not hold the user to it, and agents

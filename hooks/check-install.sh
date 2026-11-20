@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 #
-# SessionStart hook, wired at user level by install.sh for Claude Code and Codex. Both harnesses
+# SessionStart hook, wired by install.sh into the Claude Code and Codex CLIs' user settings. Both
 # add a SessionStart hook's `hookSpecificOutput.additionalContext` to the session's context.
+# Capy runs no hooks, so on a Capy thread this one never fires: there the project's Setup runs
+# install.sh on each thread's fresh machine, and the install starts in step with its checkout.
 #
 # Warns at the start of a session when the install has drifted from the checkout it links to.
 # A pull goes live for the skills already linked, but a skill a merge adds or removes changes

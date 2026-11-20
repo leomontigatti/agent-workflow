@@ -117,8 +117,10 @@ Spawn every reviewer the way "Spawning a reviewer" in the `code-review` skill sa
 
 Tier the review by risk: run `python3 -I <this-skill-dir>/scripts/review.py tier` (pass the base
 when the branch is stacked). It reads the changed paths against the `review-paths` block of
-`docs/agents/review.md` and prints the tier and the reviewers it needs. You may raise the tier it
-prints (a `GLOSSARY.md` term no path shows, anything else you judge risky), never lower it.
+`docs/agents/review.md` and prints the tier, then each reviewer's model id, effort and brief for
+each author family: start the reviewers from your thread's family's block. You may raise the tier
+it prints (a `GLOSSARY.md` term no path shows, anything else you judge risky), never lower it; a
+raised tier's reviewers come from `~/.agents/workflow/agents/models.md`.
 
 - **`full`** when the diff touches an area in `docs/agents/review.md` § Full review, a migration,
   a term defined in `GLOSSARY.md`, or an operational script that deletes or overwrites (a database
