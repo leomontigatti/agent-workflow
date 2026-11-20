@@ -33,8 +33,8 @@ _spec.loader.exec_module(recall)
 
 
 def rule_text():
-    text = open(os.path.join(recall.ROOT, "skills", "implement", "SKILL.md"), encoding="utf-8").read()
-    return text[text.index("A race the change itself brings in"):text.index("Validate as you go:")].strip()
+    text = open(os.path.join(recall.ROOT, "skills", "implement", "WEIGHING.md"), encoding="utf-8").read()
+    return text[text.index("A race the change itself brings in"):].strip()
 
 
 def repo_for(name):
