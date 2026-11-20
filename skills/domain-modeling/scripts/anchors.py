@@ -3,8 +3,8 @@
 
 Usage, from a project checkout: python3 -I anchors.py
 
-- An ADR under `docs/adr/` names what it governs on a `Governs:` line, each anchor in backticks.
-  One written like a path (a slash, a `*`, a file extension) must match a file in the tree, as a
+- An ADR, a file under `docs/adr/` whose name starts with its number, names what it governs on a
+  `Governs:` line, each anchor in backticks. One written like a path (a slash, a `*`, a file extension) must match a file in the tree, as a
   glob or a directory; any other is an identifier some file outside `docs/adr/` and `GLOSSARY.md`
   must contain as a whole word.
 - A `GLOSSARY.md` term (written `sale_order` in bold) must appear in a file that is not Markdown, under any
@@ -54,7 +54,7 @@ def main():
     files = [f for f in git("ls-files", "-z", "--cached", "--others", "--exclude-standard").stdout.split("\0")
              if os.path.isfile(f)]
     gone = 0
-    for path in sorted(glob.glob("docs/adr/*.md")):
+    for path in sorted(glob.glob("docs/adr/[0-9]*.md")):
         governs = re.search(r"^Governs:(.*)$", open(path, encoding="utf-8").read(), re.M)
         if not governs:
             print(f"no anchor: {path}")
