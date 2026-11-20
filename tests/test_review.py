@@ -94,6 +94,12 @@ class Reviewers(unittest.TestCase):
         models = review.load_models(MODELS_MD.replace("(`terra-9`); `beta` for", "(`terra-9`). `beta`\nfor"))
         self.assertEqual(review.reviewers(review.requirements("readback", None), "codex", models)[0][1], "beta/sonnet-9")
 
+    def test_a_correctness_model_the_record_rejects_fails(self):
+        light = MODELS_MD.replace("else the other family: Sol, or", "else the other family: Terra, or")
+        with self.assertRaises(SystemExit) as cm:
+            review.reviewers(review.requirements("readback+correctness", None), "claude", review.load_models(light))
+        self.assertIn("Terra", str(cm.exception))
+
     def test_a_model_with_no_id_fails_naming_it(self):
         broken = MODELS_MD.replace("Terra (`terra-9`)", "Luna (`luna-9`)")
         with self.assertRaises(SystemExit) as cm:

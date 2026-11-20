@@ -156,6 +156,9 @@ def reviewers(needs, author, models):
             name = (m.group(2) if author == "codex" else m.group(1)).lower()
         else:
             sys.exit(f"agents/models.md: cannot read the {axis.capitalize()} row's model: {cell}")
+        if allowed and name not in allowed:
+            sys.exit(f"agents/models.md gives {axis} to {name.capitalize()}, which the review record does not accept "
+                     f"for it: {' or '.join(sorted(m.capitalize() for m in allowed))}")
         if name not in models["ids"]:
             sys.exit(f"agents/models.md names no id for {name.capitalize()} under Reaching each model")
         out.append((axis, models["ids"][name], effort, BRIEFS[axis]))
