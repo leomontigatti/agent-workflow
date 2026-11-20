@@ -59,6 +59,10 @@ only the cases each brief missed (`--cases id,id`). Two numbers decide it:
 A lifetime case has an `issue` and no `fix`: most are still open, and the grader matches the
 `bug` sentence, taken from the issue.
 
+**Not adopted yet.** The first run (2026-11-17, #142, one repeat) gave the lens 6 of 16 on
+`cases-lifetime.json` against the current brief's 4 of 16. The `cases.json` half has not run, so
+`CORRECTNESS.md` keeps the current brief until it has and recall there holds.
+
 ## Foresight: `consult`
 
 `run.py consult` takes the same options and asks a different question: would the model have warned
