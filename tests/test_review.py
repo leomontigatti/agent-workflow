@@ -49,6 +49,23 @@ class Tier(unittest.TestCase):
         self.assertEqual(review.tier_of(["app/ui/button.ts"], rules())[0], "readback+correctness")
 
 
+class Small(unittest.TestCase):
+    def test_a_few_lines_of_code_are_small(self):
+        self.assertEqual(review.small("readback+correctness", {"app/x.ts": 12, "app/x.test.ts": 18}, rules()), 30)
+
+    def test_one_line_past_the_limit_is_not(self):
+        self.assertIsNone(review.small("readback+correctness", {"app/x.ts": 31}, rules()))
+
+    def test_quiet_paths_do_not_count(self):
+        self.assertEqual(review.small("readback+correctness", {"app/x.ts": 3, "docs/a.md": 400}, rules()), 3)
+
+    def test_a_binary_file_is_not_small(self):
+        self.assertIsNone(review.small("readback+correctness", {"app/x.ts": 3, "app/logo.png": None}, rules()))
+
+    def test_the_full_tier_is_never_small(self):
+        self.assertIsNone(review.small("full", {"app/finances/pay.ts": 1}, rules()))
+
+
 class Record(unittest.TestCase):
     def check(self, text, changed, later=()):
         return review.check_record(review.parse_record(text), changed, list(later), rules())
@@ -204,6 +221,26 @@ class TierCommand(Checkout):
             run = self.run_script(*args)
             self.assertEqual(run.returncode, 0, run.stderr)
             self.assertIn("Tier: readback+correctness", run.stdout)
+
+
+    def write(self, path, lines):
+        with open(os.path.join(self.work, path), "w") as f:
+            f.write("x\n" * lines)
+
+    def test_a_small_diff_keeps_correctness_alone(self):
+        self.commit("src/app.py")
+        run = self.run_script("tier")
+        self.assertIn("Small: 1 changed line", run.stdout)
+        self.assertEqual(run.stdout.strip().splitlines()[-1], "Reviewers: correctness (Opus or Sol)")
+
+    def test_uncommitted_and_untracked_lines_count(self):
+        self.commit("src/app.py")
+        self.write("src/app.py", 20)
+        self.write("src/new.py", 20)
+        run = self.run_script("tier")
+        self.assertEqual(run.returncode, 0, run.stderr)
+        self.assertNotIn("Small:", run.stdout)
+        self.assertEqual(run.stdout.strip().splitlines()[-1], "Reviewers: readback, correctness (Opus or Sol)")
 
 
 class CheckBody(Checkout):
