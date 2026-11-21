@@ -111,6 +111,12 @@ class Reviewers(unittest.TestCase):
             review.load_models(MODELS_MD.replace("Opus: beta/opus-9", "```bogus\nOpus = beta/opus-9"))
         self.assertIn("```bogus", str(cm.exception))
 
+    def test_a_second_block_fails_rather_than_choosing_one(self):
+        example = "````md\n```model-ids\nTerra: acme/wrong-9\n```\n````\n\n"
+        with self.assertRaises(SystemExit) as cm:
+            review.load_models(example + MODELS_MD)
+        self.assertIn("has 2", str(cm.exception))
+
     def test_a_model_named_twice_fails(self):
         with self.assertRaises(SystemExit) as cm:
             review.load_models(MODELS_MD.replace("Opus: beta/opus-9", "Opus: beta/opus-9\nsol: beta/opus-9"))

@@ -131,11 +131,11 @@ def load_models(text):
         if line.startswith("|") and len(cells) >= 4 and not set(cells[0]) <= set("- "):
             for role in cells[0].split(","):
                 rows[role.strip().lower()] = (cells[2], cells[3])
-    block = re.search(r"^```model-ids[ \t]*\n(.*?)^```[ \t]*$", text, re.M | re.S)
-    if not block:
-        sys.exit("agents/models.md has no ```model-ids block")
+    blocks = re.findall(r"^```model-ids[ \t]*\n(.*?)^```[ \t]*$", text, re.M | re.S)
+    if len(blocks) != 1:
+        sys.exit(f"agents/models.md needs one ```model-ids block, and has {len(blocks)}")
     ids = {}
-    for raw in block.group(1).splitlines():
+    for raw in blocks[0].splitlines():
         if not raw.strip():
             continue
         if not (m := re.match(r"^\s*(\w+):\s*([\w.-]+/[\w.-]+)\s*$", raw)):
