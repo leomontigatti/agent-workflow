@@ -49,6 +49,107 @@ class Tier(unittest.TestCase):
         self.assertEqual(review.tier_of(["app/ui/button.ts"], rules())[0], "readback+correctness")
 
 
+MODELS_MD = """# Roles and models
+
+| Role            | What it does | Model                                                    | Effort | Fallback |
+| --------------- | ------------ | -------------------------------------------------------- | ------ | -------- |
+| Standards, Spec | two axes     | the other family: Sol, or Opus when Codex wrote it       | medium | recorded |
+| Correctness     | the bug hunt | full tier: both, Opus and Sol; else the other family: Sol, or Opus when Codex wrote it | high | recorded |
+| Readback        | restates     | Terra, or Sonnet when Codex wrote it                     | low    | recorded |
+
+## Reaching each model
+
+Each model's id, the provider, a slash, then the model:
+
+```model-ids
+Sol: acme/sol-9
+Terra: acme/terra-9
+Opus: beta/opus-9
+Sonnet: beta/sonnet-9
+```
+"""
+
+
+class Reviewers(unittest.TestCase):
+    """What the orchestrator starts for a tier: each reviewer's model id, effort and brief."""
+
+    def test_the_readback_model_follows_the_author(self):
+        models = review.load_models(MODELS_MD)
+        self.assertEqual(review.reviewers(review.requirements("readback", None), "claude", models),
+                         [("readback", "acme/terra-9", "low", "skills/code-review/READBACK.md")])
+        self.assertEqual(review.reviewers(review.requirements("readback", None), "codex", models),
+                         [("readback", "beta/sonnet-9", "low", "skills/code-review/READBACK.md")])
+
+    def test_correctness_runs_on_the_other_family_at_its_rows_effort(self):
+        models = review.load_models(MODELS_MD)
+        self.assertEqual(review.reviewers(review.requirements("readback+correctness", None), "claude", models)[1],
+                         ("correctness", "acme/sol-9", "high", "skills/code-review/CORRECTNESS.md"))
+        self.assertEqual(review.reviewers(review.requirements("readback+correctness", None), "codex", models)[1],
+                         ("correctness", "beta/opus-9", "high", "skills/code-review/CORRECTNESS.md"))
+
+    def test_the_full_tier_runs_correctness_on_both_families_whoever_wrote_it(self):
+        models = review.load_models(MODELS_MD)
+        for author in ("claude", "codex"):
+            got = review.reviewers(review.requirements("full", None), author, models)
+            self.assertEqual([r[0] for r in got], ["standards", "spec", "correctness", "correctness"])
+            self.assertEqual(sorted(r[1] for r in got[2:]), ["acme/sol-9", "beta/opus-9"])
+        self.assertEqual(review.reviewers(review.requirements("full", None), "claude", models)[0],
+                         ("standards", "acme/sol-9", "medium", "skills/code-review/SKILL.md"))
+
+    def test_an_id_named_outside_the_block_is_not_read(self):
+        prose = MODELS_MD + "\nDo not start Sol as `anthropic/sol-9`: Sonnet (`wrong-9`) is not it.\n"
+        self.assertEqual(review.reviewers(review.requirements("readback", None), "codex", review.load_models(prose))[0][1],
+                         "beta/sonnet-9")
+
+    def test_an_unreadable_block_line_fails_quoting_it(self):
+        with self.assertRaises(SystemExit) as cm:
+            review.load_models(MODELS_MD.replace("Terra: acme/terra-9", "Terra = acme/terra-9"))
+        self.assertIn("Terra = acme/terra-9", str(cm.exception))
+
+    def test_a_fence_with_text_after_it_does_not_close_the_block(self):
+        with self.assertRaises(SystemExit) as cm:
+            review.load_models(MODELS_MD.replace("Opus: beta/opus-9", "```bogus\nOpus = beta/opus-9"))
+        self.assertIn("```bogus", str(cm.exception))
+
+    def test_a_second_block_fails_rather_than_choosing_one(self):
+        example = "````md\n```model-ids\nTerra: acme/wrong-9\n```\n````\n\n"
+        with self.assertRaises(SystemExit) as cm:
+            review.load_models(example + MODELS_MD)
+        self.assertIn("has 2", str(cm.exception))
+
+    def test_a_model_named_twice_fails(self):
+        with self.assertRaises(SystemExit) as cm:
+            review.load_models(MODELS_MD.replace("Opus: beta/opus-9", "Opus: beta/opus-9\nsol: beta/opus-9"))
+        self.assertIn("two lines", str(cm.exception))
+
+    def test_a_file_with_no_block_fails(self):
+        with self.assertRaises(SystemExit) as cm:
+            review.load_models(MODELS_MD.split("```model-ids")[0])
+        self.assertIn("model-ids", str(cm.exception))
+
+    def test_a_correctness_model_the_record_rejects_fails(self):
+        light = MODELS_MD.replace("else the other family: Sol, or", "else the other family: Terra, or")
+        with self.assertRaises(SystemExit) as cm:
+            review.reviewers(review.requirements("readback+correctness", None), "claude", review.load_models(light))
+        self.assertIn("Terra", str(cm.exception))
+
+    def test_a_model_with_no_id_fails_naming_it(self):
+        broken = MODELS_MD.replace("Terra: acme/terra-9", "Luna: acme/luna-9")
+        with self.assertRaises(SystemExit) as cm:
+            review.reviewers(review.requirements("readback", None), "claude", review.load_models(broken))
+        self.assertIn("Terra", str(cm.exception))
+
+    def test_the_real_table_gives_every_reviewer_a_model_and_a_brief(self):
+        with open(os.path.join(ROOT, "agents", "models.md"), encoding="utf-8") as f:
+            models = review.load_models(f.read())
+        for tier in review.TIERS:
+            for author in ("claude", "codex"):
+                for axis, model_id, effort, brief in review.reviewers(review.requirements(tier, None), author, models):
+                    self.assertRegex(model_id, r"^[a-z]+/[\w.-]+$", (tier, author, axis))
+                    self.assertIn(effort, {"low", "medium", "high"}, (tier, author, axis))
+                    self.assertTrue(os.path.isfile(os.path.join(ROOT, brief)), brief)
+
+
 class Small(unittest.TestCase):
     def test_a_few_lines_of_code_are_small(self):
         self.assertEqual(review.small("readback+correctness", {"app/x.ts": 12, "app/x.test.ts": 18}, rules()), 30)
@@ -222,6 +323,21 @@ class TierCommand(Checkout):
             self.assertEqual(run.returncode, 0, run.stderr)
             self.assertIn("Tier: readback+correctness", run.stdout)
 
+    def test_the_tier_line_comes_first_and_each_reviewer_follows_with_its_effort_and_brief(self):
+        os.makedirs(os.path.join(self.work, "src"))
+        self.write("src/app.py", 40)
+        self.commit("src/app.py")
+        run = self.run_script("tier")
+        self.assertEqual(run.returncode, 0, run.stderr)
+        out = run.stdout.splitlines()
+        self.assertEqual(out[0], "Tier: readback+correctness")
+        self.assertTrue(any(line.lstrip().startswith("readback: ") and "reasoning low" in line
+                            and "~/.agents/workflow/skills/code-review/READBACK.md" in line for line in out), out)
+        self.assertTrue(any(line.lstrip().startswith("correctness: ") and "reasoning medium" in line
+                            and "~/.agents/workflow/skills/code-review/CORRECTNESS.md" in line for line in out), out)
+        self.assertIn("When Claude wrote it:", out)
+        self.assertIn("When Codex wrote it:", out)
+
 
     def write(self, path, lines):
         with open(os.path.join(self.work, path), "w") as f:
@@ -232,6 +348,12 @@ class TierCommand(Checkout):
         run = self.run_script("tier")
         self.assertIn("Small: 1 changed line", run.stdout)
         self.assertEqual(run.stdout.strip().splitlines()[-1], "Reviewers: correctness (Opus or Sol)")
+
+    def test_a_small_diff_starts_no_readback_for_either_family(self):
+        self.commit("src/app.py")
+        out = self.run_script("tier").stdout.splitlines()
+        self.assertEqual([line.split(":")[0].strip() for line in out if line.startswith("  ")],
+                         ["correctness", "correctness"], out)
 
     def test_an_untracked_file_with_nul_bytes_is_binary(self):
         self.commit("src/app.py")

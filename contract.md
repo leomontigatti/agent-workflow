@@ -20,7 +20,6 @@ names. An **optional** file is followed when it exists and skipped when it does 
 | `docs/agents/pull-requests.md`      | required | The command that checks a PR title, if any, and the project's base-branch rules. The title rule, stacking and who merges are global (the `pr` and `babysit-pr` skills).                                                                                                                                       |
 | `docs/agents/tdd-*.md`              | optional | Test-first notes for one kind of code (`tdd-db.md`, `tdd-frontend.md`, `tdd-odoo.md`). The `tdd` skill follows every one whose kind the change touches.                                                                                                |
 | `docs/agents/research.md`           | optional | The primary sources the `research` agent prefers for this stack, and where the pinned versions are.                                                                                                                                                      |
-| `.agents/required-tools`            | optional | One command per line that a session's shell must find on PATH; `#` starts a comment. Read by the `check-tool-path` hook.                                                                                                                                 |
 
 ## Sections
 
