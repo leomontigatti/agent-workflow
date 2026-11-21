@@ -1,6 +1,6 @@
 # agent-workflow: guide for coding agents
 
-The one global copy of the agent workflow every project shares: its skills, agent briefs, hooks
+The one global copy of the agent workflow every project shares: its skills, agent briefs
 and the contract between them and a project. A change here reaches every project at once, the
 moment it merges, so each change goes through a PR and nothing is committed to `main` directly.
 
@@ -11,9 +11,7 @@ moment it merges, so each change goes through a PR and nothing is committed to `
 - [`contract.md`](contract.md): the project files a shared skill may read, and the question each
   answers. A skill reaches project detail only through it.
 - `agents/`: the reviewer, research and implementer briefs, and [`models.md`](agents/models.md),
-  the one table of which model each role runs on. `agents/claude/` and `agents/codex/` are the
-  thin harness wrappers.
-- `hooks/`: the hooks that depend on no project.
+  the one table of which model each role runs on, with each model's id in its `model-ids` block.
 - `lib/`: Python modules more than one skill's script imports, by its real path:
   [`parts.py`](lib/parts.py) cuts a review script's output into parts that each fit one Read.
 - `upstreams/`: the watched upstream repos, their watermarks, and every verdict on an idea from
@@ -22,8 +20,9 @@ moment it merges, so each change goes through a PR and nothing is committed to `
 - `evals/`: measurements of the agents themselves, run by hand when a model changes;
   [`reviewer-recall`](evals/reviewer-recall/README.md) replays known bugs through each reviewer,
   [`ask-triage`](evals/ask-triage/README.md) the user's past rulings on found races and edge cases.
-- [`install.sh`](install.sh): links all of it where Claude Code and Codex read it, through the
-  stable path `~/.agents/workflow`, which is how a skill or wrapper names a file here.
+- [`install.sh`](install.sh): run by a project's Setup on each Capy thread's machine. It links
+  this repo at the stable path `~/.agents/workflow`, which is how a skill names a file here, and
+  each skill at `~/.agents/skills/<name>`, where a session reads it.
 
 ## Every change
 
@@ -40,7 +39,7 @@ moment it merges, so each change goes through a PR and nothing is committed to `
   ([`docs/agents/validation.md`](docs/agents/validation.md)). CI runs it with `tests/test_lint.sh` and
   `tests/test_install.sh`. Run `install.sh` only when the user asks; the install test uses a
   throwaway `HOME`.
-- **Context is budgeted.** The lint fails when a skill or wrapper description, a `SKILL.md` or a
+- **Context is budgeted.** The lint fails when a skill description, a `SKILL.md` or a
   brief outgrows its size in `tests/context-budget.json`; descriptions load in every session of
   every project. When the growth earns its load, run `python3 -I tests/lint_skills.py
   --update-budget` and say in the PR what the added bytes buy.
@@ -57,7 +56,7 @@ moment it merges, so each change goes through a PR and nothing is committed to `
 - **A new required contract file is a breaking change**: the PR lists the file every project must
   write, and lands with the lint's view of the contract (the table in `contract.md`) updated.
   The projects' own PRs come from the user-invoked [`fan-out`](skills/fan-out/SKILL.md) skill.
-- **A model changes in `agents/models.md`**, and in the wrappers in the same commit; nothing else
+- **A model changes in `agents/models.md`**, its `model-ids` block for an id; nothing else
   names one.
 - **An idea taken from an upstream** gets its row in `upstreams/decisions.md`, and its license
   entry in `NOTICE` when text is carried over. The skill itself never names the upstream.

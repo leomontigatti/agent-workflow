@@ -17,8 +17,7 @@ Fails (exit 1) when:
 
 A context load is text an agent's window carries. Two kinds are budgeted, in bytes:
 
-- `always`: a skill's or agent wrapper's description, which every session of every project
-  loads whether or not it fires;
+- `always`: a skill's description, which every session of every project loads whether or not it fires;
 - `on-load`: a whole `SKILL.md` or agent brief, loaded each time it is invoked.
 
 Growth is a decision, so it shows in the PR: `--update-budget` rewrites the budgets to the
@@ -35,7 +34,6 @@ import os
 import re
 import sys
 import tempfile
-import tomllib
 
 ROOT = os.path.normpath(os.path.join(os.path.dirname(os.path.realpath(__file__)), ".."))
 BUDGET = os.path.join(ROOT, "tests", "context-budget.json")
@@ -242,9 +240,7 @@ def check_skill_names():
 
 
 def description(path):
-    """The description as written: a TOML string, or a frontmatter value with its folded lines."""
-    if path.endswith(".toml"):
-        return tomllib.load(open(path, "rb")).get("description", "")
+    """The description as written: a frontmatter value with its folded lines."""
     out = None
     for _, line in frontmatter(path):
         if out is None:
@@ -266,9 +262,6 @@ def context_loads():
     for path in [p for p in skills if os.path.isfile(p)]:
         loads["always"][rel(path)] = len(description(path).encode())
         loads["on-load"][rel(path)] = os.path.getsize(path)
-    for harness, ext in (("claude", ".md"), ("codex", ".toml")):
-        for path in walk([os.path.join("agents", harness)], (ext,)):
-            loads["always"][rel(path)] = len(description(path).encode())
     for name in sorted(os.listdir(os.path.join(ROOT, "agents"))):
         path = os.path.join(ROOT, "agents", name)
         if name.endswith(".md") and os.path.isfile(path):

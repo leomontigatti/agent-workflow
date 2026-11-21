@@ -59,8 +59,14 @@ MODELS_MD = """# Roles and models
 
 ## Reaching each model
 
-A model id is the provider, a slash, then the model: `acme` for Sol (`sol-9`) and
-Terra (`terra-9`); `beta` for Opus (`opus-9`) and Sonnet (`sonnet-9`).
+Each model's id, the provider, a slash, then the model:
+
+```model-ids
+Sol: acme/sol-9
+Terra: acme/terra-9
+Opus: beta/opus-9
+Sonnet: beta/sonnet-9
+```
 """
 
 
@@ -90,9 +96,20 @@ class Reviewers(unittest.TestCase):
         self.assertEqual(review.reviewers(review.requirements("full", None), "claude", models)[0],
                          ("standards", "acme/sol-9", "medium", "skills/code-review/SKILL.md"))
 
-    def test_each_id_takes_the_provider_named_before_it_whatever_ends_the_clause(self):
-        models = review.load_models(MODELS_MD.replace("(`terra-9`); `beta` for", "(`terra-9`). `beta`\nfor"))
-        self.assertEqual(review.reviewers(review.requirements("readback", None), "codex", models)[0][1], "beta/sonnet-9")
+    def test_an_id_named_outside_the_block_is_not_read(self):
+        prose = MODELS_MD + "\nDo not start Sol as `anthropic/sol-9`: Sonnet (`wrong-9`) is not it.\n"
+        self.assertEqual(review.reviewers(review.requirements("readback", None), "codex", review.load_models(prose))[0][1],
+                         "beta/sonnet-9")
+
+    def test_an_unreadable_block_line_fails_quoting_it(self):
+        with self.assertRaises(SystemExit) as cm:
+            review.load_models(MODELS_MD.replace("Terra: acme/terra-9", "Terra = acme/terra-9"))
+        self.assertIn("Terra = acme/terra-9", str(cm.exception))
+
+    def test_a_table_with_no_block_fails(self):
+        with self.assertRaises(SystemExit) as cm:
+            review.load_models(MODELS_MD.split("```model-ids")[0])
+        self.assertIn("model-ids", str(cm.exception))
 
     def test_a_correctness_model_the_record_rejects_fails(self):
         light = MODELS_MD.replace("else the other family: Sol, or", "else the other family: Terra, or")
@@ -101,7 +118,7 @@ class Reviewers(unittest.TestCase):
         self.assertIn("Terra", str(cm.exception))
 
     def test_a_model_with_no_id_fails_naming_it(self):
-        broken = MODELS_MD.replace("Terra (`terra-9`)", "Luna (`luna-9`)")
+        broken = MODELS_MD.replace("Terra: acme/terra-9", "Luna: acme/luna-9")
         with self.assertRaises(SystemExit) as cm:
             review.reviewers(review.requirements("readback", None), "claude", review.load_models(broken))
         self.assertIn("Terra", str(cm.exception))

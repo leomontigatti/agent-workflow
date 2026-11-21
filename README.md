@@ -2,7 +2,7 @@
 
 # agent-workflow
 
-The shared agent workflow for our projects, in one copy: skills, agent briefs and hooks. It runs on
+The shared agent workflow for our projects, in one copy: skills and agent briefs. It runs on
 Capy, where each thread has its own machine: a project's Setup script runs [`install.sh`](install.sh)
 on it, a session reads each skill by path from `~/.agents/skills`, and every role is a subagent
 started with the model id [`agents/models.md`](agents/models.md) gives it. Each project keeps only

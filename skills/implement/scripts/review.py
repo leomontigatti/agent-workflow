@@ -131,13 +131,16 @@ def load_models(text):
         if line.startswith("|") and len(cells) >= 4 and not set(cells[0]) <= set("- "):
             for role in cells[0].split(","):
                 rows[role.strip().lower()] = (cells[2], cells[3])
-    ids, provider = {}, None
-    reaching = text.split("## Reaching each model", 1)[-1]
-    for named, name, model in re.findall(r"`(\w+)`\s+for\s|(\w+) \(`([^`]+)`\)", reaching):
-        if named:
-            provider = named
-        elif provider:
-            ids[name.lower()] = f"{provider}/{model}"
+    block = re.search(r"^```model-ids\n(.*?)^```", text, re.M | re.S)
+    if not block:
+        sys.exit("agents/models.md has no ```model-ids block")
+    ids = {}
+    for raw in block.group(1).splitlines():
+        if not raw.strip():
+            continue
+        if not (m := re.match(r"^\s*(\w+):\s*([\w.-]+/[\w.-]+)\s*$", raw)):
+            sys.exit(f"agents/models.md model-ids: cannot read line: {raw.strip()}")
+        ids[m.group(1).lower()] = m.group(2)
     return {"rows": rows, "ids": ids}
 
 
@@ -160,7 +163,7 @@ def reviewers(needs, author, models):
             sys.exit(f"agents/models.md gives {axis} to {name.capitalize()}, which the review record does not accept "
                      f"for it: {' or '.join(sorted(m.capitalize() for m in allowed))}")
         if name not in models["ids"]:
-            sys.exit(f"agents/models.md names no id for {name.capitalize()} under Reaching each model")
+            sys.exit(f"agents/models.md names no id for {name.capitalize()} in its ```model-ids block")
         out.append((axis, models["ids"][name], effort, BRIEFS[axis]))
     return out
 

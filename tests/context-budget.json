@@ -1,10 +1,5 @@
 {
   "always": {
-    "agents/claude/research.md": 232,
-    "agents/claude/reviewer-opus.md": 133,
-    "agents/codex/research.toml": 285,
-    "agents/codex/reviewer-terra.toml": 80,
-    "agents/codex/reviewer.toml": 187,
     "skills/babysit-pr/SKILL.md": 280,
     "skills/code-review/SKILL.md": 420,
     "skills/codebase-design/SKILL.md": 265,
@@ -29,7 +24,7 @@
   },
   "on-load": {
     "agents/implementer.md": 3724,
-    "agents/models.md": 9139,
+    "agents/models.md": 9303,
     "agents/research.md": 2084,
     "agents/reviewer.md": 1199,
     "skills/babysit-pr/SKILL.md": 12430,

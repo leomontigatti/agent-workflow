@@ -46,8 +46,8 @@ model stands.
 | Implementer           | one ticket (`implement-spec`)                             | the author's family: Opus or Sol                          | medium  | none                     |
 | Codebase mapping      | a narrow read of 4+ files for the session                 | a subagent on the thread's own model                      | low     | inline                       |
 
-Sol, Terra and Luna are the Codex family; Opus and Sonnet the Claude family. Their ids are under
-[Reaching each model](#reaching-each-model).
+Sol, Terra and Luna are the Codex family; Opus and Sonnet the Claude family. Their ids are in
+the `model-ids` block under [Reaching each model](#reaching-each-model).
 
 Why each effort:
 
@@ -83,9 +83,17 @@ author's reasoning, the blind spot a judging role exists to escape.
 
 A session runs as a Capy thread, and the author's family is the family of the thread's model. Each
 role is a **subagent** of that thread, started with the row's model and effort in its `model`
-field: `{model_id, reasoning_mode}`, where `reasoning_mode` is the table's effort. A model id is
-the provider, a slash, then the model: `openai` for Sol (`gpt-6.2-sol`), Terra (`gpt-6.1-terra`) and
-Luna (`gpt-6-luna`); `anthropic` for Opus (`claude-opus-5-5`) and Sonnet (`claude-sonnet-5-5`).
+field: `{model_id, reasoning_mode}`, where `reasoning_mode` is the table's effort and `model_id` is
+the model's line below: the provider, a slash, then the model. This block is the one place a
+role's id is written; `review.py tier` reads it, one `<Name>: <id>` per line.
+
+```model-ids
+Sol: openai/gpt-6.2-sol
+Terra: openai/gpt-6.1-terra
+Luna: openai/gpt-6-luna
+Opus: anthropic/claude-opus-5-5
+Sonnet: anthropic/claude-sonnet-5-5
+```
 
 - **A subagent shares the thread's machine and checkout, or gets a machine of its own** with a
   clean checkout. A judging role shares: it reads there, uncommitted work included, and writes
