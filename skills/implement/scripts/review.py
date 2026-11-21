@@ -131,7 +131,7 @@ def load_models(text):
         if line.startswith("|") and len(cells) >= 4 and not set(cells[0]) <= set("- "):
             for role in cells[0].split(","):
                 rows[role.strip().lower()] = (cells[2], cells[3])
-    block = re.search(r"^```model-ids\n(.*?)^```", text, re.M | re.S)
+    block = re.search(r"^```model-ids[ \t]*\n(.*?)^```[ \t]*$", text, re.M | re.S)
     if not block:
         sys.exit("agents/models.md has no ```model-ids block")
     ids = {}
@@ -140,6 +140,8 @@ def load_models(text):
             continue
         if not (m := re.match(r"^\s*(\w+):\s*([\w.-]+/[\w.-]+)\s*$", raw)):
             sys.exit(f"agents/models.md model-ids: cannot read line: {raw.strip()}")
+        if m.group(1).lower() in ids:
+            sys.exit(f"agents/models.md model-ids: {m.group(1)} has two lines")
         ids[m.group(1).lower()] = m.group(2)
     return {"rows": rows, "ids": ids}
 

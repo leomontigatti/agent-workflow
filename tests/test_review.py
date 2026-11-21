@@ -106,7 +106,17 @@ class Reviewers(unittest.TestCase):
             review.load_models(MODELS_MD.replace("Terra: acme/terra-9", "Terra = acme/terra-9"))
         self.assertIn("Terra = acme/terra-9", str(cm.exception))
 
-    def test_a_table_with_no_block_fails(self):
+    def test_a_fence_with_text_after_it_does_not_close_the_block(self):
+        with self.assertRaises(SystemExit) as cm:
+            review.load_models(MODELS_MD.replace("Opus: beta/opus-9", "```bogus\nOpus = beta/opus-9"))
+        self.assertIn("```bogus", str(cm.exception))
+
+    def test_a_model_named_twice_fails(self):
+        with self.assertRaises(SystemExit) as cm:
+            review.load_models(MODELS_MD.replace("Opus: beta/opus-9", "Opus: beta/opus-9\nsol: beta/opus-9"))
+        self.assertIn("two lines", str(cm.exception))
+
+    def test_a_file_with_no_block_fails(self):
         with self.assertRaises(SystemExit) as cm:
             review.load_models(MODELS_MD.split("```model-ids")[0])
         self.assertIn("model-ids", str(cm.exception))
