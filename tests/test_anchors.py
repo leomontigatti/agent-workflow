@@ -110,6 +110,12 @@ class Anchors(unittest.TestCase):
         self.assertIn("gone: GLOSSARY.md term `invoice`", run.stdout)
         self.assertNotIn("cliente", run.stdout)
 
+    def test_a_file_that_is_not_a_numbered_adr_is_not_read(self):
+        self.write("docs/adr/README.md", "# Decisions\n\nGoverns: `app/gone/`\n")
+        run = self.run_script()
+        self.assertEqual(run.returncode, 0, run.stdout + run.stderr)
+        self.assertNotIn("README.md", run.stdout)
+
     def test_a_project_with_neither_file_passes(self):
         self.write("app/models.py", "x = 1\n")
         self.assertEqual(self.run_script().returncode, 0)
