@@ -14,6 +14,10 @@ of the repo or in a retro record (~/.local/state/retro/*.md); REPO is the main
 checkout's directory name, and a line without one, in a session, means that
 session's repo. --repo may repeat: one table per repo.
 
+A session that ran as a platform thread has no transcript on a disk. Its retro
+records are also read from the user's drive (~/.capy/drive/user-*/retro/*.md),
+and --skeleton reads a thread saved as one transcript item per line.
+
 --skeleton prints one transcript as a numbered timeline (user turns in full,
 assistant text, tool calls and failing or oversized results clipped), so a
 reader finds the friction without loading the raw JSONL.
@@ -32,6 +36,7 @@ HOME = Path.home()
 CLAUDE_DIR = HOME / ".claude" / "projects"
 CODEX_DIR = HOME / ".codex" / "sessions"
 STATE_DIR = HOME / ".local" / "state" / "retro"
+DRIVE_DIRS = HOME / ".capy" / "drive"  # a thread's machine is cleared: its retro records live in the user's drive
 MARKER = re.compile(r"retro-window: (?:(\S+) )?(\d{4}-\d\d-\d\dT[\d:.]+Z?)\.\.(\d{4}-\d\d-\d\dT[\d:.]+Z?)")
 BIG_OUTPUT = 20_000  # characters in one tool result
 
@@ -165,6 +170,26 @@ def clip(t, n):
     return t if len(t) <= n else t[:n] + f"…(+{len(t) - n})"
 
 
+def thread_item(n, r):
+    """One item of a platform thread's transcript: a turn, or a tool call with the calls it made."""
+    ts = (r.get("createdAt") or "")[11:16]
+    if r["source"] != "tool":
+        if r.get("text"):
+            print(f"{n} {ts} {'USER' if r['source'] == 'user' else 'SAY'} {clip(r['text'], 1500 if r['source'] == 'user' else 300)}")
+        return
+    calls = r.get("calls") or []
+    for call in calls or [r]:
+        result = call.get("result") or {}
+        print(f"{n} {ts} CALL {call.get('tool')} {clip((call.get('input') or {}).get('text', ''), 200)}")
+        if result.get("is_error"):
+            print(f"{n} {ts} ERROR {clip(result.get('text', ''), 400)}")
+        elif (result.get("chars") or 0) > BIG_OUTPUT:
+            print(f"{n} {ts} BIG[{result['chars']} chars]")
+    # A program can fail after every call it made went through.
+    if calls and (r.get("result") or {}).get("is_error"):
+        print(f"{n} {ts} ERROR {clip(r['result'].get('text', ''), 400)}")
+
+
 def skeleton(path):
     codex = path.name.startswith("rollout-")
     with open(path, errors="replace") as f:
@@ -172,6 +197,9 @@ def skeleton(path):
             try:
                 r = json.loads(line)
             except ValueError:
+                continue
+            if "source" in r:
+                thread_item(n, r)
                 continue
             ts = (r.get("timestamp") or "")[11:16]
             if codex:
@@ -223,7 +251,7 @@ def skeleton(path):
 
 def recorded_markers():
     """(repo, end, file name) for each named retro-window line in the retro records."""
-    return [(m.group(1), m.group(3), f.name) for f in sorted(STATE_DIR.glob("*.md"))
+    return [(m.group(1), m.group(3), f.name) for f in sorted([*STATE_DIR.glob("*.md"), *DRIVE_DIRS.glob("user-*/retro/*.md")])
             for m in MARKER.finditer(f.read_text(errors="replace")) if m.group(1)]
 
 
