@@ -17,6 +17,48 @@ retro-window: rubens 2026-10-26T13:16:34Z..2026-11-09T13:16:34Z
 """
 
 
+THREAD = [
+    {"source": "user", "text": "fix the login redirect", "createdAt": "2026-11-20T15:11:06.248Z"},
+    {"source": "assistant", "text": "On it.", "createdAt": "2026-11-20T15:11:14.857Z"},
+    {"source": "tool", "tool": "execute", "text": "", "createdAt": "2026-11-20T15:11:19.336Z",
+     "calls": [{"tool": "bash", "input": {"text": '{"command":"run-tests"}', "chars": 23},
+                "result": {"text": "2 failed", "chars": 8, "is_error": True}},
+               {"tool": "read", "input": {"text": '{"path":"a.ts"}', "chars": 15},
+                "result": {"text": "cut", "chars": 50000, "is_error": False}},
+               {"tool": "bash", "input": {"text": '{"command":"quiet-step"}', "chars": 24},
+                "result": {"text": "ok", "chars": 2, "is_error": False}}]},
+    {"source": "tool", "tool": "wait", "text": "Waiting for CI", "createdAt": "2026-11-20T15:12:00.000Z",
+     "input": {"text": "{}", "chars": 2}, "result": {"text": "timed out", "chars": 9, "is_error": True}},
+    {"source": "tool", "tool": "execute", "text": "", "createdAt": "2026-11-20T15:13:00.000Z",
+     "calls": [{"tool": "bash", "input": {"text": '{"command":"last-step"}', "chars": 23},
+                "result": {"text": "ok", "chars": None, "is_error": False}}],
+     "result": {"text": "program stopped: call limit", "chars": 27, "is_error": True}},
+]
+
+
+class ThreadSkeleton(unittest.TestCase):
+    def test_a_thread_export_prints_turns_calls_failures_and_oversized_results(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = os.path.join(tmp, "RUBE-6.jsonl")
+            with open(path, "w") as f:
+                f.writelines(json.dumps(r) + "\n" for r in THREAD)
+            out = subprocess.run(["python3", "-I", SCRIPT, "--skeleton", path], capture_output=True, text=True,
+                                 check=True).stdout.splitlines()
+        self.assertEqual(out, [
+            "1 15:11 USER fix the login redirect",
+            "2 15:11 SAY On it.",
+            '3 15:11 CALL bash {"command":"run-tests"}',
+            "3 15:11 ERROR 2 failed",
+            '3 15:11 CALL read {"path":"a.ts"}',
+            "3 15:11 BIG[50000 chars]",
+            '3 15:11 CALL bash {"command":"quiet-step"}',
+            "4 15:12 CALL wait {}",
+            "4 15:12 ERROR timed out",
+            '5 15:13 CALL bash {"command":"last-step"}',
+            "5 15:13 ERROR program stopped: call limit",
+        ])
+
+
 class Window(unittest.TestCase):
     def setUp(self):
         self.home = tempfile.mkdtemp()
@@ -56,6 +98,13 @@ class Window(unittest.TestCase):
         [window] = self.run_script("rubens")
         self.assertTrue(window[1].startswith("2026-11-09T13:16:34Z.."), window)
         self.assertEqual(window[2], "last retro (2026-11-09.md)")
+
+    def test_a_record_in_the_user_drive_chains_too(self):
+        drive = os.path.join(self.home, ".capy/drive/user-leo/retro")
+        os.makedirs(drive)
+        open(os.path.join(drive, "2026-11-09.md"), "w").write(STATE)
+        [window] = self.run_script("rubens")
+        self.assertTrue(window[1].startswith("2026-11-09T13:16:34Z.."), window)
 
     def test_a_marker_for_another_repo_is_not_this_repos(self):
         self.state_file("2026-11-09.md", STATE.replace("retro-window: rubens", "retro-window: rubens-old"))
