@@ -23,7 +23,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Shellcheck
-        run: shellcheck install.sh tests/*.sh skills/*/scripts/*.sh
+        run: shellcheck install.sh update.sh tests/*.sh skills/*/scripts/*.sh
       - name: Python syntax
         run: python3 -m py_compile skills/*/scripts/*.py lib/*.py tests/*.py evals/*/*.py
       - name: review.py tiers and record check
@@ -40,3 +40,5 @@ jobs:
         run: python3 -I tests/test_anchors.py
       - name: install.sh against a throwaway HOME
         run: tests/test_install.sh
+      - name: update.sh takes the newest release tag
+        run: tests/test_update.sh
