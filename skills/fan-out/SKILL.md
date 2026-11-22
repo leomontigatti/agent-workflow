@@ -55,10 +55,11 @@ When your PR is open, and again when it is ready, message the thread that starte
 
 **Count the machines first.** Each child is a machine, and so is every Setup build it runs and
 every subagent it starts on a machine of its own. Start each child at the size
-[THREADS.md](../implement/THREADS.md) gives its part. Parts that build a Setup, or whose
-validation runs the project's test suite, start one at a time, each after the last has reported
-its PR ready or its Setup saved, so the organization's memory cap stops no build halfway through
-the run. The other parts start together.
+[THREADS.md](../implement/THREADS.md) gives its part. Parts that take the project's size start
+one at a time, each after the last has reported its validation finished (its PR ready, its
+Setup's test build passed), so the organization's memory cap stops no build halfway through the
+run. When a start is still refused for memory, the last machine is not yet asleep: wait a few
+minutes and start it again. The smaller parts start together.
 
 Invoking this skill and agreeing to the step 1 list is the user's whole go-ahead for these
 threads: start every **in** project without asking again. Each child opens and babysits its
