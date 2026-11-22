@@ -30,7 +30,8 @@ to the project; the issues it files are its output.
 2. **Slice.** Run
    `python3 -I ~/.agents/workflow/skills/lifetime-audit/scripts/scan.py <checkout> --skip <state>`,
    where `<state>` is `~/.local/state/lifetime-audit/<repo>.json` (`<repo>` the GitHub
-   `owner-name`; a missing file skips nothing). It puts every source file not judged before and
+   `owner-name`; a missing file skips nothing). In a thread, whose machine is cleared, the file
+   is `lifetime-audit/<repo>.json` in the project's drive instead. It puts every source file not judged before and
    unchanged since into one slice of at most 1,500 lines (a longer file in a slice of its own),
    highest lifetime score first, and lists
    the explicit lifecycles and the lifecycle writes. The score orders the slices; every slice is

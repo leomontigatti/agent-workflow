@@ -30,7 +30,8 @@ edits a protected test beyond renaming it, and lists a low-signal one as an ask.
 
 1. **Window.** The watermark is the default-branch commit the last audit reached, in
    `~/.local/state/test-audit/<repo>.json` (`{"reviewed": "<sha>"}`, `<repo>` the GitHub
-   `owner-name`). With no file, start at the default-branch commit of seven days ago
+   `owner-name`). In a thread, whose machine is cleared, the file is `test-audit/<repo>.json` in
+   the project's drive instead. With no file, start at the default-branch commit of seven days ago
    (`git rev-list -1 --before="7 days ago" origin/<default>`), or at the empty tree
    (`git hash-object -t tree /dev/null`) when the repo is younger than that. The window is
    `git diff <watermark> origin/<default>` over the test files, as the tests layout `AGENTS.md`
@@ -73,7 +74,8 @@ edits a protected test beyond renaming it, and lists a low-signal one as an ask.
    Commit each round's fixes before the next step, so the reviewed commit is the branch's head.
 
 5. **Report and open the PR.** Push, and open the PR ready for review, with a body written by
-   using the `pr` skill (its `## Review` record included) and holding:
+   using the `pr` skill (its `## Review` record included, and passing that skill's
+   `review.py check --body` before the PR opens) and holding:
 
    ```
    Window: <watermark short sha>..<new short sha>, <n> cases judged

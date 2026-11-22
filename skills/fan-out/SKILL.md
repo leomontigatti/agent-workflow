@@ -37,6 +37,11 @@ Write the **notes** as one comment on the PR or issue the change comes from, ope
 - every name, heading, wording and file path that must be identical in every project, spelled
   out exactly once.
 
+When a part changes something you cannot read from here (a project's Setup, a secret, a
+dashboard), the notes are a guess. Start one project alone in step 3, whatever its size, with
+one more line in its message: "Message the thread that started you with what you found there
+before you change it." Add what it reports to the notes, then start the rest.
+
 The notes are the single source of truth for what is shared, so the children stay in step. A
 question a child raises about shared wording is answered in the notes, then pointed at.
 
