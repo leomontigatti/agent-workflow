@@ -2,7 +2,7 @@
 
 The one global copy of the agent workflow every project shares: its skills, agent briefs
 and the contract between them and a project. A change here reaches every project at once, the
-moment it merges, so each change goes through a PR and nothing is committed to `main` directly.
+moment it is tagged, so each change goes through a PR and nothing is committed to `main` directly.
 
 ## What lives where
 
@@ -31,9 +31,10 @@ moment it merges, so each change goes through a PR and nothing is committed to `
   what each must add or rename to keep meeting the contract.
 - **Write for agents.** Every skill, brief and doc here is read by an agent: use the `writing-for-agents` skill
   before editing one.
-- **Tag a release** after merging a change to `actions/` or to what an action runs
-  (`skills/implement/scripts/review.py`): `vX.Y.Z` on the merge commit, minor for a new rule, major
-  when a project must change its workflow. Projects pin the action to a tag
+- **Tag a release** to ship: a project's machine checks out the newest `vX.Y.Z` tag on every boot
+  ([`update.sh`](update.sh)), so a merge reaches no project until a tag is on it or after it. Tag
+  the merge commit, or one tag over several merges: patch for a fix, minor for a new rule, major
+  when a project must change something. Projects also pin the action to a tag
   ([its README](actions/review-record/README.md)).
 - **Run the lint**: `python3 -I tests/lint_skills.py`, then the test of each script you changed
   ([`docs/agents/validation.md`](docs/agents/validation.md)). CI runs it with `tests/test_lint.sh` and

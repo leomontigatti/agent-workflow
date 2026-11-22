@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #
 # Installs this repo as the user-level agent workflow on one machine. On Capy every thread has a
-# machine of its own, and the project's Setup script runs this there before the agent starts.
+# machine of its own, and the project's Setup runs this there on every boot, through update.sh.
 # Idempotent: a second run changes nothing. `--check` changes nothing and reports drift, exiting 1
 # when there is any.
 #
