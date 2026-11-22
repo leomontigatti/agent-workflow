@@ -57,6 +57,9 @@ moment it is tagged, so each change goes through a PR and nothing is committed t
 - **A new required contract file is a breaking change**: the PR lists the file every project must
   write, and lands with the lint's view of the contract (the table in `contract.md`) updated.
   The projects' own PRs come from the user-invoked [`fan-out`](skills/fan-out/SKILL.md) skill.
+- **A check that gets stricter is fanned out before it is tagged.** Run the new check on each
+  project's default branch first, list each project's new failures in the PR, and tag only when
+  the user has seen them: a tag turns the check red on every project's `main` at its next boot.
 - **A model changes in `agents/models.md`**, its `model-ids` block for an id; nothing else
   names one.
 - **An idea taken from an upstream** gets its row in `upstreams/decisions.md`, and its license
