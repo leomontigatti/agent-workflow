@@ -5,6 +5,7 @@
 # both with no list to edit. The lint and its own test (tests/test_lint.sh) are CI's `skills` job.
 
 set -euo pipefail
+shopt -s nullglob
 
 cd "$(dirname "${BASH_SOURCE[0]}")/.."
 

@@ -14,7 +14,7 @@ shellcheck install.sh update.sh tests/*.sh skills/*/scripts/*.sh   # when a shel
 Then the test of each script the diff touches, and of each script that imports or calls it: a
 changed signature breaks its callers' tests, which no other command here runs.
 
-`tests/run.sh` runs all of them with the shellcheck and a syntax check, as CI's `scripts` job does;
+`tests/run.sh` runs every script's test with the shellcheck and a syntax check, as CI's `scripts` job does;
 a new `tests/test_*.py` or `tests/test_*.sh` joins it by its name.
 
 | Changed                                         | Run                                                      |
