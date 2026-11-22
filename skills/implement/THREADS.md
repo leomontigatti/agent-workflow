@@ -14,6 +14,14 @@ project's Setup before the agent starts. Nothing is shared between threads but w
 - **One writer per checkout.** A subagent that judges shares this machine and this checkout,
   reads there and writes nothing. A second writer is a subagent on its own machine, which sees
   only what is pushed: push before starting it, and have it push before it reports.
+- **Size a machine by its job.** A thread, or a subagent on its own machine, takes the project's
+  size unless you name one, and every awake machine counts against one memory cap for the whole
+  organization. Name the smallest that fits: **small** for work that reads and writes text (docs,
+  ADRs, the glossary, issue triage, reading a PR), **medium** for a script or config change with
+  a light test, the project's size for anything that runs its test suite, a build or a dev server.
+  A role that only reads this checkout is a subagent on this machine, which adds nothing. A start refused for
+  memory means the cap is reached: say what ran and what did not, and start the rest when a
+  machine has gone to sleep.
 - **A thread you start owns its PR.** It follows `babysit-pr` on it and hands back to the user;
   the thread that started it reads that PR's state from GitHub, never from the child's word.
 - **A machine that slept kept its disk and lost its processes.** After a pause, restart what the
