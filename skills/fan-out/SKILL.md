@@ -53,6 +53,13 @@ When your PR is open, and again when it is ready, message the thread that starte
 <only when your part merges with the shared PR:> Leave the merge to the user.
 ```
 
+**Count the machines first.** Each child is a machine, and so is every Setup build it runs and
+every subagent it starts on a machine of its own. Start each child at the size
+[THREADS.md](../implement/THREADS.md) gives its part. Parts that build a Setup, or whose
+validation runs the project's test suite, start one at a time, each after the last has reported
+its PR ready or its Setup saved, so the organization's memory cap stops no build halfway through
+the run. The other parts start together.
+
 Invoking this skill and agreeing to the step 1 list is the user's whole go-ahead for these
 threads: start every **in** project without asking again. Each child opens and babysits its
 own PR and stops at READY: the merges are the user's
