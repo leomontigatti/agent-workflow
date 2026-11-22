@@ -21,10 +21,10 @@ _Avoid_: bill, payment request
 {Why it was retired, and the term that replaced it.}
 
 **Late order** _(spoken term)_ — ui: "Pedido atrasado"
-An `order` past its promised date. No identifier names it: the code compares dates where it needs to.
+An `order` not delivered by its promised date.
 ```
 
-Each heading is the canonical identifier, the name to use in code. When a user reads the product
+Each heading but a spoken term's is the canonical identifier, the name to use in code. When a user reads the product
 in another language than the code's, follow it with `ui:` and the term the user sees. How prose
 borrows those terms is in the code-language rules `AGENTS.md` routes to.
 
