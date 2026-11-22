@@ -294,3 +294,11 @@ The app repo at github.com/mattpocock/course-video-manager, read at `8112434` on
 | `cvm:ban-useeffect-and-as` | Ban `useEffect` outside a hooks folder and type assertions outside shared utilities, each ratcheted (#2746, #2748). | later (proposed) | A project's coding standard. Reopen in a project when `cvm` has landed either ban and its allowlist shows the cost; en-escena had 113 `useEffect` calls and rubens 16 on 2026-11-18. |
 | `mattpocock-skills:implementer-fast-forwards` | The implementer fast-forwards the integration branch itself; a merger subagent only when that fails (mattpocock/skills#1446, open). | declined (proposed) | We have no merger agent: `agents/implementer.md` step 3 lands on the tip and `skills/implement-spec/SKILL.md` § 3 fast-forwards. |
 | `mattpocock-skills:subagent-verification-level` | Subagents run the pre-commit hook and touched tests, with CI as the gate for the full suite (mattpocock/skills#1447, open). | declined (proposed) | `agents/implementer.md` runs `docs/agents/validation.md` § As you go; the full list runs once, at `skills/implement-spec/SKILL.md` § 4. |
+
+## course-video-manager's glossary (2026-11-22)
+
+Its `GLOSSARY.md`, read by an en-escena thread on the user's request, for how it keeps a term no code names. No text carried over.
+
+| Id | Idea | Verdict | Where or why |
+| -- | ---- | ------- | ------------ |
+| `cvm:glossary-spoken-terms` | A glossary keeps the phrases its user says even when no identifier carries them, so an agent knows what is meant. | adopted | `skills/domain-modeling/GLOSSARY-FORMAT.md`, the spoken term: headed by the phrase, defined through an entry the code names. |

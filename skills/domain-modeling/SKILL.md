@@ -53,7 +53,7 @@ When the user states how something works, check whether the code agrees. If you 
 
 ### Update GLOSSARY.md inline
 
-When a term the code already names is resolved, update `GLOSSARY.md` right there. Don't batch these up: capture them as they happen. A term for something not built yet goes into the spec or issue that plans it, and enters `GLOSSARY.md` in the change that introduces its identifier: every glossary term is one the code names, or a retired one. Use the format in [GLOSSARY-FORMAT.md](./GLOSSARY-FORMAT.md).
+When a term the code already names is resolved, update `GLOSSARY.md` right there. Don't batch these up: capture them as they happen. A term for something not built yet goes into the spec or issue that plans it, and enters `GLOSSARY.md` in the change that introduces its identifier: every glossary term is one the code names, a retired one, or a **spoken term**: a concept the user names in conversation that no identifier carries, kept so an agent knows what they mean, and added when the user uses the phrase for something already built. Use the format in [GLOSSARY-FORMAT.md](./GLOSSARY-FORMAT.md).
 
 `GLOSSARY.md` should be totally devoid of implementation details. Do not treat `GLOSSARY.md` as a spec, a scratch pad, or a repository for implementation decisions.
 
