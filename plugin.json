@@ -1,0 +1,11 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "agent-workflow",
+  "description": "The shared agent workflow's skills: implement, review, PRs, specs and tickets, audits.",
+  "repository": "https://github.com/leomontigatti/agent-workflow",
+  "extensions": {
+    "ai.capy": {
+      "displayName": "Agent workflow"
+    }
+  }
+}

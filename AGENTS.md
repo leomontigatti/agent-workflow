@@ -23,6 +23,9 @@ moment it is tagged, so each change goes through a PR and nothing is committed t
 - [`install.sh`](install.sh): run by a project's Setup on each Capy thread's machine. It links
   this repo at the stable path `~/.agents/workflow`, which is how a skill names a file here, and
   each skill at `~/.agents/skills/<name>`, where a session reads it.
+- [`plugin.json`](plugin.json): makes this repo a Capy plugin, which is what lists each skill in
+  the user's skill picker. It names no skill: Capy takes every `skills/<name>/SKILL.md`, at the
+  commit of `main` the user last synced the plugin to, not at the tag a machine checks out.
 
 ## Every change
 
@@ -35,7 +38,9 @@ moment it is tagged, so each change goes through a PR and nothing is committed t
   ([`update.sh`](update.sh)), so a merge reaches no project until a tag is on it or after it. Tag
   the merge commit, or one tag over several merges: patch for a fix, minor for a new rule, major
   when a project must change something. Projects also pin the action to a tag
-  ([its README](actions/review-record/README.md)).
+  ([its README](actions/review-record/README.md)). The picker's copy of the skills follows
+  neither: after tagging, ask the user to press **Sync** on the plugin's page (Settings → MCP &
+  plugins) before the next merge, so that copy and the tagged briefs and scripts it calls match.
 - **Run the lint**: `python3 -I tests/lint_skills.py`, then the test of each script you changed
   ([`docs/agents/validation.md`](docs/agents/validation.md)). CI runs it with `tests/test_lint.sh` and
   `tests/test_install.sh`. Run `install.sh` only when the user asks; the install test uses a
