@@ -31,7 +31,7 @@
       "id": "gentle-ai",
       "repo": "Gentleman-Programming/gentle-ai",
       "branch": "main",
-      "paths": ["skills/**", "docs/trigger-rules.md", "docs/usage.md", "docs/review-integration.md"],
+      "paths": ["skills/**", "docs/trigger-rules.md", "docs/usage.md", "docs/review-integration.md", "docs/work-continuity.md", "internal/assets/skills/_shared/**", "internal/assets/opencode/agents/**"],
       "license": "MIT, Copyright (c) 2025 Gentleman Programming (LICENSE)",
       "reviewed": "4716b3cbca158c35c3b316dbd517f54e5f240f97",
       "reviewedAt": "2026-11-23"
