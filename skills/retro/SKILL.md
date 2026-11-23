@@ -66,7 +66,7 @@ Propose each fix at the highest level that makes it durable, highest first:
 
 Every rule a finding touches gets its **enforcer**: the check, hook or test that catches a break, or "none". A rule with no enforcer whose break recurs counts as a recurring finding even when the wording was sharpened in between; the report's proposal is the enforcer.
 
-A proposed check names the past mistake it would have caught (the session or PR, and the line), and the change that builds it proves it: the check fails on that mistake, replayed, before it passes on the fix. A check that never failed on a real mistake is a guess at one. A lint rule or hook keeps that proof: the replayed mistake stays in a **canary** file the normal run skips, and one check runs the rule on the canary and goes red the day the rule stops reporting it, as it does when the rule stops loading or its glob stops matching.
+A proposed check names the past mistake it would have caught (the session or PR, and the line), and the change that builds it proves it: the check fails on that mistake, replayed, before it passes on the fix. A check that never failed on a real mistake is a guess at one. A lint rule or hook keeps that proof: the replayed mistake stays in a **canary** file inside the rule's glob that the normal run skips, and one check runs the normal configuration with only that skip lifted and goes red the day the rule stops reporting the canary, as it does when the rule stops loading or its glob stops matching.
 
 ## Report contract
 
