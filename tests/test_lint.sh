@@ -73,6 +73,8 @@ expect_name "a hash in a plain description" 's/^description: Test-driven develop
 expect_name "a plain description opens with a dash" 's/^description: Test-driven/description: - Test-driven/' "frontmatter description: quote the value"
 expect_name "a plain description ends in a colon" 's/^description: Test-driven development\./description: Test-driven development:/' "frontmatter description: quote the value"
 expect_name "a colon on a plain continuation line" 's/^description: Test-driven development\./description: Test-driven development.\n  Steps: red, green./' "frontmatter description: quote the value"
+expect_name "a comment line after a plain description" 's/^description: Test-driven development\./description: Test-driven development.\n  # a comment/' ""
+expect_name "a no-break space beside a colon" $'s/^description: Test-driven development\\./description: Test-driven development:\u00a0red\u00a0#1./' ""
 expect_name "a colon in a quoted description" 's/^description: Test-driven development\.\(.*\)$/description: "Test-driven development: red, green.\1"/' ""
 expect_name "a colon in a folded description" 's/^description: Test-driven development\./description: >-\n  Test-driven development: red, green #1./' ""
 

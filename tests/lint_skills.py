@@ -241,9 +241,9 @@ def check_skill_names():
             report(path, 1, "skill has no name: line in its frontmatter")
 
 
-BLOCK_HEADER = re.compile(r"[|>]([1-9][+-]?|[+-][1-9]?)?(\s+#.*)?")
-PLAIN_UNSAFE = re.compile(r":(\s|$)|\s#")
-PLAIN_FIRST = re.compile(r"[,\[\]{}#&*!|>%@`]|[-?:](\s|$)")
+BLOCK_HEADER = re.compile(r"[|>]([1-9][+-]?|[+-][1-9]?)?([ \t]+#.*)?")
+PLAIN_UNSAFE = re.compile(r":([ \t]|$)|[ \t]#")
+PLAIN_FIRST = re.compile(r"[,\[\]{}#&*!|>%@`]|[-?:]([ \t]|$)")
 
 
 def check_frontmatter_values():
@@ -255,10 +255,10 @@ def check_frontmatter_values():
         key, plain = None, False
         for n, line in frontmatter(path):
             if line[:1] in " \t":
-                bad = plain and PLAIN_UNSAFE.search(line.rstrip())
+                bad = plain and not line.lstrip(" \t").startswith("#") and PLAIN_UNSAFE.search(line.rstrip(" \t"))
             else:
                 key, sep, value = line.partition(":")
-                value = value.strip()
+                value = value.strip(" \t")
                 plain = (bool(sep) and not line.startswith("#") and value[:1] not in ("", '"', "'")
                          and not BLOCK_HEADER.fullmatch(value))
                 bad = plain and (PLAIN_UNSAFE.search(value) or PLAIN_FIRST.match(value))
