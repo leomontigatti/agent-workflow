@@ -9,6 +9,8 @@ Fails (exit 1) when:
 - a shared file names a project file that `contract.md` does not list;
 - a relative Markdown link, or its anchor, does not resolve, anywhere in the repo;
 - a skill's frontmatter `name:` is not its folder name, which the Skill tool calls it by;
+- a skill's frontmatter holds an unquoted value that YAML rejects or cuts short (a `: ` or a ` #`
+  inside it, or an indicator character first), which can drop the skill when a harness loads it;
 - a shared file mentions an upstream repo (`upstreams/sources.json`, plus the former sources
   listed below);
 - a shared file or `contract.md` names a platform the workflow no longer runs on, or one of its
@@ -239,6 +241,31 @@ def check_skill_names():
             report(path, 1, "skill has no name: line in its frontmatter")
 
 
+BLOCK_HEADER = re.compile(r"[|>]([1-9][+-]?|[+-][1-9]?)?([ \t]+#.*)?")
+PLAIN_UNSAFE = re.compile(r":([ \t]|$)|[ \t]#")
+PLAIN_FIRST = re.compile(r"[,\[\]{}#&*!|>%@`]|[-?:]([ \t]|$)")
+
+
+def check_frontmatter_values():
+    """Plain (unquoted) frontmatter values, their continuation lines included, by YAML's rules."""
+    for d in sorted(os.listdir(os.path.join(ROOT, "skills"))):
+        path = os.path.join(ROOT, "skills", d, "SKILL.md")
+        if not os.path.isfile(path):
+            continue
+        key, plain = None, False
+        for n, line in frontmatter(path):
+            if line[:1] in " \t":
+                bad = plain and not line.lstrip(" \t").startswith("#") and PLAIN_UNSAFE.search(line.rstrip(" \t"))
+            else:
+                key, sep, value = line.partition(":")
+                value = value.strip(" \t")
+                plain = (bool(sep) and not line.startswith("#") and value[:1] not in ("", '"', "'")
+                         and not BLOCK_HEADER.fullmatch(value))
+                bad = plain and (PLAIN_UNSAFE.search(value) or PLAIN_FIRST.match(value))
+            if bad:
+                report(path, n, f"frontmatter {key}: quote the value; YAML rejects it or cuts it short")
+
+
 def description(path):
     """The description as written: a frontmatter value with its folded lines."""
     out = None
@@ -342,6 +369,7 @@ def main():
             check_commands(path, lines)
 
     check_skill_names()
+    check_frontmatter_values()
     check_budget(context_loads())
 
     for p in problems:
