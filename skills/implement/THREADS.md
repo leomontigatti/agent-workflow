@@ -28,8 +28,8 @@ project's Setup before the agent starts. Nothing is shared between threads but w
   task needs (a dev server, a watcher) before relying on it.
 - **Merging is the user's.** Merge a PR, or turn on auto-merge, only when the user asks for that
   merge in this thread. Nothing blocks a merge nobody asked for; this rule does.
-- **Issues live on GitHub**, as the project's `docs/agents/issue-tracker.md` says, not in the
-  platform's own tracker.
+- **Issues live where the project's `docs/agents/issue-tracker.md` puts them**, on GitHub or in
+  the platform's own tracker: read and write them only the way that file says.
 - **Read-only threads** (writing issues, triage, reviewing a PR without editing code) change no
   branch.
 - **Push the branch or delete it** before the thread ends: the machine is cleared after it has

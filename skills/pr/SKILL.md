@@ -59,7 +59,8 @@ Closes #N
   call that is theirs.
 - **One concern per PR.** If the description needs the word "also", it is two PRs. A PRD PR is
   the deliberate exception (below).
-- **`Closes #N`** closes the issue on merge (`docs/agents/issue-tracker.md` § Closing an issue).
+- **`Closes #N`** closes a GitHub issue on merge. When `docs/agents/issue-tracker.md`
+  § Closing an issue gives a built issue another closing line, write that one in its place.
 - Write in the code language `AGENTS.md` sets; the user's language only inside backticks, as
   data, or where a term is the one a user reads. Use the domain's terms from `GLOSSARY.md`.
 - The PR carries no screenshots or recordings: they were shown and approved in the thread.

@@ -179,6 +179,9 @@ GitHub's reason. When the merge is not the agent's, step 5 as READY.
 
 ## 5. Report
 
+Before reporting MERGED, read each issue the PR body's closing line names: close one the merge
+left open as `docs/agents/issue-tracker.md` § Closing an issue says for built work.
+
 Before reporting READY, run the same `review.py check` as step 4c: a failure is step 4's to fix,
 even when the project's CI does not run the check yet.
 
