@@ -19,13 +19,17 @@ test that catches no bug. The rest of the standards and the spec are the full re
    > catches (the wrong implementation that makes it fail), or flag it as low-signal with the
    > anti-pattern it matches in `~/.agents/workflow/skills/tdd/SKILL.md` § Anti-patterns, or the
    > existing case that already catches its bug, and flag each name that promises a clause its
-   > assertions do not check ("Name only what it asserts" in the same skill). End with one line:
+   > assertions do not check ("Name only what it asserts" in the same skill). Where the diff
+   > rewrites or deletes an instruction (skill or brief text, an `AGENTS.md` line), set the old
+   > text beside the new and flag each qualifier the new one lost: a scope, a condition, an
+   > exception, a quantifier (every, only, never, at most), unless a commit message says the loss
+   > was meant. End with one line:
    > `Would merge: yes | after fixes | no`. Under 300 words.
 
 3. Report it under `## Readback`, verbatim or lightly cleaned, ending with one line: how many
-   surprises and low-signal tests it flagged, and its merge verdict. A low-signal test is a
-   finding like any other: deleted or folded into the case it names, or declined with the bug it
-   does catch.
+   surprises, lost qualifiers and low-signal tests it flagged, and its merge verdict. A low-signal
+   test is a finding like any other: deleted or folded into the case it names, or declined with
+   the bug it does catch.
 
 When a surprise turns out to touch an area in `docs/agents/review.md` § Full review, a migration,
 a `GLOSSARY.md` term or a destructive operational script, the diff was risky after all: run the
