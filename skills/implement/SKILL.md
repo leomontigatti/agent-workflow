@@ -149,6 +149,9 @@ defect is a change that works on the tested path and is missing everywhere else.
 - **Entry points.** A behaviour reachable from one screen, route or job is usually reachable from
   others too: a list and its detail, an import, an API, a scheduled job. Name the paths you
   checked and the ones deliberately different.
+- **Consumers.** New or changed data reaches everything that already reads it: a report, a total,
+  an export, a filter, a search. Name the readers you ran it through and the ones deliberately
+  left out.
 - **Docs.** Whether the change makes existing guidance wrong. Rewrite the affected text rather
   than appending a second account; add a paragraph only for what a later session would get wrong
   without it and cannot learn from the code.

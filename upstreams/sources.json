@@ -6,8 +6,8 @@
       "branch": "main",
       "paths": ["pstack/**"],
       "license": "MIT, Copyright (c) 2026 Lauren Tan (pstack/LICENSE)",
-      "reviewed": "bf0c7cd80abdbf7fe47b634978a7d1b4071f71a7",
-      "reviewedAt": "2026-11-16"
+      "reviewed": "7a583913eb1b8d1a0ee76753d1a2cf072e7b54f9",
+      "reviewedAt": "2026-11-23"
     },
     {
       "id": "mattpocock-skills",
@@ -15,8 +15,8 @@
       "branch": "main",
       "paths": ["skills/**"],
       "license": "MIT, Copyright (c) 2026 Matt Pocock (LICENSE)",
-      "reviewed": "5863806dd4e15c63174bee4e7515a4256792ecfa",
-      "reviewedAt": "2026-11-16"
+      "reviewed": "abeeaf95660ba9e8b7c753eb38f441ca707a8823",
+      "reviewedAt": "2026-11-23"
     },
     {
       "id": "mattpocock-docs",
@@ -24,17 +24,17 @@
       "branch": "main",
       "paths": ["docs/**"],
       "license": "MIT, Copyright (c) 2026 Matt Pocock (LICENSE)",
-      "reviewed": "5863806dd4e15c63174bee4e7515a4256792ecfa",
-      "reviewedAt": "2026-11-16"
+      "reviewed": "abeeaf95660ba9e8b7c753eb38f441ca707a8823",
+      "reviewedAt": "2026-11-23"
     },
     {
       "id": "gentle-ai",
       "repo": "Gentleman-Programming/gentle-ai",
       "branch": "main",
-      "paths": ["skills/**", "docs/trigger-rules.md", "docs/usage.md", "docs/review-integration.md"],
+      "paths": ["skills/**", "docs/trigger-rules.md", "docs/usage.md", "docs/review-integration.md", "docs/work-continuity.md", "internal/assets/skills/_shared/**", "internal/assets/opencode/agents/**"],
       "license": "MIT, Copyright (c) 2025 Gentleman Programming (LICENSE)",
-      "reviewed": "1ab243ca426d55dee64cf0ba693d0745cb1146c2",
-      "reviewedAt": "2026-11-16"
+      "reviewed": "4716b3cbca158c35c3b316dbd517f54e5f240f97",
+      "reviewedAt": "2026-11-23"
     },
     {
       "id": "engram",
@@ -42,8 +42,8 @@
       "branch": "main",
       "paths": ["skills/**", "docs/AGENT-SETUP.md"],
       "license": "MIT, Copyright (c) 2026 Alan Buscaglia (LICENSE)",
-      "reviewed": "8a4ce2d948ca0abebdc36b1021456bac67845512",
-      "reviewedAt": "2026-11-16"
+      "reviewed": "da58a0aeafc6f645d4d2afd92acafb4ed6fb8c65",
+      "reviewedAt": "2026-11-23"
     },
     {
       "id": "tstack",
@@ -60,8 +60,8 @@
       "branch": "main",
       "paths": [".oxlintrc.json", "CODING_STANDARDS.md", "docs/FRONTEND_STATE.md", "scripts/check-*.ts", ".husky/pre-commit"],
       "license": "none (no LICENSE file): ideas in our own words only, no text carried over",
-      "reviewed": "811243471a00089b6cc6cd64dc0060f1915871e1",
-      "reviewedAt": "2026-11-18"
+      "reviewed": "f80c94102f16aa055cdf58a1294a8d3c646e318a",
+      "reviewedAt": "2026-11-23"
     },
     {
       "id": "agent-browser",
@@ -69,8 +69,8 @@
       "branch": "main",
       "paths": ["CHANGELOG.md", "docs/content/docs/network.mdx", "skills/**"],
       "license": "Apache-2.0, Copyright 2025 Vercel Inc. (LICENSE; no NOTICE file)",
-      "reviewed": "53384771fbafc261ba67608ac806dd5aa70b84f0",
-      "reviewedAt": "2026-11-16"
+      "reviewed": "d2dfc782ccdd79d25a9b4f0acced9321789cecb8",
+      "reviewedAt": "2026-11-23"
     }
   ]
 }
