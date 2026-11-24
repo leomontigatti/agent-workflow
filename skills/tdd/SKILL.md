@@ -52,6 +52,7 @@ When the shape of that interface is itself in question (how deep the module is, 
 
 - **Name the bug first.** Before writing a test, say which wrong implementation would make it fail. If the only answer is "someone changed the constant, the copy or the doc", do not write it: it is one of the anti-patterns above.
 - **Name only what it asserts.** Every clause of a test's name is a claim its assertions check: a role it says "every", a case it lists, a bound it names. Assert the clause, or cut it from the name.
+- **Refusal changes nothing.** A test of input the code rejects, or of a call that fails part-way through, asserts the error and also, read back through an agreed seam, that the stored data and counters the call must not touch are unchanged.
 - **Red before green.** Write the failing test first, then only enough code to pass it. Don't anticipate future tests or add speculative features.
 - **One slice at a time.** One seam, one test, one minimal implementation per cycle.
 - **Refactoring is not part of the loop.** It belongs to the review stage (see the `code-review` skill), not the red → green implementation cycle.
