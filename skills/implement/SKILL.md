@@ -190,7 +190,7 @@ in the thread: the PR carries none.
 
 When the run started from an issue or the user asked for a PR: push the branch, open it ready for
 review (never a draft; a PRD run under `implement-spec` keeps its PR a draft until the last slice
-lands) with a body written by following the `pr` skill, carrying `Closes #N`, opened with the
+lands) with a body written by following the `pr` skill, carrying its closing line, opened with the
 platform's PR tool as [THREADS.md](THREADS.md) says. Before opening it, write the body to a file
 and run `python3 -I <this-skill-dir>/scripts/review.py check --body <file>`: open the PR only
 once it prints `review record: ok`, so the record's check never goes red on a PR already called
