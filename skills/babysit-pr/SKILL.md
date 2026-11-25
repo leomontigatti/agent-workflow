@@ -64,7 +64,7 @@ The first row that holds decides:
 
 Every context branch protection requires must be in the rollup and finished, or a fresh push
 reads as green before CI has started:
-`gh api 'repos/{owner}/{repo}/branches/<base>/protection' --jq '.required_status_checks.contexts'`.
+`gh api 'repos/{owner}/{repo}/branches/<base>' --jq '.protection.required_status_checks.contexts'`.
 A base without protection (a stacked layer's) requires none.
 
 A review-body finding is one a reviewer puts in its review's body rather than in a thread (an
