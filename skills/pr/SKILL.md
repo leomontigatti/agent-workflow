@@ -35,7 +35,7 @@ Tier: <tier>, reviewed <short sha>
 
 - <axis> (<model>): <findings, fixed, declined>
 
-Closes #N
+Closes #N <the issue this PR builds; omit the line when it builds none>
 ```
 
 ## Rules
@@ -61,6 +61,9 @@ Closes #N
   the deliberate exception (below).
 - **`Closes #N`** closes a GitHub issue on merge. When `docs/agents/issue-tracker.md`
   § Closing an issue gives a built issue another closing line, write that one in its place.
+  GitHub reads any form of close, fix or resolve before an issue reference as that keyword, in
+  prose too: name an issue the PR does not build without one (`deferred from #N`, `see #N`), and
+  leave the closing line out of a PR that builds no issue.
 - Write in the code language `AGENTS.md` sets; the user's language only inside backticks, as
   data, or where a term is the one a user reads. Use the domain's terms from `GLOSSARY.md`.
 - The PR carries no screenshots or recordings: they were shown and approved in the thread.
