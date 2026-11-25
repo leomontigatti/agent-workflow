@@ -7,11 +7,13 @@ project's Setup. Nothing is shared between threads but what is pushed.
 - **Check the machine first.** `ls ~/.agents/skills` lists the shared skills and
   `~/.agents/workflow` resolves. When either is missing the Setup did not run: stop and say so.
 - **Make the checkout current before reading a project file.** A thread can start while the
-  Setup is still running, and a file read then is the version the machine's snapshot held:
-  `git fetch origin && git log --oneline HEAD..@{upstream}` prints nothing. When it prints
-  commits, `git merge --ff-only @{upstream}`, then read again every project file already read.
-  While a tool result says the Setup is still running, a command or file it installs may be
-  missing: use it once the platform reports the Setup finished.
+  Setup is still running, and a file read then is the version the machine's snapshot held. At
+  the thread's start, a read-only thread's included, run
+  `git fetch origin && git log --oneline HEAD..@{upstream}`: the checkout is current when it
+  prints nothing. When it prints commits, `git merge --ff-only @{upstream}`, then read again
+  every project file already read. A subagent on this machine skips the check: its thread ran
+  it. While a tool result says the Setup is still running, a command or file it installs may
+  be missing: use it once the platform reports the Setup finished.
 - **One thread, one branch, one PR.** Before the first edit, start current (`git fetch origin`,
   then branch from `origin/<default branch>`) on a branch named `feat/`, `fix/`, `docs/`,
   `chore/`, `refactor/`, `research/` or `prototype/`. Open the PR with the platform's PR tool,
