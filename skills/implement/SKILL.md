@@ -190,14 +190,9 @@ user not to commit overrides this. Conventional-commit subject and body, in the 
 `AGENTS.md` sets.
 
 A commit runs the project's hooks. When one cannot run on this machine (killed for memory, a
-crash before it starts), the machine is too small, and replacing it loses all that is unpushed:
-save it first. With `git status` clean, push the branch itself. Otherwise `git add -A`, then
-`git push --no-verify origin "$(git stash create)":refs/heads/wip/<branch>`: a backup, not a
-delivery, so its push skips the hooks that already died. Replace the machine only once
-`git ls-remote origin wip/<branch>` shows it. On a machine of the size [THREADS.md](THREADS.md)
-names, restore it with `git fetch origin wip/<branch> && git checkout -B <branch> FETCH_HEAD^ &&
-git restore --source=FETCH_HEAD --staged --worktree -- .` and commit there with the hooks
-running, never with `--no-verify`. Delete the `wip/` branch once that commit is pushed.
+crash before it starts), the machine is too small: stop, and tell the user the work is
+uncommitted on this machine and which size [THREADS.md](THREADS.md) names. Commit with the hooks
+running, never with `--no-verify`.
 
 ## 7. Open the PR and hand it off
 
