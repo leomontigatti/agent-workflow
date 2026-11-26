@@ -2,7 +2,8 @@
 #
 # Runs update.sh in clones of a throwaway origin whose install.sh only records the version it was
 # run from: the newest release tag is taken, an untagged commit is not, a dirty checkout is left
-# alone, and an origin that cannot be reached keeps the version already there.
+# alone, an origin that cannot be reached keeps the version already there, and two runs at once
+# take turns.
 
 set -euo pipefail
 
@@ -20,9 +21,10 @@ cd "$tmp/origin"
 git config user.email t@t && git config user.name t
 cp "$repo/update.sh" update.sh
 release() {
-  # The stub's $HOME is expanded when it runs, not here.
+  # The stub's $HOME is expanded when it runs, not here. With $HOME/slow present it also holds
+  # a directory for a second, and records an install that started inside another's.
   # shellcheck disable=SC2016
-  printf '#!/usr/bin/env bash\necho "%s" >"$HOME/installed"\n' "$1" >install.sh
+  printf '#!/usr/bin/env bash\necho "%s" >"$HOME/installed"\n[ -e "$HOME/slow" ] || exit 0\nmkdir "$HOME/installing" 2>/dev/null || echo x >>"$HOME/overlap"\nsleep 1\nrmdir "$HOME/installing" 2>/dev/null || true\n' "$1" >install.sh
   chmod +x install.sh update.sh
   git add -A && git commit -q -m "$1"
 }
@@ -51,5 +53,14 @@ git -C "$tmp/c" remote set-url origin "$tmp/gone"
 rm -f "$HOME/installed"
 "$tmp/c/update.sh" >/dev/null 2>&1 || bad "an unreachable origin makes update exit non-zero"
 if [ "$(git -C "$tmp/c" describe --tags --exact-match)" = v1.10.0 ] && [ "$(cat "$HOME/installed")" = v1.10.0 ]; then ok "an unreachable origin still installs the newest tag it has"; else bad "an unreachable origin still installs the newest tag it has"; fi
+
+clone d
+touch "$HOME/slow"
+"$tmp/d/update.sh" >/dev/null 2>&1 &
+first=$!
+"$tmp/d/update.sh" >/dev/null 2>&1 &
+second=$!
+if wait "$first" && wait "$second"; then ok "two runs at once both exit zero"; else bad "two runs at once both exit zero"; fi
+if [ ! -e "$HOME/overlap" ] && [ "$(git -C "$tmp/d" describe --tags --exact-match)" = v1.10.0 ]; then ok "two runs at once install one after the other"; else bad "two runs at once install one after the other"; fi
 
 exit "$fail"

@@ -8,13 +8,17 @@
 # The newest release is the highest `vX.Y.Z` tag, so a commit on `main` reaches a project only
 # once a tag is on it. An origin that cannot be reached is reported and the newest tag already
 # here is used: a boot does not fail on it. A checkout with uncommitted changes is someone's
-# work, and is refused and left alone.
+# work, and is refused and left alone. A session runs it too, beside the boot's run, so a run
+# waits for the one before it to finish its install.
 
 set -euo pipefail
 
 # The whole script is read before any of it runs: the checkout below may replace this file.
 main() {
   cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"
+  # Held on a descriptor install.sh inherits, so the lock lasts until the install ends.
+  exec 9>"$(git rev-parse --git-dir)/update.lock"
+  flock 9
   if ! git diff --quiet HEAD; then
     echo "update.sh: $(pwd) has uncommitted changes; left alone" >&2
     exit 1
