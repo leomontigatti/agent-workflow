@@ -35,6 +35,8 @@ project's Setup. Nothing is shared between threads but what is pushed.
 - **A machine that slept kept its disk and lost its processes.** After a pause, restart what the
   task needs (a dev server, a watcher, a browser's sign-in) before relying on it.
 - **A message carries at most 10 attachments.** Send more as several messages.
+- **A message to a finished subagent resumes it**, even when the send returns `resumed: false`:
+  wait for its report, and start no second subagent for the same work.
 - **Merging is the user's.** Merge a PR, or turn on auto-merge, only when the user asks for that
   merge in this thread. Nothing blocks a merge nobody asked for; this rule does.
 - **Issues live where the project's `docs/agents/issue-tracker.md` puts them**, on GitHub or in

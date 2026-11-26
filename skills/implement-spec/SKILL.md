@@ -43,8 +43,8 @@ now, as `to-spec` step 4 says, and stop for the user's pick; the frontier waits 
 
 Write the graph, those decisions and the names as the **build notes**: one comment on the PRD
 opening `## Build notes`, edited in place from then on, since an implementer's machine sees
-only the tracker and what is pushed. Keep what only you need (which subagent runs which ticket, each attempt's branch)
-in `~/.capy/work/implement-spec-<PRD>/state.md`, which a wake does not clear. Done when every ticket has its blockers listed.
+only the tracker and what is pushed. Keep what only you need (which subagent runs which ticket, each attempt's branch, and in step 4 each review finding with the verb given to it, a decline with its reason: the disproof, or the follow-up or ruling for one outside the goal)
+in `~/.capy/work/implement-spec-<PRD>/state.md`, which a wake does not clear, with the file the PR body is written from beside it. Done when every ticket has its blockers listed.
 
 An acceptance criterion no implementer can meet is yours: a write to the tracker, a run
 `docs/agents/validation.md` gives the maintainer, anything outside the repository. List each in
