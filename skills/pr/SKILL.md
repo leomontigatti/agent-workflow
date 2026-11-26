@@ -116,10 +116,11 @@ Tier: full, reviewed 1a2b3c4
 ## PRD PRs
 
 One PR carries every sub-issue of a PRD. Its body is one sentence saying what the PRD delivers,
-then `## Sub-issues` listing every sub-issue as a checkbox that carries its own keyword
+then `## Sub-issues` listing every sub-issue as a checkbox that carries its own closing line
 (`- [ ] Closes #N <title>`), then the `Door: one-way` line when any slice is one, then `## Review` once the
-chain has been reviewed, then `Closes #<PRD>`. GitHub closes only the
-numbers that follow a closing keyword, and closing a parent does not close its sub-issues: a bare
+chain has been reviewed, then the PRD's closing line (`Closes #<PRD>`). Each closing line takes the form
+the Rules give. Only an issue a closing line names is closed, by GitHub or by the thread after the
+merge, and closing a parent does not close its sub-issues: a bare
 `- [x] #N` stays open after the merge. The PRD holds the rest.
 
 The session ticks each box when its slice lands on the branch, so the body is the progress record:
