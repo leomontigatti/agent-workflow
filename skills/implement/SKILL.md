@@ -161,6 +161,9 @@ defect is a change that works on the tested path and is missing everywhere else.
 with a correctness axis, when the review produced code fixes, run that axis again, on the same
 models, over the fixes alone: diff them against the reviewed state, a commit or, before step 6
 allows one, a snapshot taken with `git stash create` before fixing (it touches no stash entry).
+Each fix-round reviewer is new, and its prompt carries the earlier findings with your verb for
+each, a decline with its disproof: it raises no declined one again, and it flags a fix that leaves
+its finding standing.
 The other axes do not re-run. Repeat while a fix round produces fixes, at most twice; a third
 round's fixes go to the user as an **ask**.
 

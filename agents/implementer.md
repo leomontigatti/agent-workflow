@@ -15,10 +15,13 @@ issue to read.
    its comments as `docs/agents/issue-tracker.md` § Conventions says, and the PRD the same way: its
    `## Build notes` comment holds the graph, the decisions and the names fixed for you. Skip the
    rest of `implement`: no verification, no review, no PR.
+   - A migration does what the ticket says and no more: a cleanup, a backfill or a deletion
+     the ticket does not name is a question for the report.
    - Nobody is there to answer a question. When the seams are unclear or the ticket needs a
      decision it does not make, commit what you have (a `wip:` subject), push, and report
-     `blocked` with the question: the answer goes to a new implementer, which starts from your
-     branch.
+     `blocked` with the question: the answer comes back as a message, and you go on from your
+     branch. A message asking you to take in the integration branch means `git fetch origin`,
+     merge it, run the checks again, push, and report again.
    - Add a migration only when the ticket says the schema or the data changes. The orchestrator
      never runs two such tickets at once, so the next migration number is yours.
    - Use the names the build notes fix for anything another ticket also touches.
