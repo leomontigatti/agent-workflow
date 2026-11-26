@@ -22,9 +22,9 @@ git config user.email t@t && git config user.name t
 cp "$repo/update.sh" update.sh
 release() {
   # The stub's $HOME is expanded when it runs, not here. With $HOME/slow present it also holds
-  # a directory for a second, and records an install that started inside another's.
+  # a directory for a second, and records each install and any that started inside another's.
   # shellcheck disable=SC2016
-  printf '#!/usr/bin/env bash\necho "%s" >"$HOME/installed"\n[ -e "$HOME/slow" ] || exit 0\nmkdir "$HOME/installing" 2>/dev/null || echo x >>"$HOME/overlap"\nsleep 1\nrmdir "$HOME/installing" 2>/dev/null || true\n' "$1" >install.sh
+  printf '#!/usr/bin/env bash\necho "%s" >"$HOME/installed"\n[ -e "$HOME/slow" ] || exit 0\necho x >>"$HOME/ran"\nmkdir "$HOME/installing" 2>/dev/null || echo x >>"$HOME/overlap"\nsleep 1\nrmdir "$HOME/installing" 2>/dev/null || true\n' "$1" >install.sh
   chmod +x install.sh update.sh
   git add -A && git commit -q -m "$1"
 }
@@ -61,6 +61,6 @@ first=$!
 "$tmp/d/update.sh" >/dev/null 2>&1 &
 second=$!
 if wait "$first" && wait "$second"; then ok "two runs at once both exit zero"; else bad "two runs at once both exit zero"; fi
-if [ ! -e "$HOME/overlap" ] && [ "$(git -C "$tmp/d" describe --tags --exact-match)" = v1.10.0 ]; then ok "two runs at once install one after the other"; else bad "two runs at once install one after the other"; fi
+if [ "$(wc -l <"$HOME/ran")" -eq 2 ] && [ ! -e "$HOME/overlap" ] && [ "$(git -C "$tmp/d" describe --tags --exact-match)" = v1.10.0 ]; then ok "two runs at once install one after the other"; else bad "two runs at once install one after the other"; fi
 
 exit "$fail"
