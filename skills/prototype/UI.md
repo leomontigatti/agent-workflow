@@ -100,7 +100,7 @@ Launch by `docs/agents/verification.md` § Launch, once, as a background command
 
 ### 6. Hand it over
 
-Expose the route's port as a preview and give the user its address (on a paired device, the local one, as [PREVIEW.md](../implement/PREVIEW.md) says). Tell the user the `?variant=` keys, and one line per variant saying what it bets on. The user drives the page and comments in the thread. Each ask changes the **prototype**, then step 5 runs again. Done when the user names a winner.
+Expose the route's port as a preview and give the user its address; on a paired device, give the local address and expose nothing, as [PREVIEW.md](../implement/PREVIEW.md) says. Tell the user the `?variant=` keys, and one line per variant saying what it bets on. The user drives the page and comments in the thread. Each ask changes the **prototype**, then step 5 runs again. Done when the user names a winner.
 
 ### 7. Capture the answer and clean up
 

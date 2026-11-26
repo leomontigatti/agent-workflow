@@ -84,7 +84,8 @@ only the checks whose subject the fix changed (for an eval, the prompt or the co
 ## 4. Verify what a user sees
 
 When the change alters anything a user sees or drives, prove it by `docs/agents/verification.md`:
-launch, drive the flows its § Feature map names for the area (with the browser CLI § Drive names,
+launch, drive the flows its § Feature map names for the area (on a paired device by the user's
+hands, as [PREVIEW.md](PREVIEW.md) says; elsewhere with the browser CLI § Drive names,
 or the machine's browser as [PREVIEW.md](PREVIEW.md) says when it names none), and capture the
 **after** on the same screen, data and account as the reference: the before, or the approved
 variant, captured from a `git worktree add --detach` of `origin/prototype/<n>` beside the clone,
@@ -190,11 +191,13 @@ user not to commit overrides this. Conventional-commit subject and body, in the 
 
 A commit runs the project's hooks. When one cannot run on this machine (killed for memory, a
 crash before it starts), the machine is too small, and replacing it loses all that is unpushed:
-save it first with `git add -A`, then `git push origin "$(git stash create)":refs/heads/wip/<branch>`,
-which runs no hook. On a machine of the size [THREADS.md](THREADS.md) names, restore it with
-`git fetch origin wip/<branch> && git checkout -B <branch> FETCH_HEAD^ && git restore
---source=FETCH_HEAD --staged --worktree -- .`, delete the `wip/` branch, and commit there with the
-hooks running, never with `--no-verify`.
+save it first. With `git status` clean, push the branch itself. Otherwise `git add -A`, then
+`git push --no-verify origin "$(git stash create)":refs/heads/wip/<branch>`: a backup, not a
+delivery, so its push skips the hooks that already died. Replace the machine only once
+`git ls-remote origin wip/<branch>` shows it. On a machine of the size [THREADS.md](THREADS.md)
+names, restore it with `git fetch origin wip/<branch> && git checkout -B <branch> FETCH_HEAD^ &&
+git restore --source=FETCH_HEAD --staged --worktree -- .` and commit there with the hooks
+running, never with `--no-verify`. Delete the `wip/` branch once that commit is pushed.
 
 ## 7. Open the PR and hand it off
 
