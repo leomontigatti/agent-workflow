@@ -164,8 +164,9 @@ allows one, a snapshot taken with `git stash create` before fixing (it touches n
 Each fix-round reviewer is new, and its prompt carries the earlier findings with your verb for
 each, a decline with its disproof: it raises no declined one again, and it flags a fix that leaves
 its finding standing.
-The other axes do not re-run. Repeat while a fix round produces fixes, at most twice; a third
-round's fixes go to the user as an **ask**.
+The other axes do not re-run. Repeat while a fix round produces fixes, at most twice: the second
+fix round's findings are not fixed unread, each goes to the user as an **ask**, and the fixes the
+user approves get one last pass of that axis, whose findings go back to the user unfixed.
 
 Done when every finding carries a verb, every **fix** is made and reviewed, and the breadth list is
 walked. Repeat step 3 for anything you touched. Refactoring belongs here, under green tests. The
