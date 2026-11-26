@@ -20,8 +20,11 @@ commit), never pasted summaries.
 
 Start current, as `implement` step 1 says. Read the PRD's body and its comments, list
 its sub-issues, and read each one's body with its state and its open blockers, the way
-`docs/agents/issue-tracker.md` gives each of those reads. A resumed run reads the PR body's
-`## Sub-issues` checkboxes and the `Implemented in <sha>` comments to learn what already merged.
+`docs/agents/issue-tracker.md` gives each of those reads. Where that file gives the
+mark of an issue a session has started, and of one whose PR is open, the PRD takes the first now
+and each sub-issue the second when step 3 lands it. A resumed run reads the PR body's
+`## Sub-issues` checkboxes and the `Implemented in <sha>` comments to learn what already merged,
+and, once the PR is open, gives each landed sub-issue the mark it lacks.
 
 Two edges the tracker does not hold, added by you:
 
@@ -41,7 +44,7 @@ now, as `to-spec` step 4 says, and stop for the user's pick; the frontier waits 
 Write the graph, those decisions and the names as the **build notes**: one comment on the PRD
 opening `## Build notes`, edited in place from then on, since an implementer's machine sees
 only the tracker and what is pushed. Keep what only you need (which subagent runs which ticket, each attempt's branch)
-in `/tmp/implement-spec-<PRD>/state.md`. Done when every ticket has its blockers listed.
+in `~/.capy/work/implement-spec-<PRD>/state.md`, which a wake does not clear. Done when every ticket has its blockers listed.
 
 If the PRD alters anything a user sees, its reference comes as `implement` step 1 says: the
 approved variants of the PRD's prototype pass (`to-spec`), or a **before** captured now, from this
@@ -73,6 +76,8 @@ implementer running, offers no parallelism: build it yourself, by the implemente
 committing to the integration branch, then do step 3's comment, push and frontier recomputation
 below (its items 2, 3 and 5). That holds once per session, a resumed one included:
 send every later lone ticket to an implementer, whose fresh context keeps this session's short.
+Send the first one too when it sweeps the codebase (a rename, a removed concept, a change its
+text spreads over many files): reading it here would fill this session before the graph has run.
 
 ## 3. Merge each report
 
@@ -81,11 +86,14 @@ its ticket retired (a report that crossed § Route change: discard its branch as
 
 1. Check the branch builds on the tip: `git fetch origin <its branch>`, then
    `git merge --ff-only origin/<its branch>` here. When it is not a fast-forward (another ticket
-   merged meanwhile), send the ticket back: a new implementer as in step 2, its task adding
-   `Earlier branch: <its branch>`, and move on.
+   merged meanwhile), message the implementer that built it to fetch, merge
+   `origin/<integration branch>` into its branch, rerun its checks, push and report again, and
+   move on. Only when it cannot be resumed, send the ticket to a new implementer as in step 2,
+   its task adding `Earlier branch: <its branch>`.
 2. Comment `Implemented in <sha>. Part of <PRD>.` on the sub-issue, which stays open
-   (`docs/agents/issue-tracker.md` § PRD workflow). This comment and every other one this skill
-   posts on GitHub opens with the agent note of the `pr` skill § Rules.
+   (`docs/agents/issue-tracker.md` § PRD workflow). Every comment this skill posts on GitHub
+   opens with the agent note of the `pr` skill § Rules; one posted in another tracker follows
+   that tracker's doc.
 3. Push. After the first merge, open the PR as a **draft** with the PRD PR body of the `pr` skill
    (§ PRD PRs there), with the platform's PR tool as the `implement` skill's
    [THREADS.md](../implement/THREADS.md) says; after that, tick the sub-issue's box in its body.
@@ -97,8 +105,9 @@ its ticket retired (a report that crossed § Route change: discard its branch as
    the tickets on it that are not already running: keep the merged and running tickets in the
    state file, so neither starts twice.
 
-A `blocked` report carries a question: answer it from the PRD if it settles it and send the ticket
-back as in step 1, with the answer in the task; otherwise bring it to the user, and keep the rest of the graph running.
+A `blocked` report carries a question: when the PRD settles it, message the answer to the
+implementer that asked, which resumes with what it has read, or to a new one as step 1 does when
+it cannot be resumed; otherwise bring it to the user, and keep the rest of the graph running.
 
 ## Route change
 
@@ -140,6 +149,7 @@ When every ticket that is not retired has merged:
 5. Add the `## Review` record to the PR body (the `pr` skill), then `gh pr ready <n>`, then push
    one empty commit: a PR marked ready on the commit it was drafted on reports `BLOCKED` with every
    required check green until a new commit lands, and the reviewed commit in the record stands.
-   Then follow the `babysit-pr` skill.
+   Then follow the `babysit-pr` skill: where the tracker closes a built issue by hand, its
+   step 5 closes the PRD and every sub-issue after the merge.
 6. Delete any implementer branch still on the remote (`git ls-remote --heads origin
    '<integration branch>-t*'`).

@@ -33,7 +33,8 @@ project's Setup. Nothing is shared between threads but what is pushed.
 - **A thread you start owns its PR.** It follows `babysit-pr` on it and hands back to the user;
   the thread that started it reads that PR's state from GitHub, never from the child's word.
 - **A machine that slept kept its disk and lost its processes.** After a pause, restart what the
-  task needs (a dev server, a watcher) before relying on it.
+  task needs (a dev server, a watcher, a browser's sign-in) before relying on it.
+- **A message carries at most 10 attachments.** Send more as several messages.
 - **Merging is the user's.** Merge a PR, or turn on auto-merge, only when the user asks for that
   merge in this thread. Nothing blocks a merge nobody asked for; this rule does.
 - **Issues live where the project's `docs/agents/issue-tracker.md` puts them**, on GitHub or in
