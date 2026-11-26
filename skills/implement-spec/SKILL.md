@@ -46,15 +46,20 @@ opening `## Build notes`, edited in place from then on, since an implementer's m
 only the tracker and what is pushed. Keep what only you need (which subagent runs which ticket, each attempt's branch)
 in `~/.capy/work/implement-spec-<PRD>/state.md`, which a wake does not clear. Done when every ticket has its blockers listed.
 
-If the PRD alters anything a user sees, its reference comes as `implement` step 1 says: the
-approved variants of the PRD's prototype pass (`to-spec`), or a **before** captured now, from this
-checkout.
+An acceptance criterion no implementer can meet is yours: a write to the tracker, a run
+`docs/agents/validation.md` gives the maintainer, anything outside the repository. List each in
+the build notes with its ticket, and do it in step 4.
+
+If the PRD alters anything a user sees, its reference is the approved variants of the PRD's
+prototype pass (`to-spec`). No **before** is captured, here or by an implementer: a screen with no variant is shown in step
+4's screen pass as its **after** alone.
 
 ## 2. Run the frontier
 
 Push the integration branch, then start one implementer per frontier ticket, all at once: a
 subagent on its own machine with a clean checkout, on the model and effort of the Implementer row
-in `~/.agents/workflow/agents/models.md`, titled with the ticket. Count them first, as that
+in `~/.agents/workflow/agents/models.md`, its effort raised one step for a ticket that adds a
+migration as that file's rule says, titled with the ticket. Count them first, as that
 file's fan-out rule says. The task is pointers only:
 
 ```
@@ -128,7 +133,8 @@ destination stays the same, the spec gets its `## Changed during the build` line
    (`- [x] ~~<ticket> <title>~~ replaced by <its replacement>`) and add each new ticket.
 3. **Re-point the edges**: every open ticket a retired one blocked is now blocked by that
    ticket's replacements, in the tracker (`docs/agents/issue-tracker.md` § Ticket operations) and
-   in the build notes, so nothing waits on a retired ticket or respawns it.
+   in the build notes, so nothing waits on a retired ticket or respawns it. The build notes'
+   list of your criteria drops a retired ticket's and takes every new ticket's.
 4. Recompute the frontier as step 3 item 5 does.
 
 ## 4. Close out, once
@@ -141,15 +147,27 @@ When every ticket that is not retired has merged:
    ticket as a finding.
 3. Send every **fix** to one `implementer`, spawned as in step 2 with the findings in place of
    the ticket number. Land it with step 3's fast-forward, push and branch removal; there is no
-   sub-issue to comment on or tick. Then re-run only the checks the findings named and step 5's
+   sub-issue to comment on or tick. A later round's fixes go to that same implementer by a
+   message naming the findings and a new branch. Then re-run only the checks the findings named and step 5's
    fix round over the fixes: no second broad review.
-4. Run `implement` step 4 now that the code is final, then step 7's screen approval: an **after**
+4. Meet the criteria the build notes list as yours, except a tracker write that only holds once
+   the PR has merged: it follows the merge, and until then the PR body names it first, as owed
+   after the merge, and the READY report asks the user to write here once it has merged: no
+   wake may reach this thread, and the write stays an agent's. A session that meets the merged
+   PR with that line in its body checks where the write lands, does it only when it is not
+   there yet, then removes the line. A run that is the maintainer's is handed over as
+   `docs/agents/validation.md` says.
+5. Run `implement` step 4 now that the code is final, then step 7's screen approval: an **after**
    that matches its approved variant is shown and stands, and any other is approved by the user in
    the thread before the PR leaves draft.
-5. Add the `## Review` record to the PR body (the `pr` skill), then `gh pr ready <n>`, then push
+6. Add the `## Review` record to the PR body (the `pr` skill), then `gh pr ready <n>`, then push
    one empty commit: a PR marked ready on the commit it was drafted on reports `BLOCKED` with every
    required check green until a new commit lands, and the reviewed commit in the record stands.
+   When `docs/agents/issue-tracker.md` § Conventions gives a step for a PR that opens, take it now
+   for the PRD and for each sub-issue whose ticket landed, never a retired one: a tracker's own sweep closes only the issues it finds
+   linked to the merged PR.
    Then follow the `babysit-pr` skill: where the tracker closes a built issue by hand, its
-   step 5 closes the PRD and every sub-issue after the merge.
-6. Delete any implementer branch still on the remote (`git ls-remote --heads origin
+   step 5 closes the PRD and every sub-issue after the merge. Meet the criteria item 4 left for
+   after the merge in that same turn and remove their line from the PR body.
+7. Delete any implementer branch still on the remote (`git ls-remote --heads origin
    '<integration branch>-t*'`).

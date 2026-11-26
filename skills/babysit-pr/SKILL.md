@@ -41,10 +41,10 @@ and end your turn. No subagent, and no `sleep` in the foreground:
 - **A PR opened with the platform's PR tool** wakes the session that opened it when its checks
   finish, when someone in the organization reviews or comments, and when it merges or closes. A
   PR opened another way is first subscribed to with the platform's subscribe tool.
-- **A merge wakes a thread only while a person has written in it lately.** Where
-  `docs/agents/issue-tracker.md` § Closing an issue has a built issue closed by hand, also
-  subscribe to the PR yourself: a watch the thread opened always wakes it on the merge, which is
-  when step 5 closes the PR's issues.
+- **The watch that opening a PR gives wakes its thread on the merge only while a person has
+  written in the thread lately.** The platform refuses a second watch on that PR, so a thread
+  nobody wrote in is not woken, and step 5's close of the PR's issues waits for the project's
+  own sweep or the next session.
 - **A bot's review, a comment from outside the organization and a conflict wake nobody**: they
   surface when you read the round, which is why the round is read before the first wait and on
   every wake.
