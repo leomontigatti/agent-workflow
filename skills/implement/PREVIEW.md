@@ -11,8 +11,9 @@ way, so it proves nothing about the path. When the browser cannot make a click, 
 as not clicked.
 
 **On a paired device** a port gets no preview address and this browser cannot reach the device's
-pages. Give the user the local address (`http://localhost:<port>`) and the flow to drive, and ask
-for a screenshot of each state a capture needs: that screenshot is the evidence.
+pages, so the loop below runs by the user's hands: launch, then give the user the local address
+(`http://localhost:<port>`) and the flow to drive, and ask for a screenshot of each state a
+capture needs and for any console error. Those screenshots are the evidence; nothing is exposed.
 
 ## The loop
 

@@ -77,8 +77,9 @@ clean before moving to the next. Read a failure where the command prints it: out
 
 When `docs/agents/validation.md` has a § Before review, run it next, once the list above is clean:
 it holds the costly checks (a paid eval, a long replay) whose findings would otherwise arrive
-after the review rounds. A command it routes to the user is asked for now. Its results go to the
-reviewers with the diff.
+after the review rounds. A command it routes to the user is asked for now, and step 5 starts once
+every result is in; its results go to the reviewers with the diff. After a later fix, run again
+only the checks whose subject the fix changed (for an eval, the prompt or the code it calls).
 
 ## 4. Verify what a user sees
 
@@ -94,7 +95,9 @@ user reaches, and say so.
 
 ## 5. Review
 
-Spawn every reviewer the way "Spawning a reviewer" in the `code-review` skill says.
+Spawn every reviewer the way "Spawning a reviewer" in the `code-review` skill says. When the
+ticket has an **Out of scope**, paste it into every reviewer's prompt, whatever the tier: a hunk that
+touches an item it lists is a finding.
 
 Tier the review by risk: run `python3 -I <this-skill-dir>/scripts/review.py tier` (pass the base
 when the branch is stacked). It reads the changed paths against the `review-paths` block of
@@ -186,8 +189,12 @@ user not to commit overrides this. Conventional-commit subject and body, in the 
 `AGENTS.md` sets.
 
 A commit runs the project's hooks. When one cannot run on this machine (killed for memory, a
-crash before it starts), the machine is too small: replace it at the size [THREADS.md](THREADS.md)
-names and commit there, with the hooks running, never with `--no-verify`.
+crash before it starts), the machine is too small, and replacing it loses all that is unpushed:
+save it first with `git add -A`, then `git push origin "$(git stash create)":refs/heads/wip/<branch>`,
+which runs no hook. On a machine of the size [THREADS.md](THREADS.md) names, restore it with
+`git fetch origin wip/<branch> && git checkout -B <branch> FETCH_HEAD^ && git restore
+--source=FETCH_HEAD --staged --worktree -- .`, delete the `wip/` branch, and commit there with the
+hooks running, never with `--no-verify`.
 
 ## 7. Open the PR and hand it off
 

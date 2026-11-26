@@ -20,7 +20,7 @@ project's Setup. Nothing is shared between threads but what is pushed.
   then branch from `origin/<default branch>`) on a branch named `feat/`, `fix/`, `docs/`,
   `chore/`, `refactor/`, `research/` or `prototype/`. Open the PR with the platform's PR tool,
   never `gh pr create`: the thread is then woken when its checks finish, when someone in the
-  organization reviews or comments, and, while a person has written in the thread in the last 3 days, when it merges or closes:
+  organization reviews or comments, and, while a person has written in the thread lately (3 days by default, set per organization), when it merges or closes:
   a thread another agent started is not woken by its merge (the `babysit-pr` skill § 2). To keep working on an existing PR, check out its branch in a new thread.
 - **One writer per checkout.** A subagent that judges shares this machine and this checkout,
   reads there and writes nothing. A second writer is a subagent on its own machine, which sees

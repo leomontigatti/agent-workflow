@@ -84,8 +84,8 @@ The end-to-end behaviour this ticket makes work, from the user's perspective, no
 ## Out of scope
 
 What a reader could take as part of this ticket and is not: a neighbouring screen, a cleanup,
-data it must leave as it is. The implementer leaves each alone, and the Spec reviewer reports a
-diff that touches one.
+data it must leave as it is. The implementer leaves each alone, and every reviewer of its PR
+reports a hunk that touches one.
 
 ## Design
 
