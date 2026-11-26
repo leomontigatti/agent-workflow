@@ -18,12 +18,9 @@ commit), never pasted summaries.
 
 ## 1. Read the graph
 
-Start current, as `implement` step 1 says. Read the PRD with `gh issue view <PRD>` and
-`--comments`, list its sub-issues with
-`gh issue view <PRD> --json subIssues -q '.subIssues.nodes[] | "\(.number) \(.state) \(.title)"'`
-(the field is an object, `{nodes, totalCount}`), and read each one
-with `--json number,title,body,state,blockedBy`; `blockedBy` has the same shape, so its open
-blockers are `[.blockedBy.nodes[] | select(.state == "OPEN") | .number]`. A resumed run reads the PR body's
+Start current, as `implement` step 1 says. Read the PRD's body and its comments, list
+its sub-issues, and read each one's body with its state and its open blockers, the way
+`docs/agents/issue-tracker.md` gives each of those reads. A resumed run reads the PR body's
 `## Sub-issues` checkboxes and the `Implemented in <sha>` comments to learn what already merged.
 
 Two edges the tracker does not hold, added by you:
@@ -43,7 +40,7 @@ now, as `to-spec` step 4 says, and stop for the user's pick; the frontier waits 
 
 Write the graph, those decisions and the names as the **build notes**: one comment on the PRD
 opening `## Build notes`, edited in place from then on, since an implementer's machine sees
-only GitHub. Keep what only you need (which subagent runs which ticket, each attempt's branch)
+only the tracker and what is pushed. Keep what only you need (which subagent runs which ticket, each attempt's branch)
 in `/tmp/implement-spec-<PRD>/state.md`. Done when every ticket has its blockers listed.
 
 If the PRD alters anything a user sees, its reference comes as `implement` step 1 says: the
@@ -60,9 +57,12 @@ file's fan-out rule says. The task is pointers only:
 ```
 Before anything else, read `~/.agents/workflow/agents/implementer.md` and follow it.
 
-Ticket #<n>, part of PRD #<PRD>. Integration branch: <branch>.
+Ticket <ticket>, part of PRD <PRD>. Integration branch: <branch>.
 Your branch: <branch>-t<n> (a later attempt: <branch>-t<n>-a<attempt>).
 ```
+
+`<ticket>` and `<PRD>` are written as the tracker writes them (`#12`, `ABC-12`), and `<n>` is the
+ticket's number alone.
 
 Note each attempt's subagent and branch in the state file, then end your turn: each report wakes
 this thread.
@@ -83,17 +83,17 @@ its ticket retired (a report that crossed § Route change: discard its branch as
    `git merge --ff-only origin/<its branch>` here. When it is not a fast-forward (another ticket
    merged meanwhile), send the ticket back: a new implementer as in step 2, its task adding
    `Earlier branch: <its branch>`, and move on.
-2. Comment `Implemented in <sha>. Part of #<PRD>.` on the sub-issue, which stays open
+2. Comment `Implemented in <sha>. Part of <PRD>.` on the sub-issue, which stays open
    (`docs/agents/issue-tracker.md` § PRD workflow). This comment and every other one this skill
-   posts opens with the agent note of the `pr` skill § Rules.
+   posts on GitHub opens with the agent note of the `pr` skill § Rules.
 3. Push. After the first merge, open the PR as a **draft** with the PRD PR body of the `pr` skill
    (§ PRD PRs there), with the platform's PR tool as the `implement` skill's
    [THREADS.md](../implement/THREADS.md) says; after that, tick the sub-issue's box in its body.
    The chain pays one review at the end instead of one per slice.
 4. Delete the implementer's branch on the remote (`git push origin --delete <branch>`), and
    every earlier attempt's: no PR will ever merge them.
-5. Recompute the frontier from what has merged onto the integration branch, never from GitHub's
-   `blockedBy`, which drops only when a blocker closes, at the end. Spawn, as in step 2, only
+5. Recompute the frontier from what has merged onto the integration branch, never from the
+   tracker's blocking relation, which clears only when a blocker closes, at the end. Spawn, as in step 2, only
    the tickets on it that are not already running: keep the merged and running tickets in the
    state file, so neither starts twice.
 
@@ -116,7 +116,7 @@ destination stays the same, the spec gets its `## Changed during the build` line
 2. **Replace** it: draft the new tickets with the user as `to-tickets` does (its § 4 quiz, then
    § 5's publishing as sub-issues of the PRD). Comment the replacement's number on each retired
    ticket, and in the PR body's `## Sub-issues` strike each retired line
-   (`- [x] ~~#<n> <title>~~ replaced by #<m>`) and add each new ticket.
+   (`- [x] ~~<ticket> <title>~~ replaced by <its replacement>`) and add each new ticket.
 3. **Re-point the edges**: every open ticket a retired one blocked is now blocked by that
    ticket's replacements, in the tracker (`docs/agents/issue-tracker.md` § Ticket operations) and
    in the build notes, so nothing waits on a retired ticket or respawns it.
