@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 #
 # Runs install.sh against a throwaway HOME, never the real one: a first install, a second run that
-# must change nothing, --check on a clean and on a drifted install, and a conflict left alone.
+# must change nothing, --check on a clean and on a drifted install, a conflict left alone, and a
+# link another run makes first.
 
 set -euo pipefail
 
@@ -40,5 +41,36 @@ if [ ! -e "$HOME/.agents/skills/tdd" ]; then ok "--check changes nothing"; else 
 
 "$repo/install.sh" >/dev/null
 if [ -L "$HOME/.agents/skills/tdd" ] && [ ! -L "$HOME/.agents/skills/gone" ]; then ok "install repairs drift"; else bad "install repairs drift"; fi
+
+# A second run that links skills/tdd between this run's check and its ln: an ln on PATH stands in
+# for it, making the link just before the real ln runs. It runs from a copy, because an
+# install.sh that links inside the other run's link writes into its own repo.
+copy="$HOME/copy" bin="$HOME/bin" race="$HOME/race" broken="$HOME/broken"
+mkdir -p "$copy/skills/tdd" "$bin/race" "$bin/broken" "$race"
+cp "$repo/install.sh" "$copy/install.sh"
+cat >"$bin/race/ln" <<'EOF'
+#!/usr/bin/env bash
+case "${*: -1}" in
+  */.agents/skills/tdd) /usr/bin/ln -s "$HOME/.agents/workflow/skills/tdd" "$HOME/.agents/skills/tdd" && touch "$HOME/raced" ;;
+esac
+exec /usr/bin/ln "$@"
+EOF
+# The root link cannot be made, so every skill link dangles: an install that went on would prune them.
+cat >"$bin/broken/ln" <<'EOF'
+#!/usr/bin/env bash
+case "${*: -1}" in
+  */.agents/workflow) exit 1 ;;
+esac
+exec /usr/bin/ln "$@"
+EOF
+chmod +x "$bin/race/ln" "$bin/broken/ln"
+
+if HOME="$race" PATH="$bin/race:$PATH" "$copy/install.sh" >/dev/null && [ -e "$race/raced" ] && [ "$(readlink "$race/.agents/skills/tdd")" = "$race/.agents/workflow/skills/tdd" ]; then ok "a link another run made first is accepted and kept"; else bad "a link another run made first is accepted and kept"; fi
+if [ -z "$(ls -A "$copy/skills/tdd")" ]; then ok "no link is made inside the other run's link"; else bad "no link is made inside the other run's link"; fi
+
+mkdir -p "$broken/.agents/skills"
+ln -s "$broken/.agents/workflow/skills/tdd" "$broken/.agents/skills/tdd"
+if HOME="$broken" PATH="$bin/broken:$PATH" "$copy/install.sh" >/dev/null 2>&1; then bad "a link that cannot be made makes install exit non-zero"; else ok "a link that cannot be made makes install exit non-zero"; fi
+if [ -L "$broken/.agents/skills/tdd" ]; then ok "a link that cannot be made leaves the skill links alone"; else bad "a link that cannot be made leaves the skill links alone"; fi
 
 exit "$fail"

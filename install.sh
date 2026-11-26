@@ -55,8 +55,10 @@ link() {
   fi
   if $check; then drifted "MISSING  $dst -> $src"; return; fi
   mkdir -p "$(dirname "$dst")"
-  ln -s "$src" "$dst"
-  note "linked   $dst"
+  # -T: when another run made the link since the checks above, ln fails rather than link inside it.
+  if ln -sT "$src" "$dst" 2>/dev/null; then note "linked   $dst"; return; fi
+  # The other run's link is this run's too. Anything else is ln's own error, and ends the install.
+  [ "$(readlink "$dst" 2>/dev/null)" = "$src" ] || ln -sT "$src" "$dst"
 }
 
 # prune <dir>: remove links in <dir> that point into this repo at something that is gone.
