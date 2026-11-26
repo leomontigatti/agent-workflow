@@ -43,7 +43,9 @@ moment it is tagged, so each change goes through a PR and nothing is committed t
 - **Context is budgeted.** The lint fails when a skill description, a `SKILL.md` or a
   brief outgrows its size in `tests/context-budget.json`; descriptions load in every session of
   every project. When the growth earns its load, run `python3 -I tests/lint_skills.py
-  --update-budget` and say in the PR what the added bytes buy.
+  --update-budget` and say in the PR what the added bytes buy. Two PRs that each grow a budget
+  conflict only in `tests/context-budget.json`: after merging `main` in, take its side of that
+  file and run `--update-budget` again, never a hand merge.
 
 ## Changing a shared skill
 

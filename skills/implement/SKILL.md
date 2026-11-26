@@ -75,6 +75,11 @@ Run `docs/agents/validation.md` § Before committing. Fix and re-run each comman
 clean before moving to the next. Read a failure where the command prints it: output cut with
 `tail` or `head` hides it.
 
+When `docs/agents/validation.md` has a § Before review, run it next, once the list above is clean:
+it holds the costly checks (a paid eval, a long replay) whose findings would otherwise arrive
+after the review rounds. A command it routes to the user is asked for now. Its results go to the
+reviewers with the diff.
+
 ## 4. Verify what a user sees
 
 When the change alters anything a user sees or drives, prove it by `docs/agents/verification.md`:
@@ -179,6 +184,10 @@ Commit to the current branch when the run started from an issue, or the user ask
 a PR; otherwise report the result and leave the tree for the user. An explicit request from the
 user not to commit overrides this. Conventional-commit subject and body, in the code language
 `AGENTS.md` sets.
+
+A commit runs the project's hooks. When one cannot run on this machine (killed for memory, a
+crash before it starts), the machine is too small: replace it at the size [THREADS.md](THREADS.md)
+names and commit there, with the hooks running, never with `--no-verify`.
 
 ## 7. Open the PR and hand it off
 

@@ -13,7 +13,10 @@ merge is yours.
 launching thread's when the user hands it over (the `implement` skill's
 [THREADS.md](../implement/THREADS.md)):
 
-- the user asked for this merge in this thread; without that ask every PR ends at READY;
+- the user asked for this merge in this thread, or the repo's **merge grant** covers it: the root
+  `AGENTS.md` as committed on the default branch (`git show origin/<default branch>:AGENTS.md`,
+  read again before merging) grants the agent merges of this PR's kind, and the diff stays inside
+  the grant's own limits. Without either, every PR ends at READY;
 - the PR body has no `Door: one-way` line (the `pr` skill § Door);
 - no **ask** is open, and the PR is neither a draft nor a layer of a stack.
 

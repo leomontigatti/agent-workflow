@@ -10,6 +10,10 @@ dispatched event, a `fetch`) skips what stops a user, such as a covered button o
 way, so it proves nothing about the path. When the browser cannot make a click, report the path
 as not clicked.
 
+**On a paired device** a port gets no preview address and this browser cannot reach the device's
+pages. Give the user the local address (`http://localhost:<port>`) and the flow to drive, and ask
+for a screenshot of each state a capture needs: that screenshot is the evidence.
+
 ## The loop
 
 1. **Launch** what § Launch names and open the app in the browser. A page the user should see
