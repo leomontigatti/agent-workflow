@@ -40,8 +40,8 @@ a search of X is answered with web search, and the reply says X itself was not s
 - `x thread` can stop short without an error. When `meta.notes` flags a likely cut, run
   `rsrc.sh x replies LAST_POST_ID --rank recency` and look for more posts by the same author.
 - A post `x read` could not read is in `meta.failed`, or in `meta.rejected` when X sent a login
-  page or a different post (never quote those), while the others still come back with exit `0`.
-  Match `items` against every input you passed.
+  page or a different post (never quote those), and a rate limit can end a batch midway with the
+  posts read so far. Match `items` against every input you passed.
 - Cite only URLs that came back in `items`.
 
 ## Open the media
