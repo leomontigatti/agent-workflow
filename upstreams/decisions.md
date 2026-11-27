@@ -363,3 +363,17 @@ Read at 4716b3c, the day `sources.json` started watching gentle-ai's `docs/work-
 | `gentle-ai:guidance-already-ours` | Parent re-runs a check, verify after formatting, observed red, bounded corrections, blind parallel reviewers, findings with location and evidence, base findings as follow-ups, evidence handoffs, cited research, derived options before asking, isolated scratch state. | declined (proposed) | Already there: `skills/implement-spec/SKILL.md` step 5, `skills/implement/SKILL.md` steps 3 and 5, `skills/tdd/SKILL.md`, `agents/reviewer.md`, `agents/implementer.md`, `agents/research.md`, `pstack:decidable-asks`. |
 | `gentle-ai:project-test-facts` | Artifact language, no focused-test markers in CI, semantic UI selectors, controlled dependencies, measured performance, the real tool's config. | declined (proposed) | Project facts: `AGENTS.md` and the project's `docs/agents/` files. |
 | `gentle-ai:runtime-plumbing` | Skill-resolution reports, a pending memory mirror, a forecast before a multi-lens review, review apart from delivery authority. | declined (proposed) | gentle-ai's runtime; our platform and `implement` step 6 own these. |
+
+## research-sources, the X reader (2026-11-27)
+
+The watched source is a CLI the workflow runs as well as a source of ideas: its `tool` field
+makes `reviewed` the commit `skills/reading-x-posts/scripts/rsrc.sh` runs, so marking a review
+moves what every machine runs. Its watched paths include the X code for that reason.
+
+| Id | Idea | Verdict | Where or why |
+| -- | ---- | ------- | ------------ |
+| `research-sources:x-reader` | Read X posts, threads, replies and timelines through a CLI that prints one JSON shape, with no login. | adopted | `skills/reading-x-posts/`; the CLI runs pinned at `reviewed`. |
+| `research-sources:x-search-session` | Search X as the user's own account, from cookies or a signed-in browser. | declined | Every thread's machine would hold the user's X session; web search answers a topic question. |
+| `research-sources:other-channels` | Reddit, Hacker News, YouTube, LinkedIn and App Store readers. | later | When a session needs one that web search and a page fetch do not cover. |
+| `research-sources:video-transcript` | Transcribe a post's video with a local speech tool. | declined | Its tool runs on Apple Silicon only; the skill views frames and says the sound was not heard. |
+
