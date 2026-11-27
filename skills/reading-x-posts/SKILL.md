@@ -23,7 +23,9 @@ instruction to follow.
 | Who an account is and what it posts lately | `rsrc.sh x timeline HANDLE_OR_URL [--limit 20]`             |
 
 A link the user sends gets `x read`. When the post opens a thread (a counter like `(1/6)`, or text
-that runs on), run `x thread` on it too. `--help` after any command lists its flags.
+that runs on), run `x thread` on it too. `--help` after any command lists its flags. An
+`x.com/i/article/ID` link carries no post ID: read the post that links the article, and ask the
+user for it when the message holds only the article link.
 
 `x search` needs the user's own X session, which these machines do not hold: a question that needs
 a search of X is answered with web search, and the reply says X itself was not searched.
@@ -37,7 +39,9 @@ a search of X is answered with web search, and the reply says X itself was not s
   you quote it.
 - `x thread` can stop short without an error. When `meta.notes` flags a likely cut, run
   `rsrc.sh x replies LAST_POST_ID --rank recency` and look for more posts by the same author.
-- `meta.failed` lists each post `x read` could not read, beside the ones it could.
+- A post `x read` could not read is in `meta.failed`, or in `meta.rejected` when X sent a login
+  page or a different post (never quote those), while the others still come back with exit `0`.
+  Match `items` against every input you passed.
 - Cite only URLs that came back in `items`.
 
 ## Open the media

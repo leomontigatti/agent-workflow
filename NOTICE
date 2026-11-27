@@ -99,7 +99,7 @@ https://github.com/SamuelZ12/research-sources
 ================================================================================
 
 Derived in part: skills/reading-x-posts (its commands, its reading of the JSON result, its media
-steps and its error actions). Its scripts/rsrc.sh runs the rsrc CLI at the reviewed commit.
+steps and its error actions). Its scripts/rsrc.sh runs the rsrc CLI at the pinned commit.
 
 MIT License
 

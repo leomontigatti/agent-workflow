@@ -76,9 +76,10 @@
       "id": "research-sources",
       "repo": "SamuelZ12/research-sources",
       "branch": "main",
-      "paths": ["skills/research-sources/SKILL.md", "skills/research-sources/references/x.md", "src/rsrc/channels/x/**", "pyproject.toml"],
+      "paths": ["skills/research-sources/SKILL.md", "skills/research-sources/references/x.md"],
       "license": "MIT, Copyright (c) 2026 Samuel Zhang (LICENSE)",
       "tool": "rsrc",
+      "pin": "e8d2b62820f7ce3b137705cf0ac1f47b52b02395",
       "reviewed": "e8d2b62820f7ce3b137705cf0ac1f47b52b02395",
       "reviewedAt": "2026-11-27"
     }

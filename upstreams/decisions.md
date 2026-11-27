@@ -366,13 +366,14 @@ Read at 4716b3c, the day `sources.json` started watching gentle-ai's `docs/work-
 
 ## research-sources, the X reader (2026-11-27)
 
-The watched source is a CLI the workflow runs as well as a source of ideas: its `tool` field
-makes `reviewed` the commit `skills/reading-x-posts/scripts/rsrc.sh` runs, so marking a review
-moves what every machine runs. Its watched paths include the X code for that reason.
+The watched source is a CLI the workflow runs as well as a source of ideas. Its `tool` and `pin`
+fields name the CLI and the commit `skills/reading-x-posts/scripts/rsrc.sh` runs, apart from
+`reviewed`: marking a review moves the ideas watermark only. The pin moves in a PR of its own,
+which reads the upstream's diff to the new commit and runs `rsrc.sh x read` on a public post.
 
 | Id | Idea | Verdict | Where or why |
 | -- | ---- | ------- | ------------ |
-| `research-sources:x-reader` | Read X posts, threads, replies and timelines through a CLI that prints one JSON shape, with no login. | adopted | `skills/reading-x-posts/`; the CLI runs pinned at `reviewed`. |
+| `research-sources:x-reader` | Read X posts, threads, replies and timelines through a CLI that prints one JSON shape, with no login. | adopted | `skills/reading-x-posts/`; the CLI runs at the source's `pin`. |
 | `research-sources:x-search-session` | Search X as the user's own account, from cookies or a signed-in browser. | declined | Every thread's machine would hold the user's X session; web search answers a topic question. |
 | `research-sources:other-channels` | Reddit, Hacker News, YouTube, LinkedIn and App Store readers. | later | When a session needs one that web search and a page fetch do not cover. |
 | `research-sources:video-transcript` | Transcribe a post's video with a local speech tool. | declined | Its tool runs on Apple Silicon only; the skill views frames and says the sound was not heard. |
