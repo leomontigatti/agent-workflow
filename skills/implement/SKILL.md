@@ -190,9 +190,10 @@ user not to commit overrides this. Conventional-commit subject and body, in the 
 `AGENTS.md` sets.
 
 A commit runs the project's hooks. When one cannot run on this machine (killed for memory, a
-crash before it starts), the machine is too small: stop, and tell the user the work is
-uncommitted on this machine and which size [THREADS.md](THREADS.md) names. Commit with the hooks
-running, never with `--no-verify`.
+crash before it starts), the machine is too small: end the turn, leave the checkout as it is,
+and tell the user the work is uncommitted on this machine and the size
+`docs/agents/validation.md` § Before committing names for the hook; then wait for their direction.
+Commit with the hooks running, never with `--no-verify`.
 
 ## 7. Open the PR and hand it off
 
