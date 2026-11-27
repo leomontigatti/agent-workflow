@@ -75,10 +75,17 @@ Run `docs/agents/validation.md` § Before committing. Fix and re-run each comman
 clean before moving to the next. Read a failure where the command prints it: output cut with
 `tail` or `head` hides it.
 
+When `docs/agents/validation.md` has a § Before review, run it next, once the list above is clean:
+it holds the costly checks (a paid eval, a long replay) whose findings would otherwise arrive
+after the review rounds. A command it routes to the user is asked for now, and step 5 starts once
+every result is in; its results go to the reviewers with the diff. After a later fix, run again
+only the checks whose subject the fix changed (for an eval, the prompt or the code it calls).
+
 ## 4. Verify what a user sees
 
 When the change alters anything a user sees or drives, prove it by `docs/agents/verification.md`:
-launch, drive the flows its § Feature map names for the area (with the browser CLI § Drive names,
+launch, drive the flows its § Feature map names for the area (on a paired device by the user's
+hands, as [PREVIEW.md](PREVIEW.md) says; elsewhere with the browser CLI § Drive names,
 or the machine's browser as [PREVIEW.md](PREVIEW.md) says when it names none), and capture the
 **after** on the same screen, data and account as the reference: the before, or the approved
 variant, captured from a `git worktree add --detach` of `origin/prototype/<n>` beside the clone,
@@ -89,7 +96,9 @@ user reaches, and say so.
 
 ## 5. Review
 
-Spawn every reviewer the way "Spawning a reviewer" in the `code-review` skill says.
+Spawn every reviewer the way "Spawning a reviewer" in the `code-review` skill says. When the
+ticket has an **Out of scope**, paste it into every reviewer's prompt, whatever the tier: a hunk that
+touches an item it lists is a finding.
 
 Tier the review by risk: run `python3 -I <this-skill-dir>/scripts/review.py tier` (pass the base
 when the branch is stacked). It reads the changed paths against the `review-paths` block of
@@ -179,6 +188,12 @@ Commit to the current branch when the run started from an issue, or the user ask
 a PR; otherwise report the result and leave the tree for the user. An explicit request from the
 user not to commit overrides this. Conventional-commit subject and body, in the code language
 `AGENTS.md` sets.
+
+A commit runs the project's hooks. When one cannot run on this machine (killed for memory, a
+crash before it starts), the machine is too small: end the turn, leave the checkout as it is,
+and tell the user the work is uncommitted on this machine and the size
+`docs/agents/validation.md` § Before committing names for the hook; then wait for their direction.
+Commit with the hooks running, never with `--no-verify`.
 
 ## 7. Open the PR and hand it off
 

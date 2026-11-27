@@ -95,6 +95,11 @@ Opus: anthropic/claude-opus-5-5
 Sonnet: anthropic/claude-sonnet-5-5
 ```
 
+A role starts inside the platform's program tool with `tools.subagent.create({ tasks: [{ title,
+prompt }], start: { machine: "shared", model: { model_id, reasoning_mode } } })`, and
+`machine: "fresh"` for a role that writes. One call takes one model and one placement for all its
+`tasks`: a round on two models is two calls in the same program.
+
 - **A subagent shares the thread's machine and checkout, or gets a machine of its own** with a
   clean checkout. A judging role shares: it reads there, uncommitted work included, and writes
   nothing. A role that writes gets its own machine, so two writers never share a checkout.

@@ -46,6 +46,7 @@ Present the proposed breakdown as a numbered list. For each ticket, show:
 - **Title**: short descriptive name
 - **Blocked by**: which other tickets (if any) must complete first
 - **What it delivers**: the end-to-end behaviour this ticket makes work
+- **Out of scope**: what it leaves alone
 
 Check each acceptance criterion first: name the observation that would show it false, and confirm from the code that it fails at the commit the implementer starts from. Rewrite one already true there, and move one only another ticket can satisfy to that ticket.
 
@@ -79,6 +80,12 @@ The end-to-end behaviour this ticket makes work, from the user's perspective, no
 
 - [ ] Criterion 1
 - [ ] Criterion 2
+
+## Out of scope
+
+What a reader could take as part of this ticket and is not: a neighbouring screen, a cleanup,
+data it must leave as it is. The implementer leaves each alone, and every reviewer of its PR
+reports a hunk that touches one.
 
 ## Design
 

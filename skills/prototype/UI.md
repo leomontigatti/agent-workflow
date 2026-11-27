@@ -96,11 +96,11 @@ Put the switcher in a single shared component so both sub-shapes can reuse it. L
 
 ### 5. Check it yourself
 
-Launch by `docs/agents/verification.md` § Launch, once, as a background command, then poll the URL it gives until it answers; a second launch collides with the first. Drive every variant with the browser CLI § Drive names, or with the machine's browser as the `implement` skill's [PREVIEW.md](../implement/PREVIEW.md) says when it names none: each renders with the seed data, the switcher works by button and by key, and the console is clean. Fix what breaks first. Done when every variant passes: the user reviews designs, never a broken page.
+Launch by `docs/agents/verification.md` § Launch, once, as a background command, then poll the URL it gives until it answers; a second launch collides with the first. Drive every variant with the browser CLI § Drive names, or with the machine's browser as the `implement` skill's [PREVIEW.md](../implement/PREVIEW.md) says when it names none: each renders with the seed data, the switcher works by button and by key, and the console is clean. On a paired device the user drives them, as [PREVIEW.md](../implement/PREVIEW.md) says. Fix what breaks first. Done when every variant passes: the user reviews designs, never a broken page.
 
 ### 6. Hand it over
 
-Expose the route's port as a preview and give the user its address. Tell the user the `?variant=` keys, and one line per variant saying what it bets on. The user drives the page and comments in the thread. Each ask changes the **prototype**, then step 5 runs again. Done when the user names a winner.
+Expose the route's port as a preview and give the user its address; on a paired device, give the local address and expose nothing, as [PREVIEW.md](../implement/PREVIEW.md) says. Tell the user the `?variant=` keys, and one line per variant saying what it bets on. The user drives the page and comments in the thread. Each ask changes the **prototype**, then step 5 runs again. Done when the user names a winner.
 
 ### 7. Capture the answer and clean up
 
